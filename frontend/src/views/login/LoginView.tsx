@@ -1,5 +1,5 @@
 import "./login.css"
-import {Button, Stack, TextField, Typography} from "@mui/material";
+import {Alert, Button, Snackbar, Stack, TextField} from "@mui/material";
 import {useState} from "react";
 import { Login } from "../../../wailsjs/go/main/App"
 import {useNavigate} from "react-router";
@@ -16,15 +16,17 @@ export default function LoginView() {
     async function login() {
         const success = await Login(username, password)
         if (success) navigate('/search')
-        else alert('Unable to log in with the supplied credentials.')
+        else setShowErrorMessage(true)
     }
 
     return <div id='login-viewport'>
+        <Snackbar anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} open={showErrorMessage} onClose={() => setShowErrorMessage(false)}>
+            <Alert severity='error'>Unable to log in with the supplied credentials.</Alert>
+        </Snackbar>
         <Stack id='login-form' gap={2}>
-            <TextField variant='outlined' placeholder='Username' type='text' size='small' onChange={updateUsername} />
+            <TextField variant='outlined' placeholder='Username' type='text' size='small' onChange={updateUsername} autoComplete='off' />
             <TextField variant='outlined' placeholder='Password' type='password' size='small' onChange={updatePassword} />
-            <Button sx={{backgroundColor: '#CBB677'}} variant='contained' onClick={login}>Login</Button>
+            <Button sx={{backgroundColor: '#0d1321', color: 'white'}} variant='contained' onClick={login}>Login</Button>
         </Stack>
-        <Typography color='error'>{showErrorMessage && 'Unable to log in with the supplied credentials.'}</Typography>
     </div>
 }

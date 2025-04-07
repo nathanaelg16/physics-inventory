@@ -6,7 +6,7 @@
 }
 
 #nav {
-    background-color: #004a80;
+    background-color: #004e89;
     color: white;
     width: 30%;
     max-width: 300px;
@@ -14,5 +14,5 @@
 }
 
 main {
-    width: 70%;
+    flex: 1;
 }
