@@ -143,7 +143,7 @@ func wildcardWrap(s string) string {
 		return "%"
 	}
 
-	return "%" + s + "%s"
+	return "%" + s + "%"
 }
 
 func formatQueryForField(query string) string {
@@ -176,7 +176,6 @@ func (a *App) runSimpleQuery(page int) ([]Asset, error) {
 }
 
 func (a *App) runKeywordQuery(name, keywords string, page int) ([]Asset, error) {
-	runtime.LogDebugf(a.ctx, "Searching for name like '%s' or keywords like '%s'", name, keywords)
 	stmt, err := a.db.Prepare("select id, location, item_name, brand, model, part, serial_number, au_inventory, quantity, missing from equipment where item_name like ? or keywords like ? limit 25 offset ?;")
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
