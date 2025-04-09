@@ -1,31 +1,89 @@
 .asset-card {
-    border: 2px solid black;
-    border-radius: 20px;
-    padding: 10px 20px;
-    margin: 10px 20px;
-    background-color: #6CB4EE55;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 10px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    font-family: "IBM Plex Sans", sans-serif;
+    transition: all 0.2s ease-in-out;
+    position: relative;
 }
 
 .asset-card:hover {
-    background-color: #6CB4EE;
-    cursor: pointer;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    border-color: #6CB4EE;
+    z-index: 1;
 }
 
-.asset-card--location {
-    text-transform: uppercase;
-    color: #536878;
-    font-size: 1.25rem;
+/* Add a left accent border for visual distinction */
+.asset-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    background-color: #6CB4EE;
+    border-radius: 4px;
 }
 
 .asset-card--main {
     display: flex;
-    flex-direction: row;
-    align-items: center;
     gap: 20px;
+    align-items: center;
+}
+
+.asset-card--image {
+    min-width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.asset-card--details {
+    flex: 1;
 }
 
 .asset-card--title {
     font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+}
+
+.asset-card--sub {
+    margin: 4px 0;
+    color: #475569;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: baseline;
+}
+
+.asset-card--sub strong {
+    width: 60px;
+    color: #64748b;
     font-weight: 500;
-    font-family: serif;
+}
+
+.asset-card--location-badge {
+    display: inline-block;
+    background-color: #f1f5f9;
+    color: #475569;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Add spacing between cards in the list */
+.asset-card + .asset-card {
+    margin-top: 20px;
 }
