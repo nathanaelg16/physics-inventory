@@ -20,6 +20,7 @@ import {
     SetDefaultSearchMode
 } from "../../../wailsjs/go/main/App";
 import {SnackbarAlert} from "../../views/search/SearchView";
+import {useSessionStorage} from "@uidotdev/usehooks"
 
 interface Props {
     onResult: (results: Array<Asset>) => void,
@@ -33,12 +34,16 @@ type SearchMode = 'regular' | 'full_text' | 'full_text_query_expansion' | 'boole
 
 export default function SearchBox(props: Props) {
     const navigate = useNavigate()
-    const [searchQuery, setSearchQuery] = useState<string>('')
-    const [searchMode, setSearchMode] = useState<SearchMode>('regular')
-    const [searchType, setSearchType] = useState<SearchType>('keywords')
+
+    const [searchQuery, setSearchQuery] = useSessionStorage<string>('search_query', '')
+    const [searchMode, setSearchMode] = useSessionStorage<SearchMode>('search_mode', 'regular')
+    const [searchType, setSearchType] = useSessionStorage<SearchType>('search_type', 'keywords')
     const [showAdvancedOptionsDialog, setShowAdvancedOptionsDialog] = useState<boolean>(false)
 
     useEffect(() => {
+        // load initial list of assets
+        void performSearch()
+
         // load default search mode
         GetDefaultSearchMode()
             .then((res) => setSearchMode(res as SearchMode))
