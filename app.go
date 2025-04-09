@@ -4,17 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const DBHost = "localhost:3306"
 
 // App struct
 type App struct {
-	ctx context.Context
-	db  *sql.DB
+	ctx      context.Context
+	db       *sql.DB
+	username string
 }
 
 // NewApp creates a new App application struct
@@ -34,41 +34,49 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 }
 
-func (a *App) Login(username string, password string) bool {
+func (a *App) Login(username string, password string) (bool, error) {
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory", username, password, DBHost))
 	if err != nil {
-		fmt.Println(err.Error())
-		return false
+		runtime.LogError(a.ctx, err.Error())
+		return false, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		fmt.Println(err.Error())
-		return false
+		runtime.LogError(a.ctx, err.Error())
+		return false, err
+	}
+
+	checkExistsStmt, err := db.Prepare("select exists(select 1 from users where username = ?);")
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return false, err
+	}
+
+	var checkExistsResult int
+	err = checkExistsStmt.QueryRow(username).Scan(&checkExistsResult)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return false, err
+	}
+	defer checkExistsStmt.Close()
+
+	if checkExistsResult != 1 {
+		insertUserStmt, err := db.Prepare("insert into users (username) value (?);")
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			return false, err
+		}
+		defer insertUserStmt.Close()
+
+		_, err = insertUserStmt.Exec(username)
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			return false, err
+		}
 	}
 
 	a.db = db
-	return true
-}
-
-func (a *App) Search(query string) []Asset {
-	asset1 := Asset{
-		id:              1,
-		name:            "Dynamics cart",
-		location:        "HYH-231-A1",
-		keywords:        "dynamics, cart",
-		brand:           "Dynamo",
-		model:           "SpeedRacer",
-		part:            "DSR-800",
-		quantity:        "1",
-		purchaseDate:    time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
-		purchaseAmount:  "$99.00",
-		missing:         false,
-		quantityMissing: "",
-		recordLocator:   -1,
-	}
-
-	// todo add a few assets into the database with images, configure this method to fetch from db and return results
-
-	return []Asset{asset1}
+	a.username = username
+	return true, nil
 }

@@ -1,0 +1,31 @@
+.asset-card {
+    border: 2px solid black;
+    border-radius: 20px;
+    padding: 10px 20px;
+    margin: 10px 20px;
+    background-color: #6CB4EE55;
+}
+
+.asset-card:hover {
+    background-color: #6CB4EE;
+    cursor: pointer;
+}
+
+.asset-card--location {
+    text-transform: uppercase;
+    color: #536878;
+    font-size: 1.25rem;
+}
+
+.asset-card--main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.asset-card--title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    font-family: serif;
+}
