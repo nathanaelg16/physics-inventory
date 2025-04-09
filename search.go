@@ -159,7 +159,7 @@ func formatQueryForField(query string) string {
 }
 
 func (a *App) runSimpleQuery(page int) ([]Asset, error) {
-	stmt, err := a.db.Prepare("select id, location, item_name, brand, model, part, serial_number, au_inventory, quantity, missing from equipment order by item_name limit 25 offset ?;")
+	stmt, err := a.db.Prepare("select e.id, i.image_one, e.location, e.item_name, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.missing from equipment e left join images_and_receipts i on e.id = i.id order by item_name limit 25 offset ?;")
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return nil, err
@@ -176,7 +176,7 @@ func (a *App) runSimpleQuery(page int) ([]Asset, error) {
 }
 
 func (a *App) runKeywordQuery(name, keywords string, page int) ([]Asset, error) {
-	stmt, err := a.db.Prepare("select id, location, item_name, brand, model, part, serial_number, au_inventory, quantity, missing from equipment where item_name like ? or keywords like ? limit 25 offset ?;")
+	stmt, err := a.db.Prepare("select e.id, i.image_one, e.location, e.item_name, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.missing from equipment e left join images_and_receipts i on e.id = i.id where item_name like ? or keywords like ? limit 25 offset ?;")
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return nil, err
@@ -193,7 +193,7 @@ func (a *App) runKeywordQuery(name, keywords string, page int) ([]Asset, error) 
 }
 
 func (a *App) runFieldQuery(field string, query string, page int) ([]Asset, error) {
-	stmt, err := a.db.Prepare(fmt.Sprintf("select id, location, item_name, brand, model, part, serial_number, au_inventory, quantity, missing from equipment where %s like ? order by item_name limit 25 offset ?;", field))
+	stmt, err := a.db.Prepare(fmt.Sprintf("select e.id, i.image_one, e.location, e.item_name, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.missing from equipment e left join images_and_receipts i on e.id = i.id where %s like ? order by item_name limit 25 offset ?;", field))
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return nil, err
@@ -218,7 +218,7 @@ func (a *App) processResults(rows *sql.Rows) []Asset {
 		var asset Asset
 		var missing sql.NullString
 
-		err := rows.Scan(&asset.Id, &asset.Location, &asset.Name, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &missing)
+		err := rows.Scan(&asset.Id, &asset.Image, &asset.Location, &asset.Name, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &missing)
 		if err != nil {
 			runtime.LogError(a.ctx, err.Error())
 		}

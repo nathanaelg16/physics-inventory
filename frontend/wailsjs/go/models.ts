@@ -2,6 +2,7 @@ export namespace main {
 	
 	export class Asset {
 	    id: number;
+	    image: number[];
 	    name: sql.NullString;
 	    location: sql.NullString;
 	    keywords: sql.NullString;
@@ -32,6 +33,7 @@ export namespace main {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
+	        this.image = source["image"];
 	        this.name = this.convertValues(source["name"], sql.NullString);
 	        this.location = this.convertValues(source["location"], sql.NullString);
 	        this.keywords = this.convertValues(source["keywords"], sql.NullString);

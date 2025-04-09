@@ -16,8 +16,9 @@ export default function AssetCard(props: Props) {
                 <img
                     className="asset-card--image"
                     alt={asset.name.String}
-                    src={imageNotAvailable}
+                    src={asset.image !== null ? `data:image/unknown;base64,${asset.image}` : imageNotAvailable}
                     height={100}
+                    width={100}
                 />
                 <div className="asset-card--details">
                     <p className="asset-card--title">{asset.name.String}</p>

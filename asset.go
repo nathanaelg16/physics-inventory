@@ -6,6 +6,7 @@ import (
 
 type Asset struct {
 	Id                  int64          `json:"id"`
+	Image               []byte         `json:"image"`
 	Name                sql.NullString `json:"name"`
 	Location            sql.NullString `json:"location"`
 	Keywords            sql.NullString `json:"keywords"`
