@@ -123,19 +123,55 @@ func (a *App) SearchModeRegular(query string, withType string) ([]Asset, error) 
 	return a.runFieldQuery(withType, query, 0)
 }
 
-// todo implement this
-func (a *App) SearchModeFullText(query string) []Asset {
-	return []Asset{}
+func (a *App) SearchModeFullText(query string) ([]Asset, error) {
+	stmt, err := a.db.Prepare("select e.id, i.image_one, e.location, e.item_name, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.missing from equipment e left join images_and_receipts i on e.id = i.id where match (e.item_name, e.keywords, e.brand, e.model, e.vendor) against (? in natural language mode);")
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(query)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return nil, err
+	}
+
+	return a.processResults(rows), nil
 }
 
-// todo implement this
-func (a *App) SearchModeFullTextWithQueryExpansion(query string) []Asset {
-	return []Asset{}
+func (a *App) SearchModeFullTextWithQueryExpansion(query string) ([]Asset, error) {
+	stmt, err := a.db.Prepare("select e.id, i.image_one, e.location, e.item_name, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.missing from equipment e left join images_and_receipts i on e.id = i.id where match (e.item_name, e.keywords, e.brand, e.model, e.vendor) against (? in natural language mode with query expansion);")
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(query)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return nil, err
+	}
+
+	return a.processResults(rows), nil
 }
 
-// todo implement this
-func (a *App) SearchModeBoolean(query string) []Asset {
-	return []Asset{}
+func (a *App) SearchModeBoolean(query string) ([]Asset, error) {
+	stmt, err := a.db.Prepare("select e.id, i.image_one, e.location, e.item_name, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.missing from equipment e left join images_and_receipts i on e.id = i.id where match (e.item_name, e.keywords, e.brand, e.model, e.vendor) against (? in boolean mode);")
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(query)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return nil, err
+	}
+
+	return a.processResults(rows), nil
 }
 
 func wildcardWrap(s string) string {
