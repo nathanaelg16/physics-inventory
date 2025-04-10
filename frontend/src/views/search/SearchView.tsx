@@ -5,11 +5,7 @@ import Asset = main.Asset;
 import {Alert, Snackbar} from "@mui/material";
 import "./searchView.css"
 import AssetCard from "../../components/asset-card/AssetCard";
-
-export type SnackbarAlert = {
-    severity: 'success' | 'info' | 'warning' | 'error'
-    msg: string
-}
+import {SnackbarAlert} from "../../utils/snackbar-alert";
 
 export default function SearchView() {
     const [results, setResults] = useState<Array<Asset>>([])

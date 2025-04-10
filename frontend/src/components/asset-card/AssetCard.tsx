@@ -1,6 +1,7 @@
 import {main} from "../../../wailsjs/go/models";
 import Asset = main.Asset;
 import imageNotAvailable from "../../assets/image_not_available.png"
+import {useNavigate} from "react-router";
 import "./assetCard.css"
 
 interface Props {
@@ -10,8 +11,12 @@ interface Props {
 export default function AssetCard(props: Props) {
     const asset = props.asset
 
+    const navigate = useNavigate()
+
+    const handleClick = () => navigate(`/asset/${asset.id}`)
+
     return (
-        <div className='asset-card'>
+        <div className='asset-card' onClick={handleClick}>
             <div className="asset-card--main">
                 <img
                     className="asset-card--image"

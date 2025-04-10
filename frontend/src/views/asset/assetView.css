@@ -1,0 +1,33 @@
+.asset--main-details {
+    display: flex;
+    flex-direction: row;
+}
+
+.asset--details {
+    flex: 1;
+}
+
+.asset--details-field {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.asset--details-sub-group-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.asset--details-name {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.asset--details-addl > p:first-child {
+    background: #004e89;
+    color: white;
+    font-weight: 600;
+    height: 30px;
+    padding: 2px 10px;
+}

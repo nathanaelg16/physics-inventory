@@ -35,7 +35,7 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 func (a *App) Login(username string, password string) (bool, error) {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory", username, password, DBHost))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory?parseTime=true", username, password, DBHost))
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return false, err

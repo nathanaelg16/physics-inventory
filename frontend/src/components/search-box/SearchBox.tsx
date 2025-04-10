@@ -19,7 +19,7 @@ import {
     SearchModeRegular,
     SetDefaultSearchMode
 } from "../../../wailsjs/go/main/App";
-import {SnackbarAlert} from "../../views/search/SearchView";
+import {SnackbarAlert} from "../../utils/snackbar-alert"
 import {useSessionStorage} from "@uidotdev/usehooks"
 
 interface Props {
