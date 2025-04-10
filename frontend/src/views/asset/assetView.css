@@ -51,6 +51,7 @@
     flex-direction: row;
     gap: 48px;
     flex-wrap: wrap;
+    margin-left: 5px;
 }
 
 .asset--details-sub-group {

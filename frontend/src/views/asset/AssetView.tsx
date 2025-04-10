@@ -1,14 +1,14 @@
-import { useNavigate, useParams } from "react-router";
-import { Button, Skeleton, useMediaQuery, useTheme } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
-import { main } from "../../../wailsjs/go/models";
-import Asset = main.Asset;
-import { useEffect, useState } from "react";
-import imageNotAvailable from "../../assets/image_not_available.png";
-import { SnackbarAlert } from "../../utils/snackbar-alert";
-import { GetAsset } from "../../../wailsjs/go/main/App";
-import EditableParagraph from "../../components/editable-paragraph/EditableParagraph";
-import "./assetView.css";
+import { useNavigate, useParams } from "react-router"
+import { Button, Skeleton, useMediaQuery, useTheme } from "@mui/material"
+import { ArrowBack } from "@mui/icons-material"
+import { main } from "../../../wailsjs/go/models"
+import Asset = main.Asset
+import { useEffect, useState } from "react"
+import imageNotAvailable from "../../assets/image_not_available.png"
+import { SnackbarAlert } from "../../utils/snackbar-alert"
+import { GetAsset } from "../../../wailsjs/go/main/App"
+import EditableParagraph from "../../components/editable-paragraph/EditableParagraph"
+import "./assetView.css"
 
 // Helper component for field display
 const AssetField = ({
@@ -19,12 +19,12 @@ const AssetField = ({
                         multiline = false,
                         placeholder = 'N/A'
                     }: {
-    label: string;
-    fieldName: string;
-    value: string;
-    onSave: (field: string, value: string) => Promise<void>;
-    multiline?: boolean;
-    placeholder?: string;
+    label: string
+    fieldName: string
+    value: string
+    onSave: (field: string, value: string) => Promise<void>
+    multiline?: boolean
+    placeholder?: string
 }) => (
     <div className="asset--details-field">
         <p><strong>{label}</strong></p>
@@ -35,40 +35,39 @@ const AssetField = ({
             placeholder={placeholder}
         />
     </div>
-);
+)
 
 export default function AssetView() {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [asset, setAsset] = useState<Asset>();
-    const [loading, setLoading] = useState(true);
-    const [alert, showAlert] = useState<SnackbarAlert | null>(null);
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isExtraSmall = useMediaQuery('(max-width:480px)');
+    const { id } = useParams()
+    const navigate = useNavigate()
+    const [asset, setAsset] = useState<Asset>()
+    const [loading, setLoading] = useState(true)
+    const [alert, showAlert] = useState<SnackbarAlert | null>(null)
+    const theme = useTheme()
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
     useEffect(() => {
         if (id !== undefined) {
-            setLoading(true);
+            setLoading(true)
             GetAsset(parseInt(id))
                 .then((res) => {
-                    setAsset(res);
-                    setLoading(false);
+                    setAsset(res)
+                    setLoading(false)
                 })
                 .catch(() => {
                     showAlert({
                         severity: 'error',
                         msg: 'An error occurred fetching asset details.'
-                    });
-                    setLoading(false);
-                });
+                    })
+                    setLoading(false)
+                })
         }
-    }, [id]);
+    }, [id])
 
     const saveChangesToField = (field: string, newValue: string): Promise<void> => {
         // todo save these changes in database
-        return Promise.resolve();
-    };
+        return Promise.resolve()
+    }
 
     if (loading) {
         return (
@@ -78,13 +77,13 @@ export default function AssetView() {
                     startIcon={<ArrowBack />}
                     onClick={() => navigate(-1)}
                     className="asset-back-button"
-                    size={isMobile ? "small" : "medium"}
+                    size={isSmallScreen ? "small" : "medium"}
                 >
                     Back
                 </Button>
-                <Skeleton variant="rectangular" height={isMobile ? 300 : 400} />
+                <Skeleton variant="rectangular" height={isSmallScreen ? 300 : 400} />
             </div>
-        );
+        )
     }
 
     if (!asset) {
@@ -100,7 +99,7 @@ export default function AssetView() {
                 </Button>
                 <p>Asset not found or an error occurred.</p>
             </div>
-        );
+        )
     }
 
     return (
@@ -110,7 +109,8 @@ export default function AssetView() {
                 startIcon={<ArrowBack />}
                 onClick={() => navigate(-1)}
                 className="asset-back-button"
-                size={isMobile ? "small" : "medium"}
+                size={isSmallScreen ? "small" : "medium"}
+                sx={{mb: 2}}
             >
                 Back
             </Button>
@@ -128,8 +128,6 @@ export default function AssetView() {
                         onSave={(newText) => saveChangesToField('name', newText)}
                         className="asset--details-name"
                     />
-
-                    {/* Location information is included in the form fields section for all screen sizes */}
 
                     <div className="asset--details-sub-group-container">
                         <div className="asset--details-sub-group">
@@ -240,5 +238,5 @@ export default function AssetView() {
                 </div>
             </div>
         </div>
-    );
+    )
 }

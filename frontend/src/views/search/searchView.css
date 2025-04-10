@@ -8,3 +8,9 @@
     color: #555;
     font-size: 14px;
 }
+
+.search-view-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

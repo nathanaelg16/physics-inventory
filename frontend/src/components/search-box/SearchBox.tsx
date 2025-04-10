@@ -24,7 +24,8 @@ import {useSessionStorage} from "@uidotdev/usehooks"
 
 interface Props {
     onResult: (results: Array<Asset>) => void,
-    onAlert: (alert: SnackbarAlert) => void
+    onAlert: (alert: SnackbarAlert) => void,
+    setSearching: (isSearching: boolean) => void,
 }
 
 type SearchType = 'au_inventory' | 'brand' | 'item_name' | 'keywords' | 'location' | 'model' | 'notes'
@@ -70,6 +71,7 @@ export default function SearchBox(props: Props) {
     }
 
     const performSearch = async () => {
+        props.setSearching(true)
         try {
             let results: Array<Asset>
 
@@ -95,6 +97,8 @@ export default function SearchBox(props: Props) {
                 msg: 'An error occurred.'
             })
         }
+
+        props.setSearching(false)
     }
 
     const enterKeyListener = async (e: KeyboardEvent<HTMLInputElement>) => {
@@ -129,6 +133,7 @@ export default function SearchBox(props: Props) {
                 <TextField fullWidth variant='outlined' label='Search' value={searchQuery}
                            onChange={(e: any) => setSearchQuery(e.target.value)}
                            onKeyUp={enterKeyListener}
+                           autoComplete='off'
                 />
             </Grid>
 

@@ -75,6 +75,7 @@ export default function EditableParagraph({
             size="small"
             autoFocus
             sx={{ margin: '4px 0' }}
+            autoComplete='off'
         />
     ) : (
         <p
