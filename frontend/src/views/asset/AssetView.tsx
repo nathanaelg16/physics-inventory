@@ -1,15 +1,15 @@
-import { useNavigate, useParams } from "react-router"
-import { Button, Skeleton, useMediaQuery, useTheme } from "@mui/material"
-import { ArrowBack } from "@mui/icons-material"
-import { main } from "../../../wailsjs/go/models"
+import { useNavigate, useParams } from 'react-router'
+import { Button, Skeleton, useMediaQuery, useTheme, Alert, Snackbar } from '@mui/material'
+import { ArrowBack, Save } from '@mui/icons-material'
+import { main } from '../../../wailsjs/go/models'
 import Asset = main.Asset
-import { useEffect, useState } from "react"
-import imageNotAvailable from "../../assets/image_not_available.png"
-import { SnackbarAlert } from "../../utils/snackbar-alert"
-import {GetAsset, UpdateAsset} from "../../../wailsjs/go/main/App"
-import EditableParagraph from "../../components/editable-paragraph/EditableParagraph"
-import "./assetView.css"
-import AssetField from "../../components/asset-field/AssetField";
+import { useEffect, useState } from 'react'
+import imageNotAvailable from '../../assets/image_not_available.png'
+import { SnackbarAlert } from '../../utils/snackbar-alert'
+import { GetAsset, UpdateAsset } from '../../../wailsjs/go/main/App'
+import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
+import AssetField from '../../components/asset-field/AssetField'
+import './assetView.css'
 
 export default function AssetView() {
     const { id } = useParams()
@@ -19,7 +19,7 @@ export default function AssetView() {
     const [loading, setLoading] = useState<boolean>(true)
     const [alert, showAlert] = useState<SnackbarAlert | null>(null)
     const [edits, setEdits] = useState<any>({})
-
+    const [saving, setSaving] = useState<boolean>(false)
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -48,51 +48,51 @@ export default function AssetView() {
     const saveChangesToField = (field: string, newValue: string) => {
         if (!asset) return
 
-        let currentValue: any = ""
+        let currentValue: any = ''
 
         switch (field) {
             case 'vendor':
             case 'unitPrice':
-                currentValue = asset[field] || ""
+                currentValue = asset[field] || ''
                 break
             case 'purchaseDate':
-                currentValue = asset.purchaseDate.Time || ""
+                currentValue = asset.purchaseDate.Time || ''
                 break
             case 'name':
-                currentValue = asset.name.String || ""
+                currentValue = asset.name.String || ''
                 break
             case 'location':
-                currentValue = asset.location.String || ""
+                currentValue = asset.location.String || ''
                 break
             case 'keywords':
-                currentValue = asset.keywords.String || ""
+                currentValue = asset.keywords.String || ''
                 break
             case 'brand':
-                currentValue = asset.brand.String || ""
+                currentValue = asset.brand.String || ''
                 break
             case 'model':
-                currentValue = asset.model.String || ""
+                currentValue = asset.model.String || ''
                 break
             case 'part':
-                currentValue = asset.part.String || ""
+                currentValue = asset.part.String || ''
                 break
             case 'serial':
-                currentValue = asset.serial.String || ""
+                currentValue = asset.serial.String || ''
                 break
             case 'auInventory':
-                currentValue = asset.auInventory.String || ""
+                currentValue = asset.auInventory.String || ''
                 break
             case 'quantity':
-                currentValue = asset.quantity.String || ""
+                currentValue = asset.quantity.String || ''
                 break
             case 'purchaseAmount':
-                currentValue = asset.purchaseAmount.String || ""
+                currentValue = asset.purchaseAmount.String || ''
                 break
             case 'notes':
-                currentValue = asset.notes.String || ""
+                currentValue = asset.notes.String || ''
                 break
             default:
-                currentValue = ""
+                currentValue = ''
         }
 
         // Check if the value is actually changing
@@ -112,6 +112,31 @@ export default function AssetView() {
         }
     }
 
+    const saveChanges = () => {
+        if (!asset || !hasEdits) return
+
+        setSaving(true)
+
+        // Call the UpdateAsset function
+        UpdateAsset(edits)
+            .then(() => {
+                showAlert({
+                    severity: 'success',
+                    msg: 'Asset updated successfully!'
+                })
+                setEdits({}) // Clear edits after successful save
+                setSaving(false)
+            })
+            .catch((err) => {
+                console.error('Error updating asset:', err)
+                showAlert({
+                    severity: 'error',
+                    msg: 'Failed to update asset. Please try again.'
+                })
+                setSaving(false)
+            })
+    }
+
     if (loading) {
         return (
             <div className="asset-view-container">
@@ -120,7 +145,7 @@ export default function AssetView() {
                     startIcon={<ArrowBack />}
                     onClick={() => navigate(-1)}
                     className="asset-back-button"
-                    size={isSmallScreen ? "small" : "medium"}
+                    size={isSmallScreen ? 'small' : 'medium'}
                 >
                     Back
                 </Button>
@@ -147,16 +172,39 @@ export default function AssetView() {
 
     return (
         <div className="asset-view-container">
-            <Button
-                variant="text"
-                startIcon={<ArrowBack />}
-                onClick={() => navigate(-1)}
-                className="asset-back-button"
-                size={isSmallScreen ? "small" : "medium"}
-                sx={{mb: 2}}
-            >
-                Back
-            </Button>
+            <div className="asset-header">
+                <Button
+                    variant="text"
+                    startIcon={<ArrowBack />}
+                    onClick={() => navigate(-1)}
+                    className="asset-back-button"
+                    size={isSmallScreen ? 'small' : 'medium'}
+                    sx={{mb: 2}}
+                >
+                    Back
+                </Button>
+
+                {hasEdits && (
+                    <div className="asset-unsaved-container">
+                        <Alert
+                            severity="warning"
+                            className="asset-unsaved-warning"
+                        >
+                            You have unsaved changes
+                        </Alert>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<Save />}
+                            onClick={saveChanges}
+                            disabled={saving}
+                            className="asset-save-button"
+                        >
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    </div>
+                )}
+            </div>
 
             <div className="asset--main-details">
                 <div className="asset--image">
@@ -280,6 +328,20 @@ export default function AssetView() {
                     </div>
                 </div>
             </div>
+
+            {/* Alert/Snackbar for messages */}
+            {alert && (
+                <Snackbar
+                    open={!!alert}
+                    autoHideDuration={6000}
+                    onClose={() => showAlert(null)}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                >
+                    <Alert severity={alert.severity} onClose={() => showAlert(null)}>
+                        {alert.msg}
+                    </Alert>
+                </Snackbar>
+            )}
         </div>
     )
 }

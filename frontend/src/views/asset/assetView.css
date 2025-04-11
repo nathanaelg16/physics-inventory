@@ -206,3 +206,40 @@
         margin-bottom: 16px;
     }
 }
+
+.asset-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.asset-unsaved-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.asset-unsaved-warning {
+    margin: 0;
+}
+
+.asset-save-button {
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .asset-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .asset-unsaved-container {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+}
