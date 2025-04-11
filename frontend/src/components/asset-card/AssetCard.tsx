@@ -20,8 +20,11 @@ export default function AssetCard(props: Props) {
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
     }
 
+    // Add class for missing assets
+    const cardClassName = `asset-card ${asset.missing ? 'asset-card--missing' : ''}`
+
     return (
-        <div className='asset-card' onClick={handleClick}>
+        <div className={cardClassName} onClick={handleClick}>
             <div className="asset-card--main">
                 <img
                     className="asset-card--image"

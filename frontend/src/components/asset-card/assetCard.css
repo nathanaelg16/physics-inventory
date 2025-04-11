@@ -30,6 +30,15 @@
     border-radius: 4px
 }
 
+/* Special styling for missing assets */
+.asset-card--missing::before {
+    background-color: #f44336;
+}
+
+.asset-card--missing:hover {
+    border-color: #f44336;
+}
+
 .asset-card--main {
     display: flex;
     gap: 20px;
