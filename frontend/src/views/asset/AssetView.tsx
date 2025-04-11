@@ -25,7 +25,6 @@ export default function AssetView() {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
     const hasEdits = Object.keys(edits).length > 0
-    console.log('hasEdits', hasEdits)
 
     useEffect(() => {
         if (id !== undefined) {
