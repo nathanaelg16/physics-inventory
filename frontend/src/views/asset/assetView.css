@@ -129,7 +129,6 @@
     margin-top: 8px;
 }
 
-/* Responsive styles for small screens */
 @media (max-width: 916px) {
     .asset-view-container {
         padding: 12px;
@@ -232,14 +231,37 @@
     white-space: nowrap;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
     .asset-header {
-        flex-direction: column;
-        align-items: flex-start;
+        padding-bottom: 0.5rem;
+    }
+
+    .asset-back-button {
+        margin-bottom: 0.5rem !important;
     }
 
     .asset-unsaved-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .asset-unsaved-warning {
+        padding: 0.5rem;
+    }
+
+    .asset-unsaved-warning .MuiAlert-icon {
+        padding: 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    .asset-unsaved-warning .MuiAlert-message {
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+    }
+
+    .asset-save-button {
         width: 100%;
-        margin-top: 0.5rem;
+        padding: 0.5rem;
     }
 }

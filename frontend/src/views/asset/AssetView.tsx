@@ -117,7 +117,6 @@ export default function AssetView() {
 
         setSaving(true)
 
-        // Call the UpdateAsset function
         UpdateAsset(edits)
             .then(() => {
                 showAlert({
@@ -179,7 +178,6 @@ export default function AssetView() {
                     onClick={() => navigate(-1)}
                     className="asset-back-button"
                     size={isSmallScreen ? 'small' : 'medium'}
-                    sx={{mb: 2}}
                 >
                     Back
                 </Button>
@@ -189,6 +187,7 @@ export default function AssetView() {
                         <Alert
                             severity="warning"
                             className="asset-unsaved-warning"
+                            variant={isSmallScreen ? "outlined" : "standard"}
                         >
                             You have unsaved changes
                         </Alert>
@@ -199,6 +198,8 @@ export default function AssetView() {
                             onClick={saveChanges}
                             disabled={saving}
                             className="asset-save-button"
+                            fullWidth={isSmallScreen}
+                            size={isSmallScreen ? 'small' : 'medium'}
                         >
                             {saving ? 'Saving...' : 'Save Changes'}
                         </Button>
