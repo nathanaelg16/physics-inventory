@@ -3,7 +3,7 @@ import {TextField} from "@mui/material";
 
 interface Props {
     text: string,
-    onSave: (newText: string) => Promise<void>,
+    onSave: (newText: string) => void,
     className?: string,
     multiline?: boolean,
     placeholder?: string,
@@ -39,10 +39,6 @@ export default function EditableParagraph({
         setEditing(false);
         if (value !== text) {
             onSave(value)
-                .catch(() => {
-                    // on error, reset to original value
-                    setValue(text)
-                })
         }
     };
 
@@ -51,10 +47,6 @@ export default function EditableParagraph({
             e.preventDefault()
             setEditing(false)
             onSave(value)
-                .catch(() => {
-                    // on error, reset to original value
-                    setValue(text)
-                })
         } else if (e.key === 'Escape') {
             e.preventDefault()
             setValue(text) // Reset to original value
@@ -83,7 +75,7 @@ export default function EditableParagraph({
             onClick={handleClick}
             style={{ cursor: 'pointer' }}
         >
-            {text || <span style={{ color: '#999', fontStyle: 'italic' }}>{placeholder}</span>}
+            {value || <span style={{ color: '#999', fontStyle: 'italic' }}>{placeholder}</span>}
         </p>
     );
 }

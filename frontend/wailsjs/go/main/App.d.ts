@@ -17,3 +17,5 @@ export function SearchModeFullTextWithQueryExpansion(arg1:string):Promise<Array<
 export function SearchModeRegular(arg1:string,arg2:string):Promise<Array<main.Asset>>;
 
 export function SetDefaultSearchMode(arg1:string):Promise<void>;
+
+export function UpdateAsset(arg1:Record<string, any>):Promise<void>;

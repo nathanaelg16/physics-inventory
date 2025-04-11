@@ -6,45 +6,26 @@ import Asset = main.Asset
 import { useEffect, useState } from "react"
 import imageNotAvailable from "../../assets/image_not_available.png"
 import { SnackbarAlert } from "../../utils/snackbar-alert"
-import { GetAsset } from "../../../wailsjs/go/main/App"
+import {GetAsset, UpdateAsset} from "../../../wailsjs/go/main/App"
 import EditableParagraph from "../../components/editable-paragraph/EditableParagraph"
 import "./assetView.css"
-
-// Helper component for field display
-const AssetField = ({
-                        label,
-                        fieldName,
-                        value,
-                        onSave,
-                        multiline = false,
-                        placeholder = 'N/A'
-                    }: {
-    label: string
-    fieldName: string
-    value: string
-    onSave: (field: string, value: string) => Promise<void>
-    multiline?: boolean
-    placeholder?: string
-}) => (
-    <div className="asset--details-field">
-        <p><strong>{label}</strong></p>
-        <EditableParagraph
-            text={value}
-            onSave={(newText) => onSave(fieldName, newText)}
-            multiline={multiline}
-            placeholder={placeholder}
-        />
-    </div>
-)
+import AssetField from "../../components/asset-field/AssetField";
 
 export default function AssetView() {
     const { id } = useParams()
     const navigate = useNavigate()
+
     const [asset, setAsset] = useState<Asset>()
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState<boolean>(true)
     const [alert, showAlert] = useState<SnackbarAlert | null>(null)
+    const [edits, setEdits] = useState<any>({})
+
+
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+
+    const hasEdits = Object.keys(edits).length > 0
+    console.log('hasEdits', hasEdits)
 
     useEffect(() => {
         if (id !== undefined) {
@@ -64,9 +45,71 @@ export default function AssetView() {
         }
     }, [id])
 
-    const saveChangesToField = (field: string, newValue: string): Promise<void> => {
-        // todo save these changes in database
-        return Promise.resolve()
+    const saveChangesToField = (field: string, newValue: string) => {
+        if (!asset) return
+
+        let currentValue: any = ""
+
+        switch (field) {
+            case 'vendor':
+            case 'unitPrice':
+                currentValue = asset[field] || ""
+                break
+            case 'purchaseDate':
+                currentValue = asset.purchaseDate.Time || ""
+                break
+            case 'name':
+                currentValue = asset.name.String || ""
+                break
+            case 'location':
+                currentValue = asset.location.String || ""
+                break
+            case 'keywords':
+                currentValue = asset.keywords.String || ""
+                break
+            case 'brand':
+                currentValue = asset.brand.String || ""
+                break
+            case 'model':
+                currentValue = asset.model.String || ""
+                break
+            case 'part':
+                currentValue = asset.part.String || ""
+                break
+            case 'serial':
+                currentValue = asset.serial.String || ""
+                break
+            case 'auInventory':
+                currentValue = asset.auInventory.String || ""
+                break
+            case 'quantity':
+                currentValue = asset.quantity.String || ""
+                break
+            case 'purchaseAmount':
+                currentValue = asset.purchaseAmount.String || ""
+                break
+            case 'notes':
+                currentValue = asset.notes.String || ""
+                break
+            default:
+                currentValue = ""
+        }
+
+        // Check if the value is actually changing
+        if (currentValue === newValue) {
+            // If the values are the same, remove the field from edits if it exists
+            if (edits[field]) {
+                const newEdits = { ...edits }
+                delete newEdits[field]
+                setEdits(newEdits)
+            }
+        } else {
+            // If the values are different, update the edits object
+            setEdits({
+                ...edits,
+                [field]: newValue
+            })
+        }
     }
 
     if (loading) {

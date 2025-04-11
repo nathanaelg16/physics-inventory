@@ -74,3 +74,7 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 
 	return asset, nil
 }
+
+func (a *App) UpdateAsset(updates map[string]any) error {
+	return nil
+}

@@ -19,9 +19,9 @@ export default function SearchView() {
         <div className="horizontal-line"></div>
         <div className="results-count">
             <Typography variant="body2" color="textSecondary">
-                {results.length > 0
+                {isSearching ? 'Searching...' : (results.length > 0
                     ? `Found ${results.length} asset${results.length !== 1 ? 's' : ''}`
-                    : 'No assets found'}
+                    : 'No assets found')}
             </Typography>
         </div>
         <div id='results'>
