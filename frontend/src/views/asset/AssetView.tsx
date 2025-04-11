@@ -17,6 +17,7 @@ import { SnackbarAlert } from '../../utils/snackbar-alert'
 import { GetAsset, UpdateAsset } from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
+import AssetFieldWithButton from "../../components/asset-field/AssetFieldWithButton"
 import './assetView.css'
 
 export default function AssetView() {
@@ -34,7 +35,7 @@ export default function AssetView() {
 
     const hasEdits = Object.keys(edits).length > 0
 
-    useEffect(() => {
+    const getAsset = () => {
         if (id !== undefined) {
             setLoading(true)
             GetAsset(parseInt(id))
@@ -50,6 +51,10 @@ export default function AssetView() {
                     setLoading(false)
                 })
         }
+    }
+
+    useEffect(() => {
+        getAsset()
     }, [id])
 
     const saveChangesToField = (field: string, newValue: string) => {
@@ -141,6 +146,11 @@ export default function AssetView() {
                 })
                 setSaving(false)
             })
+    }
+
+    const assignRecordLocator = () => {
+        /* todo assign record locator on backend, then call getAsset()
+            if has edits, cancel operation and warn about unsaved changes */
     }
 
     // Format date for display in tooltip
@@ -320,6 +330,13 @@ export default function AssetView() {
             <div className="asset--details-addl">
                 <p>Additional Information</p>
                 <div className="asset--details-addl-content">
+                    <AssetFieldWithButton label='Record #:'
+                                          fieldName='recordLocator'
+                                          value={asset.recordLocator >= 0 ? asset.recordLocator.toString().padStart(5, '0') : ''}
+                                          onSave={(newValue) => saveChangesToField('recordLocator', newValue)}
+                                          showAction={asset.recordLocator == -1 && edits['recordLocator'] === undefined}
+                                          actionLabel='Auto-assign'
+                                          onAction={assignRecordLocator} />
                     <AssetField
                         label="Vendor:"
                         fieldName="vendor"

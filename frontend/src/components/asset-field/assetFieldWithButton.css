@@ -1,0 +1,43 @@
+/* Main container layout */
+.asset--field-with-button .field-content-container {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* Editable content styling */
+.asset--field-with-button .field-editable-content {
+    flex: 1;
+    min-width: 0; /* Important for text truncation */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Button styling */
+.asset--field-with-button .field-action-button {
+    flex-shrink: 0;
+    margin-top: 4px; /* Align with text */
+}
+
+/* Fix for TextField when in edit mode */
+.asset--field-with-button .MuiTextField-root {
+    width: calc(100% - 100px) !important; /* Reserve space for button */
+}
+
+/* Responsive adjustments */
+@media (max-width: 540px) {
+    .asset--field-with-button .field-content-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .asset--field-with-button .MuiTextField-root {
+        width: 100% !important; /* Full width on mobile */
+    }
+
+    .asset--field-with-button .field-action-button {
+        align-self: flex-end;
+        margin-top: 8px;
+    }
+}
