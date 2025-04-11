@@ -1,6 +1,14 @@
 import { useNavigate, useParams } from 'react-router'
-import { Button, Skeleton, useMediaQuery, useTheme, Alert, Snackbar } from '@mui/material'
-import { ArrowBack, Save } from '@mui/icons-material'
+import {
+    Button,
+    Skeleton,
+    useMediaQuery,
+    useTheme,
+    Alert,
+    Snackbar,
+    Tooltip
+} from '@mui/material'
+import { ArrowBack, Save, ErrorOutline } from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
 import Asset = main.Asset
 import { useEffect, useState } from 'react'
@@ -135,6 +143,22 @@ export default function AssetView() {
             })
     }
 
+    // Format date for display in tooltip
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'Unknown date'
+
+        try {
+            const date = new Date(dateString)
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            })
+        } catch (e) {
+            return dateString
+        }
+    }
+
     if (loading) {
         return (
             <div className="asset-view-container">
@@ -167,6 +191,10 @@ export default function AssetView() {
             </div>
         )
     }
+
+    const missingTooltipText = asset.missing && asset.dateReportedMissing
+        ? `Asset marked as missing on ${formatDate(asset.dateReportedMissing.Time)} by user ${asset.reportedMissingBy.String || 'Unknown'}`
+        : 'Asset marked as missing'
 
     return (
         <div className="asset-view-container">
@@ -205,6 +233,18 @@ export default function AssetView() {
                     </div>
                 )}
             </div>
+
+            {/* Missing asset banner above the main details when asset is missing */}
+            {asset.missing && (
+                <div className="asset--missing-banner">
+                    <Tooltip title={missingTooltipText} arrow placement="bottom">
+                        <div className="asset--missing-banner-content">
+                            <ErrorOutline className="asset--missing-icon" />
+                            <span>This asset is currently marked as missing</span>
+                        </div>
+                    </Tooltip>
+                </div>
+            )}
 
             <div className="asset--main-details">
                 <div className="asset--image">
