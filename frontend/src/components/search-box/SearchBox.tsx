@@ -8,7 +8,7 @@ import {
     MenuItem,
     Select,
     SelectChangeEvent,
-    TextField
+    TextField, useMediaQuery, useTheme
 } from "@mui/material";
 import {KeyboardEvent, useEffect, useState} from "react";
 import Asset = main.Asset;
@@ -35,6 +35,10 @@ type SearchMode = 'regular' | 'full_text' | 'full_text_query_expansion' | 'boole
 
 export default function SearchBox(props: Props) {
     const navigate = useNavigate()
+
+    const theme = useTheme()
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+    const isExtraSmallScreen = useMediaQuery(theme.breakpoints.down(495))
 
     const [searchQuery, setSearchQuery] = useSessionStorage<string>('search_query', '')
     const [searchMode, setSearchMode] = useSessionStorage<SearchMode>('search_mode', 'regular')
@@ -111,7 +115,7 @@ export default function SearchBox(props: Props) {
         <Grid container alignItems='center' spacing={2}>
 
             {/* search type */}
-            <Grid size={2}>
+            <Grid size={isExtraSmallScreen ? 12 : (isSmallScreen ? 6 : 2)}>
                 <Select disabled={searchMode !== 'regular'} fullWidth sx={{maxWidth: '150px'}} variant='standard'
                         value={searchType} onChange={handleSearchTypeChange}>
                     <MenuItem value='AU Inventory Number'>AU Inventory Number</MenuItem>
@@ -129,7 +133,7 @@ export default function SearchBox(props: Props) {
             </Grid>
 
             {/* search box */}
-            <Grid size={8}>
+            <Grid size={isExtraSmallScreen ? 12 : (isSmallScreen ? 6 : 8)}>
                 <TextField fullWidth variant='outlined' label='Search' value={searchQuery}
                            onChange={(e: any) => setSearchQuery(e.target.value)}
                            onKeyUp={enterKeyListener}
@@ -138,8 +142,8 @@ export default function SearchBox(props: Props) {
             </Grid>
 
             {/* options */}
-            <Grid size={2}>
-                <Button variant='contained' onClick={() => setShowAdvancedOptionsDialog(true)}>Advanced</Button>
+            <Grid size={isSmallScreen ? 12 : 2}>
+                <Button fullWidth={isSmallScreen} variant='contained' onClick={() => setShowAdvancedOptionsDialog(true)}>Advanced</Button>
             </Grid>
 
             {/* search button */}
