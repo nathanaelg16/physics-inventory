@@ -1,12 +1,12 @@
 import EditableParagraph from '../editable-paragraph/EditableParagraph'
 import { Button } from '@mui/material'
-import './assetFieldWithButton.css'
+import './assetFieldWithAction.css'
 
 interface Props {
     label: string
     fieldName: string
     value: string
-    onSave: (field: string, value: string) => void
+    onSave: (field: string, value: any) => void
     showAction?: boolean
     actionLabel?: string
     onAction?: () => void
@@ -14,7 +14,7 @@ interface Props {
     placeholder?: string
 }
 
-export default function AssetFieldWithButton({
+export default function AssetFieldWithAction({
                                                  label,
                                                  fieldName,
                                                  value,

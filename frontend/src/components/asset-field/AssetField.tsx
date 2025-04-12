@@ -4,7 +4,7 @@ interface Props {
     label: string,
     fieldName: string,
     value: string,
-    onSave: (field: string, value: string) => void,
+    onSave: (field: string, value: any) => void,
     multiline?: boolean,
     placeholder?: string,
 }

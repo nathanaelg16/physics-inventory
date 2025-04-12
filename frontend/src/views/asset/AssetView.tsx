@@ -8,16 +8,16 @@ import {
     Snackbar,
     Tooltip
 } from '@mui/material'
-import { ArrowBack, Save, ErrorOutline } from '@mui/icons-material'
+import { ArrowBack, Save, ErrorOutline, Close } from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
 import Asset = main.Asset
 import { useEffect, useState } from 'react'
 import imageNotAvailable from '../../assets/image_not_available.png'
 import { SnackbarAlert } from '../../utils/snackbar-alert'
-import { GetAsset, UpdateAsset } from '../../../wailsjs/go/main/App'
+import {AssignRecordLocator, GetAsset, UpdateAsset} from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
-import AssetFieldWithButton from "../../components/asset-field/AssetFieldWithButton"
+import AssetFieldWithAction from "../../components/asset-field/AssetFieldWithAction"
 import './assetView.css'
 
 export default function AssetView() {
@@ -57,7 +57,7 @@ export default function AssetView() {
         getAsset()
     }, [id])
 
-    const saveChangesToField = (field: string, newValue: string) => {
+    const saveChangesToField = (field: string, newValue: any) => {
         if (!asset) return
 
         let currentValue: any = ''
@@ -148,9 +148,48 @@ export default function AssetView() {
             })
     }
 
+    const cancelEdits = () => {
+        // We need to force a re-render of all editable fields to their original values
+        // The simplest way is to re-fetch the asset data
+        getAsset()
+
+        // Clear the edits object
+        setEdits({})
+
+        showAlert({
+            severity: 'info',
+            msg: 'Changes discarded.'
+        })
+    }
+
     const assignRecordLocator = () => {
-        /* todo assign record locator on backend, then call getAsset()
-            if has edits, cancel operation and warn about unsaved changes */
+        if (!asset) return
+
+        if (hasEdits) {
+            showAlert({
+                severity: 'warning',
+                msg: 'Please save or discard all changes before performing this action.'
+            })
+
+            return
+        }
+
+        AssignRecordLocator(asset.id)
+            .then(() => {
+                showAlert({
+                    severity: 'success',
+                    msg: 'Record number assigned!'
+                })
+
+                getAsset()
+            }).catch(() => {
+                showAlert({
+                    severity: 'error',
+                    msg: 'An error occurred while assigning the record number.'
+                })
+
+                setTimeout(() => getAsset(), 4000)
+            })
     }
 
     // Format date for display in tooltip
@@ -228,18 +267,32 @@ export default function AssetView() {
                         >
                             You have unsaved changes
                         </Alert>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<Save />}
-                            onClick={saveChanges}
-                            disabled={saving}
-                            className="asset-save-button"
-                            fullWidth={isSmallScreen}
-                            size={isSmallScreen ? 'small' : 'medium'}
-                        >
-                            {saving ? 'Saving...' : 'Save Changes'}
-                        </Button>
+                        <div className="asset-action-buttons">
+                            <Button
+                                variant="outlined"
+                                style={{
+                                    color: '#B8860B',
+                                    borderColor: '#B8860B'
+                                }}
+                                startIcon={<Close />}
+                                onClick={cancelEdits}
+                                className="asset-cancel-button"
+                                size={isSmallScreen ? 'small' : 'medium'}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<Save />}
+                                onClick={saveChanges}
+                                disabled={saving}
+                                className="asset-save-button"
+                                size={isSmallScreen ? 'small' : 'medium'}
+                            >
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>

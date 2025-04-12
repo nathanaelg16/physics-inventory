@@ -248,7 +248,7 @@ func (a *App) runFieldQuery(field string, query string, page int) ([]Asset, erro
 func (a *App) processResults(rows *sql.Rows) []Asset {
 	defer rows.Close()
 
-	var assets []Asset
+	var assets = make([]Asset, 0, 15)
 
 	for rows.Next() {
 		var asset Asset

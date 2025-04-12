@@ -162,6 +162,21 @@
     margin-top: 8px;
 }
 
+.asset-action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.asset-cancel-button {
+    white-space: nowrap;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.asset-cancel-button:hover {
+    background-color: #B8860B !important;
+    color: white !important;
+}
+
 @media (max-width: 916px) {
     .asset-view-container {
         padding: 12px;
@@ -298,8 +313,15 @@
         font-size: 0.875rem;
     }
 
-    .asset-save-button {
+    .asset-action-buttons {
+        display: flex;
         width: 100%;
+        gap: 8px;
+    }
+
+    .asset-cancel-button,
+    .asset-save-button {
+        flex: 1;
         padding: 0.5rem;
     }
 }

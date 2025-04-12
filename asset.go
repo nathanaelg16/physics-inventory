@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -76,5 +78,91 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 }
 
 func (a *App) UpdateAsset(updates map[string]any) error {
+	return nil
+}
+
+// AssignRecordLocator gets the next available record locator number and assigns it to the specified asset if needed
+func (a *App) AssignRecordLocator(assetID int64) error {
+	db := a.db
+
+	// Start a transaction to ensure consistency
+	tx, err := db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error starting transaction: %v", err)
+		return err
+	}
+	defer tx.Rollback() // Will be ignored if transaction is committed
+
+	// Check if the specified asset exists and whether it has a record locator
+	var currentLocator int
+	err = tx.QueryRow("select record_locator from equipment where id = ?;", assetID).Scan(&currentLocator)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("asset with ID %d not found", assetID)
+	} else if err != nil {
+		runtime.LogErrorf(a.ctx, "Error checking asset record locator: %v", err)
+		return err
+	}
+
+	// If the asset already has a valid record locator (not -1), return it
+	if currentLocator != -1 {
+		// Commit the transaction since we're just reading
+		if err = tx.Commit(); err != nil {
+			runtime.LogErrorf(a.ctx, "Error committing transaction: %v", err)
+			return err
+		}
+		return nil
+	}
+
+	// If we get here, the asset needs a record locator assigned (it has the default -1 value)
+	// Get the last assigned record locator
+	var recordNumber int
+	err = tx.QueryRow("select record_locator from last_assigned_record_locator;").Scan(&recordNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error retrieving last record locator: %v", err)
+		return err
+	}
+
+	// Increment the record number
+	recordNumber++
+
+	// Find the next available record locator
+	for {
+		var exists bool
+		err = tx.QueryRow("select exists(select 1 from equipment where record_locator = ?);", recordNumber).Scan(&exists)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "Error checking record locator existence: %v", err)
+			return err
+		}
+
+		// If number is available, break out of loop
+		if !exists {
+			break
+		}
+
+		// Try next number
+		recordNumber++
+	}
+
+	// Update the equipment record with the new record locator
+	_, err = tx.Exec("update equipment set record_locator = ? where id = ?;", recordNumber, assetID)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error updating equipment record locator: %v", err)
+		return err
+	}
+
+	// Update the last assigned record locator in the database
+	_, err = tx.Exec("update last_assigned_record_locator set record_locator = ?;", recordNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error updating last record locator: %v", err)
+		return err
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		runtime.LogErrorf(a.ctx, "Error committing transaction: %v", err)
+		return err
+	}
+
 	return nil
 }

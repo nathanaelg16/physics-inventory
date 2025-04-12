@@ -12,6 +12,7 @@
     min-width: 0; /* Important for text truncation */
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #455a64;
 }
 
 /* Button styling */
