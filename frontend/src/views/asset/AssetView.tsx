@@ -19,6 +19,8 @@ import EditableParagraph from '../../components/editable-paragraph/EditableParag
 import AssetField from '../../components/asset-field/AssetField'
 import AssetFieldWithAction from "../../components/asset-field/AssetFieldWithAction"
 import './assetView.css'
+import AssetSelectField from "../../components/asset-field/AssetSelectField";
+import AssetDocumentField from "../../components/asset-field/AssetDocumentField";
 
 export default function AssetView() {
     const { id } = useParams()
@@ -190,6 +192,18 @@ export default function AssetView() {
 
                 setTimeout(() => getAsset(), 4000)
             })
+    }
+
+    const viewDocument = async (document: string) => {
+        // todo implement this
+    }
+
+    const removeDocument = (document: string) => {
+        // todo implement this
+    }
+
+    const uploadDocument = (document: string) => {
+        // todo implement this
     }
 
     // Format date for display in tooltip
@@ -381,15 +395,8 @@ export default function AssetView() {
             </div>
 
             <div className="asset--details-addl">
-                <p>Additional Information</p>
+                <p>Purchase Details</p>
                 <div className="asset--details-addl-content">
-                    <AssetFieldWithButton label='Record #:'
-                                          fieldName='recordLocator'
-                                          value={asset.recordLocator >= 0 ? asset.recordLocator.toString().padStart(5, '0') : ''}
-                                          onSave={(newValue) => saveChangesToField('recordLocator', newValue)}
-                                          showAction={asset.recordLocator == -1 && edits['recordLocator'] === undefined}
-                                          actionLabel='Auto-assign'
-                                          onAction={assignRecordLocator} />
                     <AssetField
                         label="Vendor:"
                         fieldName="vendor"
@@ -413,6 +420,39 @@ export default function AssetView() {
                         fieldName="unitPrice"
                         value={asset.unitPrice}
                         onSave={saveChangesToField}
+                    />
+                    <AssetDocumentField label='Receipt:'
+                                        documentAvailable={asset.receiptAvailable}
+                                        onView={() => viewDocument('receipt')}
+                                        onRemove={() => removeDocument('receipt')}
+                                        onUpload={() => uploadDocument('receipt')}
+                    />
+                </div>
+            </div>
+
+            <div className="asset--details-addl">
+                <p>Documents</p>
+                <div className="asset--details-addl-content">
+                    <AssetFieldWithAction label='Record #:'
+                                          fieldName='recordLocator'
+                                          value={asset.recordLocator >= 0 ? asset.recordLocator.toString().padStart(5, '0') : ''}
+                                          onSave={(newValue) => saveChangesToField('recordLocator', newValue)}
+                                          showAction={asset.recordLocator == -1 && edits['recordLocator'] === undefined}
+                                          actionLabel='Auto-assign'
+                                          onAction={assignRecordLocator}
+                    />
+                    <AssetSelectField label='Physical Manual:'
+                                      fieldName='hardCopyAvailable'
+                                      value={asset.hardCopyAvailable}
+                                      options={[{value: true, label: 'Available'}, {value: false, label: 'Not Available'}]}
+                                      onSave={saveChangesToField}
+                                      placeholder=''
+                    />
+                    <AssetDocumentField label='Digital Manual:'
+                                        documentAvailable={asset.softCopyAvailable}
+                                        onView={() => viewDocument('manual')}
+                                        onRemove={() => removeDocument('manual')}
+                                        onUpload={() => uploadDocument('manual')}
                     />
                 </div>
             </div>
