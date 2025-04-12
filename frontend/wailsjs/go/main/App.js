@@ -14,6 +14,10 @@ export function GetDefaultSearchMode() {
   return window['go']['main']['App']['GetDefaultSearchMode']();
 }
 
+export function GetProductVersion() {
+  return window['go']['main']['App']['GetProductVersion']();
+}
+
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
 }

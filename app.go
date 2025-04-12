@@ -3,12 +3,18 @@ package main
 import (
 	"context"
 	"database/sql"
+	_ "embed"
+	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/tidwall/gjson"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const DBHost = "localhost:3306"
+
+//go:embed wails.json
+var wailsJSON string
 
 // App struct
 type App struct {
@@ -31,6 +37,15 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) shutdown(ctx context.Context) {
 	if a.db != nil {
 		_ = a.db.Close()
+	}
+}
+
+func (a *App) GetProductVersion() (string, error) {
+	productVersion := gjson.Get(wailsJSON, "info.productVersion")
+	if productVersion.Exists() {
+		return productVersion.String(), nil
+	} else {
+		return "", errors.New("productVersion not found")
 	}
 }
 

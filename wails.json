@@ -7,7 +7,10 @@
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Nathanael Gutierrez",
+    "email": "nathanaelg16@gmail.com"
+  },
+  "info": {
+    "productVersion": "4.0.0"
   }
 }

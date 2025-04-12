@@ -17,6 +17,9 @@
     font-family: "IBM Plex Sans", sans-serif;
     transition: all 0.3s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 #nav-header {
@@ -51,6 +54,17 @@
 
 #nav-list {
     margin-top: 20px;
+    flex-grow: 1;
+}
+
+#nav-version {
+    padding: 12px;
+    margin-top: auto;
+    margin-bottom: 10px;
+    font-size: 12px;
+    opacity: 0.7;
+    text-align: left;
+    transition: opacity 0.3s ease;
 }
 
 main {
@@ -106,6 +120,16 @@ main {
 
     #nav-toggle {
         display: block;
+    }
+
+    #nav-version {
+        text-align: left;
+        padding: 8px 8px;
+        margin-bottom: 10px;
+    }
+
+    #nav:not(.expanded) #nav-version span {
+        display: none;
     }
 }
 

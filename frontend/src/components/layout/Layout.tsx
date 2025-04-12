@@ -1,11 +1,20 @@
 import { Outlet } from 'react-router'
 import { List, ListItem, ListItemIcon, ListItemText, SvgIcon } from '@mui/material'
 import { useState, useEffect } from 'react'
-import './layout.css'
 import logo from '../../assets/logo-no-text.png'
+import {GetProductVersion} from "../../../wailsjs/go/main/App"
+import './layout.css'
 
 export default function Layout() {
     const [expanded, setExpanded] = useState(true)
+    const [productVersion, setProductVersion] = useState<string | null>(null)
+
+    // Get product version
+    useEffect(() => {
+        GetProductVersion()
+            .then((res) => setProductVersion(res))
+            .catch(() => {})
+    }, [])
 
     // Check screen size on initial load and resize
     useEffect(() => {
@@ -86,6 +95,11 @@ export default function Layout() {
                         <ListItemText primary='Admin' />
                     </ListItem>
                 </List>
+
+                {/* Version label */}
+                <div id='nav-version'>
+                    {productVersion && <span>v{productVersion}</span>}
+                </div>
             </div>
             <main>
                 <Outlet />

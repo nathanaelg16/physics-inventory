@@ -8,6 +8,8 @@ export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;
 
+export function GetProductVersion():Promise<string>;
+
 export function Login(arg1:string,arg2:string):Promise<boolean>;
 
 export function SearchModeBoolean(arg1:string):Promise<Array<main.Asset>>;
