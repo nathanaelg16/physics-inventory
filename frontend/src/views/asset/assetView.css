@@ -177,6 +177,16 @@
     color: white !important;
 }
 
+.asset-document-field-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.asset-document-field-buttons .MuiButton-root {
+    min-width: 100px;
+}
+
 @media (max-width: 916px) {
     .asset-view-container {
         padding: 12px;
@@ -256,6 +266,17 @@
         flex-direction: column;
         align-items: flex-start;
         margin-bottom: 16px;
+    }
+
+    .asset-document-field-buttons {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .asset-document-field-buttons .MuiButton-root {
+        flex: 1;
+        padding: 6px 8px;
+        font-size: 0.8125rem;
     }
 }
 

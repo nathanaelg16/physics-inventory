@@ -194,7 +194,16 @@ export default function AssetView() {
             })
     }
 
-    const viewDocument = async (document: string) => {
+    const viewDocument = (document: string) => {
+        if (hasEdits) {
+            showAlert({
+                severity: 'warning',
+                msg: 'Please save or discard all changes before performing this action.'
+            })
+
+            return
+        }
+
         // todo implement this
     }
 
