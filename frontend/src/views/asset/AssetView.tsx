@@ -21,6 +21,9 @@ import AssetFieldWithAction from "../../components/asset-field/AssetFieldWithAct
 import './assetView.css'
 import AssetSelectField from "../../components/asset-field/AssetSelectField";
 import AssetDocumentField from "../../components/asset-field/AssetDocumentField";
+import AssetInfoField from "../../components/asset-field/AssetInfoField";
+import AssetStatusHistory from "../../components/asset-status-history/AssetStatusHistory";
+import AssetCalibrationHistory from "../../components/asset-calibration-history/AssetCalibrationHistory";
 
 export default function AssetView() {
     const { id } = useParams()
@@ -445,7 +448,7 @@ export default function AssetView() {
                     <AssetFieldWithAction label='Record #:'
                                           fieldName='recordLocator'
                                           value={asset.recordLocator >= 0 ? asset.recordLocator.toString().padStart(5, '0') : ''}
-                                          onSave={(newValue) => saveChangesToField('recordLocator', newValue)}
+                                          onSave={saveChangesToField}
                                           showAction={asset.recordLocator == -1 && edits['recordLocator'] === undefined}
                                           actionLabel='Auto-assign'
                                           onAction={assignRecordLocator}
@@ -469,8 +472,57 @@ export default function AssetView() {
             <div className="asset--details-addl">
                 <p>Maintenance</p>
                 <div className="asset--details-addl-content">
-                    <p style={{ color: '#666', fontStyle: 'italic' }}>No maintenance records found.</p>
-                    {/* Maintenance records would go here */}
+                    <AssetSelectField label='Repair Status:'
+                                      fieldName='repairStatus'
+                                      value={asset.repairStatus} options={[
+                                            {
+                                                value: 'W',
+                                                label: 'Working'
+                                            }, {
+                                                value: 'C',
+                                                label: 'Out for calibration'
+                                            },
+                                            {
+                                                value: 'R',
+                                                label: 'Out for repair'
+                                            },
+                                            {
+                                                value: 'T',
+                                                label: 'Out for testing'
+                                            },
+                                            {
+                                                value: 'U',
+                                                label: 'Unknown'
+                                            }
+                                        ]}
+                                      onSave={saveChangesToField}
+                    />
+                    <AssetInfoField label='Status Changed:'
+                                    value={asset.statusChangeDate.Valid && asset.statusChangeDate.Time}
+                    />
+                    
+                    <div style={{marginTop: '16px'}}>
+                        <AssetStatusHistory statusHistory={asset.statusHistory} />
+                    </div>
+
+                    <AssetInfoField label='Last Calibration:'
+                                    value={asset.lastCalibrationDate.Valid && asset.lastCalibrationDate.Time}
+                    />
+                    <AssetInfoField label='Next Calibration:'
+                                    value={asset.nextCalibrationDate.Valid && asset.nextCalibrationDate.Time}
+                    />
+
+                    <div style={{marginTop: '16px'}}>
+                        <AssetCalibrationHistory calibrationHistory={asset.calibrationHistory} />
+                    </div>
+
+                    <AssetField label='Maintenance Notes:'
+                                fieldName='maintenanceNotes'
+                                value={asset.maintenanceNotes.String}
+                                onSave={saveChangesToField}
+                                multiline
+                                placeholder='Click to add notes...'
+                    />
                 </div>
             </div>
 

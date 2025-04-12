@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"slices"
+	"strings"
 )
 
 type Asset struct {
@@ -32,15 +34,26 @@ type Asset struct {
 	ReceiptAvailable    bool           `json:"receiptAvailable"`
 	UnitPrice           string         `json:"unitPrice"`
 	Vendor              string         `json:"vendor"`
+
+	// Maintenance Details
+	RepairStatus        RepairStatus       `json:"repairStatus"`
+	StatusChangeDate    sql.NullTime       `json:"statusChangeDate"`
+	StatusHistory       []HistoricalStatus `json:"statusHistory"`
+	LastCalibrationDate sql.NullTime       `json:"lastCalibrationDate"`
+	NextCalibrationDate sql.NullTime       `json:"nextCalibrationDate"`
+	CalibrationHistory  []string           `json:"calibrationHistory"`
+	MaintenanceNotes    sql.NullString     `json:"maintenanceNotes"`
 }
 
 func (a *App) GetAsset(id int64) (Asset, error) {
 	db := a.db
+
 	var asset Asset
-	var missing sql.NullString
+	var missing, repairStatus, statusHistory, calibrationHistory sql.NullString
 	var softCopyAvailable, hardCopyAvailable, receiptAvailable uint8
-	row := db.QueryRow("select e.id, i.image_one, e.item_name, e.location, e.keywords, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.purchase_date, e.purchase_amount, e.missing, e.quantity_missing, e.record_locator, e.date_reported_missing, e.reported_missing_by, e.notes, e.soft_copy_available, e.hard_copy_available, e.receipt_available, e.unit_price, e.vendor from equipment e left join images_and_receipts i on e.id = i.id where e.id = ?", id)
-	err := row.Scan(&asset.Id, &asset.Image, &asset.Name, &asset.Location, &asset.Keywords, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &asset.PurchaseDate, &asset.PurchaseAmount, &missing, &asset.QuantityMissing, &asset.RecordLocator, &asset.DateReportedMissing, &asset.ReportedMissingBy, &asset.Notes, &softCopyAvailable, &hardCopyAvailable, &receiptAvailable, &asset.UnitPrice, &asset.Vendor)
+
+	row := db.QueryRow("select e.id, i.image_one, e.item_name, e.location, e.keywords, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.purchase_date, e.purchase_amount, e.missing, e.quantity_missing, e.record_locator, e.date_reported_missing, e.reported_missing_by, e.notes, e.soft_copy_available, e.hard_copy_available, e.receipt_available, e.unit_price, e.vendor, m.repair_status, m.status_change_date, m.status_history, m.last_calibration_date, m.next_calibration_date, m.calibration_history, m.notes as maintenanceNotes from equipment e left join images_and_receipts i on e.id = i.id left join maintenance m on e.id = m.id where e.id = ?", id)
+	err := row.Scan(&asset.Id, &asset.Image, &asset.Name, &asset.Location, &asset.Keywords, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &asset.PurchaseDate, &asset.PurchaseAmount, &missing, &asset.QuantityMissing, &asset.RecordLocator, &asset.DateReportedMissing, &asset.ReportedMissingBy, &asset.Notes, &softCopyAvailable, &hardCopyAvailable, &receiptAvailable, &asset.UnitPrice, &asset.Vendor, &repairStatus, &asset.StatusChangeDate, &statusHistory, &asset.LastCalibrationDate, &asset.NextCalibrationDate, &calibrationHistory, &asset.MaintenanceNotes)
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return asset, err
@@ -56,22 +69,22 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 		asset.Missing = false
 	}
 
-	if softCopyAvailable == 1 {
-		asset.SoftCopyAvailable = true
+	asset.SoftCopyAvailable = softCopyAvailable == 1
+	asset.HardCopyAvailable = hardCopyAvailable == 1
+	asset.ReceiptAvailable = receiptAvailable == 1
+
+	if repairStatus.Valid {
+		asset.RepairStatus = parseRepairStatus(repairStatus.String)
 	} else {
-		asset.SoftCopyAvailable = false
+		asset.RepairStatus = UNKNOWN
 	}
 
-	if hardCopyAvailable == 1 {
-		asset.HardCopyAvailable = true
-	} else {
-		asset.HardCopyAvailable = false
+	if statusHistory.Valid {
+		asset.StatusHistory = parseStatusHistory(statusHistory.String)
 	}
 
-	if receiptAvailable == 1 {
-		asset.ReceiptAvailable = true
-	} else {
-		asset.ReceiptAvailable = false
+	if calibrationHistory.Valid {
+		asset.CalibrationHistory = strings.Split(calibrationHistory.String, ";")
 	}
 
 	return asset, nil
@@ -166,3 +179,56 @@ func (a *App) AssignRecordLocator(assetID int64) error {
 
 	return nil
 }
+
+type RepairStatus string
+
+const (
+	WORKING     RepairStatus = "W"
+	CALIBRATING RepairStatus = "C"
+	REPAIRING   RepairStatus = "R"
+	TESTING     RepairStatus = "T"
+	UNKNOWN     RepairStatus = "U"
+)
+
+func parseRepairStatus(s string) RepairStatus {
+	switch s {
+	case "W":
+		return WORKING
+	case "C":
+		return CALIBRATING
+	case "R":
+		return REPAIRING
+	case "T":
+		return TESTING
+	case "U":
+		return UNKNOWN
+	default:
+		return UNKNOWN
+	}
+}
+
+type HistoricalStatus struct {
+	RepairStatus     string `json:"repairStatus"`
+	StatusChangeDate string `json:"statusChangeDate"`
+}
+
+func parseStatusHistory(history string) (statusHistory []HistoricalStatus) {
+	var historySplit = strings.Split(history, ";")
+
+	for _, h := range historySplit {
+		var parts = strings.Split(h, ": ")
+		var repairStatus = parts[0]
+		var statusChangeDate = parts[1]
+		var historicalStatus = HistoricalStatus{
+			RepairStatus:     repairStatus,
+			StatusChangeDate: statusChangeDate,
+		}
+		statusHistory = append(statusHistory, historicalStatus)
+	}
+
+	slices.Reverse(statusHistory) // order by date desc
+
+	return statusHistory
+}
+
+// todo when implementing add asset, insert row into maintenance table with working status

@@ -1,5 +1,19 @@
 export namespace main {
 	
+	export class HistoricalStatus {
+	    repairStatus: string;
+	    statusChangeDate: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new HistoricalStatus(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.repairStatus = source["repairStatus"];
+	        this.statusChangeDate = source["statusChangeDate"];
+	    }
+	}
 	export class Asset {
 	    id: number;
 	    image: number[];
@@ -25,6 +39,13 @@ export namespace main {
 	    receiptAvailable: boolean;
 	    unitPrice: string;
 	    vendor: string;
+	    repairStatus: string;
+	    statusChangeDate: sql.NullTime;
+	    statusHistory: HistoricalStatus[];
+	    lastCalibrationDate: sql.NullTime;
+	    nextCalibrationDate: sql.NullTime;
+	    calibrationHistory: string[];
+	    maintenanceNotes: sql.NullString;
 	
 	    static createFrom(source: any = {}) {
 	        return new Asset(source);
@@ -56,6 +77,13 @@ export namespace main {
 	        this.receiptAvailable = source["receiptAvailable"];
 	        this.unitPrice = source["unitPrice"];
 	        this.vendor = source["vendor"];
+	        this.repairStatus = source["repairStatus"];
+	        this.statusChangeDate = this.convertValues(source["statusChangeDate"], sql.NullTime);
+	        this.statusHistory = this.convertValues(source["statusHistory"], HistoricalStatus);
+	        this.lastCalibrationDate = this.convertValues(source["lastCalibrationDate"], sql.NullTime);
+	        this.nextCalibrationDate = this.convertValues(source["nextCalibrationDate"], sql.NullTime);
+	        this.calibrationHistory = source["calibrationHistory"];
+	        this.maintenanceNotes = this.convertValues(source["maintenanceNotes"], sql.NullString);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
