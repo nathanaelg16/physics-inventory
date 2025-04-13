@@ -7,9 +7,10 @@ interface Props {
     onSave: (field: string, value: any) => void,
     multiline?: boolean,
     placeholder?: string,
+    inputType?: string,
 }
 
-export default function AssetField({label, fieldName, value, onSave, multiline = false, placeholder = 'N/A'}: Props) {
+export default function AssetField({label, fieldName, value, onSave, multiline = false, placeholder = 'N/A', inputType = 'text'}: Props) {
     return (
         <div className="asset--details-field">
             <p><strong>{label}</strong></p>
@@ -18,6 +19,7 @@ export default function AssetField({label, fieldName, value, onSave, multiline =
                 onSave={(newText) => onSave(fieldName, newText)}
                 multiline={multiline}
                 placeholder={placeholder}
+                inputType={inputType}
             />
         </div>
     )

@@ -154,6 +154,12 @@
     background-color: #f5f5f5;
 }
 
+.readonly-field {
+    margin: 0;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
 .asset--notes-content {
     min-height: 100px;
     padding: 12px;

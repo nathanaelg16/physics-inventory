@@ -1,5 +1,5 @@
 import EditableParagraph from '../editable-paragraph/EditableParagraph'
-import { Button } from '@mui/material'
+import {Button} from '@mui/material'
 import './assetFieldWithAction.css'
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
     onAction?: () => void
     multiline?: boolean
     placeholder?: string
+    inputType?: string,
 }
 
 export default function AssetFieldWithAction({
@@ -23,10 +24,10 @@ export default function AssetFieldWithAction({
                                                  actionLabel = 'Action',
                                                  onAction = () => {},
                                                  multiline = false,
-                                                 placeholder = 'N/A'
+                                                 placeholder = 'N/A',
+                                                 inputType = 'text'
                                              }: Props) {
-    return (
-        <div className="asset--details-field asset--field-with-button">
+    return (<div className="asset--details-field asset--field-with-button">
             <p><strong>{label}</strong></p>
             <div className="field-content-container">
                 <EditableParagraph
@@ -35,18 +36,16 @@ export default function AssetFieldWithAction({
                     multiline={multiline}
                     placeholder={placeholder}
                     className="field-editable-content"
+                    inputType={inputType}
                 />
-                {showAction && (
-                    <Button
+                {showAction && (<Button
                         onClick={onAction}
                         size="small"
                         variant="outlined"
                         className="field-action-button"
                     >
                         {actionLabel}
-                    </Button>
-                )}
+                    </Button>)}
             </div>
-        </div>
-    )
+        </div>)
 }

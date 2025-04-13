@@ -18,12 +18,13 @@ import {AssignRecordLocator, GetAsset, UpdateAsset} from '../../../wailsjs/go/ma
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
 import AssetFieldWithAction from "../../components/asset-field/AssetFieldWithAction"
-import './assetView.css'
 import AssetSelectField from "../../components/asset-field/AssetSelectField";
 import AssetDocumentField from "../../components/asset-field/AssetDocumentField";
 import AssetInfoField from "../../components/asset-field/AssetInfoField";
 import AssetStatusHistory from "../../components/asset-status-history/AssetStatusHistory";
 import AssetCalibrationHistory from "../../components/asset-calibration-history/AssetCalibrationHistory";
+import {formatDate} from "../../utils/utils";
+import './assetView.css'
 
 export default function AssetView() {
     const { id } = useParams()
@@ -218,22 +219,6 @@ export default function AssetView() {
         // todo implement this
     }
 
-    // Format date for display in tooltip
-    const formatDate = (dateString: string) => {
-        if (!dateString) return 'Unknown date'
-
-        try {
-            const date = new Date(dateString)
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            })
-        } catch (e) {
-            return dateString
-        }
-    }
-
     if (loading) {
         return (
             <div className="asset-view-container">
@@ -420,6 +405,7 @@ export default function AssetView() {
                         fieldName="purchaseDate"
                         value={asset.purchaseDate.Time}
                         onSave={saveChangesToField}
+                        inputType='date'
                     />
                     <AssetField
                         label="Purchase Amount:"
@@ -498,21 +484,24 @@ export default function AssetView() {
                                       onSave={saveChangesToField}
                     />
                     <AssetInfoField label='Status Changed:'
-                                    value={asset.statusChangeDate.Valid && asset.statusChangeDate.Time}
+                                    value={asset.statusChangeDate.Valid ? formatDate(asset.statusChangeDate.Time) : ''}
                     />
                     
-                    <div style={{marginTop: '16px'}}>
+                    <div style={{margin: '16px 0'}}>
                         <AssetStatusHistory statusHistory={asset.statusHistory} />
                     </div>
 
                     <AssetInfoField label='Last Calibration:'
-                                    value={asset.lastCalibrationDate.Valid && asset.lastCalibrationDate.Time}
+                                    value={asset.lastCalibrationDate.Valid ? formatDate(asset.lastCalibrationDate.Time) : ''}
                     />
-                    <AssetInfoField label='Next Calibration:'
-                                    value={asset.nextCalibrationDate.Valid && asset.nextCalibrationDate.Time}
+                    <AssetField label='Next Calibration:'
+                                fieldName='nextCalibrationDate'
+                                value={asset.nextCalibrationDate.Time}
+                                onSave={saveChangesToField}
+                                inputType='date'
                     />
 
-                    <div style={{marginTop: '16px'}}>
+                    <div style={{margin: '16px 0'}}>
                         <AssetCalibrationHistory calibrationHistory={asset.calibrationHistory} />
                     </div>
 

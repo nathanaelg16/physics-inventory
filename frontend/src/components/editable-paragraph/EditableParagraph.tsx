@@ -1,5 +1,6 @@
-import {useEffect, useRef, useState, ChangeEvent, KeyboardEvent} from "react";
+import {ChangeEvent, KeyboardEvent, useEffect, useRef, useState} from "react";
 import {TextField} from "@mui/material";
+import {formatDate} from "../../utils/utils";
 
 interface Props {
     text: string,
@@ -7,17 +8,22 @@ interface Props {
     className?: string,
     multiline?: boolean,
     placeholder?: string,
+    inputType?: string,
 }
 
 export default function EditableParagraph({
-  text,
-  onSave,
-  className = '',
-  multiline = false,
-  placeholder = 'N/A'
-}: Props) {
+                                              text,
+                                              onSave,
+                                              className = '',
+                                              multiline = false,
+                                              placeholder = 'N/A',
+                                              inputType = 'text'
+                                          }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
-    const [value, setValue] = useState<string>(text)
+    const [value, setValue] = useState<string>(() => {
+        if (inputType === 'date') return formatDate(text)
+        else return text
+    })
     const textFieldRef = useRef<HTMLInputElement>(null)
 
     // Focus the text field when entering edit mode
@@ -54,8 +60,7 @@ export default function EditableParagraph({
         }
     };
 
-    return isEditing ? (
-        <TextField
+    return isEditing ? (<TextField
             inputRef={textFieldRef}
             fullWidth
             multiline={multiline}
@@ -66,16 +71,14 @@ export default function EditableParagraph({
             variant="outlined"
             size="small"
             autoFocus
-            sx={{ margin: '4px 0' }}
+            sx={{margin: '4px 0'}}
             autoComplete='off'
-        />
-    ) : (
-        <p
+            type={inputType}
+        />) : (<p
             className={`editable-paragraph ${className}`}
             onClick={handleClick}
-            style={{ cursor: 'pointer' }}
+            style={{cursor: 'pointer'}}
         >
-            {value || <span style={{ color: '#999', fontStyle: 'italic' }}>{placeholder}</span>}
-        </p>
-    );
+            {value || <span style={{color: '#999', fontStyle: 'italic'}}>{placeholder}</span>}
+        </p>);
 }

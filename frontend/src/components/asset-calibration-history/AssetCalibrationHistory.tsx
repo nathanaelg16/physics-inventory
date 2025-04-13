@@ -15,6 +15,7 @@ import {
     useTheme
 } from '@mui/material'
 import { ExpandMore, CalendarMonth } from '@mui/icons-material'
+import {formatDate} from "../../utils/utils";
 
 interface Props {
     calibrationHistory: string[]
@@ -24,22 +25,6 @@ export default function AssetCalibrationHistory({ calibrationHistory }: Props) {
     const [expanded, setExpanded] = useState<boolean>(false)
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
-
-    // Format date for display
-    const formatDate = (dateString: string) => {
-        if (!dateString) return 'Unknown date'
-
-        try {
-            const date = new Date(dateString)
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            })
-        } catch (e) {
-            return dateString
-        }
-    }
 
     // Handle accordion expand/collapse
     const handleChange = () => {

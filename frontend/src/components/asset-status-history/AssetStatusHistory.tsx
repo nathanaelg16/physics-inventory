@@ -13,11 +13,11 @@ import {
     Paper,
     useMediaQuery,
     useTheme,
-    Tooltip
 } from '@mui/material'
 import { ExpandMore, History } from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
 import HistoricalStatus = main.HistoricalStatus
+import { formatDate } from '../../utils/utils'
 
 interface Props {
     statusHistory: HistoricalStatus[]
@@ -27,24 +27,6 @@ export default function AssetStatusHistory({ statusHistory }: Props) {
     const [expanded, setExpanded] = useState<boolean>(false)
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
-
-    // Format date for display
-    const formatDate = (dateString: string) => {
-        if (!dateString) return 'Unknown date'
-
-        try {
-            const date = new Date(dateString)
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric'
-            })
-        } catch (e) {
-            return dateString
-        }
-    }
 
     // Handle accordion expand/collapse
     const handleChange = () => {
