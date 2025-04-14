@@ -352,3 +352,23 @@
         padding: 0.5rem;
     }
 }
+
+.editable-paragraph-container {
+    display: flex;
+    align-items: center;
+}
+
+.edit-indicator {
+    color: #757575; /* Gray color */
+    margin-left: 5px;
+    font-size: 1rem;
+}
+
+.edited-field .editable-paragraph {
+    background-color: rgba(255, 235, 59, 0.15);
+    border-left: 2px solid #ffca28;
+}
+
+.edited-field .editable-paragraph:hover {
+    background-color: rgba(255, 235, 59, 0.25);
+}

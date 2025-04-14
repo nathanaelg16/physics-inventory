@@ -1,6 +1,7 @@
-import {ChangeEvent, KeyboardEvent, useEffect, useRef, useState} from "react";
-import {TextField} from "@mui/material";
-import {formatDate} from "../../utils/utils";
+import {ChangeEvent, KeyboardEvent, useEffect, useRef, useState} from 'react'
+import {TextField} from '@mui/material'
+import {Edit} from '@mui/icons-material'
+import {formatDate} from '../../utils/utils'
 
 interface Props {
     text: string,
@@ -12,6 +13,7 @@ interface Props {
     validator?: (value: string) => boolean,
     helperText?: string,
     slotProps?: any,
+    isEdited?: boolean,
 }
 
 export default function EditableParagraph({
@@ -23,7 +25,8 @@ export default function EditableParagraph({
                                               inputType = 'text',
                                               validator = (_: string) => true,
                                               helperText = '',
-                                              slotProps = {}
+                                              slotProps = {},
+                                              isEdited = false,
                                           }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
     const [value, setValue] = useState<string>(() => {
@@ -41,11 +44,11 @@ export default function EditableParagraph({
 
     const handleClick = () => {
         setEditing(true)
-    };
+    }
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setValue(e.target.value)
-    };
+    }
 
     const handleBlur = () => {
         if (!validator(value)) {
@@ -53,9 +56,9 @@ export default function EditableParagraph({
             return
         }
 
-        setEditing(false);
+        setEditing(false)
         onSave(value)
-    };
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !multiline) {
@@ -71,9 +74,10 @@ export default function EditableParagraph({
             setValue(text) // Reset to original value
             setEditing(false)
         }
-    };
+    }
 
-    return isEditing ? (<TextField
+    return isEditing ? (
+        <TextField
             inputRef={textFieldRef}
             fullWidth
             multiline={multiline}
@@ -90,11 +94,19 @@ export default function EditableParagraph({
             error={!validator(value)}
             helperText={!validator(value) && helperText}
             slotProps={slotProps}
-        />) : (<p
-            className={`editable-paragraph ${className}`}
-            onClick={handleClick}
-            style={{cursor: 'pointer'}}
-        >
-            {value || <span style={{color: '#999', fontStyle: 'italic'}}>{placeholder}</span>}
-        </p>);
+        />
+    ) : (
+        <div className={`editable-paragraph-container ${isEdited ? 'edited-field' : ''}`}>
+            <p
+                className={`editable-paragraph ${className}`}
+                onClick={handleClick}
+                style={{cursor: 'pointer'}}
+            >
+                {value || <span style={{color: '#999', fontStyle: 'italic'}}>{placeholder}</span>}
+            </p>
+            {isEdited && (
+                <Edit className="edit-indicator" fontSize="small" titleAccess="Field has unsaved changes" />
+            )}
+        </div>
+    )
 }

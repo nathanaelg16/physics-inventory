@@ -16,6 +16,7 @@ interface Props {
     validator?: (value: string) => boolean,
     helperText?: string,
     slotProps?: any,
+    isEdited?: boolean,
 }
 
 export default function AssetFieldWithAction({
@@ -31,30 +32,32 @@ export default function AssetFieldWithAction({
                                                  inputType = 'text',
                                                  validator = (_: string) => true,
                                                  helperText = '',
-                                                 slotProps = {}
+                                                 slotProps = {},
+                                                 isEdited = false
                                              }: Props) {
     return (<div className="asset--details-field asset--field-with-button">
-            <p><strong>{label}</strong></p>
-            <div className="field-content-container">
-                <EditableParagraph
-                    text={value}
-                    onSave={(newText) => onSave(fieldName, newText)}
-                    multiline={multiline}
-                    placeholder={placeholder}
-                    className="field-editable-content"
-                    inputType={inputType}
-                    validator={validator}
-                    helperText={helperText}
-                    slotProps={slotProps}
-                />
-                {showAction && (<Button
-                        onClick={onAction}
-                        size="small"
-                        variant="outlined"
-                        className="field-action-button"
-                    >
-                        {actionLabel}
-                    </Button>)}
-            </div>
-        </div>)
+        <p><strong>{label}</strong></p>
+        <div className="field-content-container">
+            <EditableParagraph
+                text={value}
+                onSave={(newText) => onSave(fieldName, newText)}
+                multiline={multiline}
+                placeholder={placeholder}
+                className="field-editable-content"
+                inputType={inputType}
+                validator={validator}
+                helperText={helperText}
+                slotProps={slotProps}
+                isEdited={isEdited}
+            />
+            {showAction && (<Button
+                onClick={onAction}
+                size="small"
+                variant="outlined"
+                className="field-action-button"
+            >
+                {actionLabel}
+            </Button>)}
+        </div>
+    </div>)
 }

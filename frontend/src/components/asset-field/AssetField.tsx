@@ -1,4 +1,4 @@
-import EditableParagraph from "../editable-paragraph/EditableParagraph";
+import EditableParagraph from '../editable-paragraph/EditableParagraph'
 
 interface Props {
     label: string,
@@ -11,9 +11,22 @@ interface Props {
     validator?: (value: string) => boolean,
     helperText?: string,
     slotProps?: any,
+    isEdited?: boolean,
 }
 
-export default function AssetField({label, fieldName, value, onSave, multiline = false, placeholder = 'N/A', inputType = 'text', validator = (_: string) => true, helperText = '', slotProps = {}}: Props) {
+export default function AssetField({
+                                       label,
+                                       fieldName,
+                                       value,
+                                       onSave,
+                                       multiline = false,
+                                       placeholder = 'N/A',
+                                       inputType = 'text',
+                                       validator = (_: string) => true,
+                                       helperText = '',
+                                       slotProps = {},
+                                       isEdited = false
+                                   }: Props) {
     return (
         <div className="asset--details-field">
             <p><strong>{label}</strong></p>
@@ -26,6 +39,7 @@ export default function AssetField({label, fieldName, value, onSave, multiline =
                 validator={validator}
                 helperText={helperText}
                 slotProps={slotProps}
+                isEdited={isEdited}
             />
         </div>
     )

@@ -17,13 +17,13 @@ import { SnackbarAlert } from '../../utils/snackbar-alert'
 import {AssignRecordLocator, GetAsset, UpdateAsset} from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
-import AssetFieldWithAction from "../../components/asset-field/AssetFieldWithAction"
-import AssetSelectField from "../../components/asset-field/AssetSelectField";
-import AssetDocumentField from "../../components/asset-field/AssetDocumentField";
-import AssetInfoField from "../../components/asset-field/AssetInfoField";
-import AssetStatusHistory from "../../components/asset-status-history/AssetStatusHistory";
-import AssetCalibrationHistory from "../../components/asset-calibration-history/AssetCalibrationHistory";
-import {formatDate} from "../../utils/utils";
+import AssetFieldWithAction from '../../components/asset-field/AssetFieldWithAction'
+import AssetSelectField from '../../components/asset-field/AssetSelectField'
+import AssetDocumentField from '../../components/asset-field/AssetDocumentField'
+import AssetInfoField from '../../components/asset-field/AssetInfoField'
+import AssetStatusHistory from '../../components/asset-status-history/AssetStatusHistory'
+import AssetCalibrationHistory from '../../components/asset-calibration-history/AssetCalibrationHistory'
+import {formatDate} from '../../utils/utils'
 import './assetView.css'
 
 export default function AssetView() {
@@ -206,25 +206,25 @@ export default function AssetView() {
 
     const recordLocatorValidator = (recordLocator: string): boolean => {
         // Check if the string is empty or consists only of digits 0-9
-        const digitRegex = /^[0-9]*$/;
-        return digitRegex.test(recordLocator);
+        const digitRegex = /^[0-9]*$/
+        return digitRegex.test(recordLocator)
     }
 
     const currencyValidator = (amount: string): boolean => {
         // Basic check for valid currency format with or without leading $
-        const currencyRegex = /^\$?(\d+)(\.\d{2})?$|^\$?(0\.\d{2})$/;
+        const currencyRegex = /^\$?(\d+)(\.\d{2})?$|^\$?(0\.\d{2})$/
 
         // Check for the case where we have a decimal without a leading 0
         if (/^\$?\.\d{2}$/.test(amount)) {
-            return false; // Reject .XX format, should be 0.XX
+            return false // Reject .XX format, should be 0.XX
         }
 
         // Reject if it's just a dollar sign or decimal point or empty
         if (amount === '$' || amount === '.' || amount === '$.' || amount === '') {
-            return false;
+            return false
         }
 
-        return currencyRegex.test(amount);
+        return currencyRegex.test(amount)
     }
 
     const viewDocument = (document: string) => {
@@ -246,6 +246,11 @@ export default function AssetView() {
 
     const uploadDocument = (document: string) => {
         // todo implement this
+    }
+
+    // Helper function to check if a field has been edited
+    const isFieldEdited = (fieldName: string): boolean => {
+        return edits.hasOwnProperty(fieldName)
     }
 
     if (loading) {
@@ -361,6 +366,7 @@ export default function AssetView() {
                         text={asset.name.String}
                         onSave={(newText) => saveChangesToField('name', newText)}
                         className="asset--details-name"
+                        isEdited={isFieldEdited('name')}
                     />
 
                     <div className="asset--details-sub-group-container">
@@ -370,24 +376,28 @@ export default function AssetView() {
                                 fieldName="brand"
                                 value={asset.brand.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('brand')}
                             />
                             <AssetField
                                 label="Model:"
                                 fieldName="model"
                                 value={asset.model.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('model')}
                             />
                             <AssetField
                                 label="Part:"
                                 fieldName="part"
                                 value={asset.part.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('part')}
                             />
                             <AssetField
                                 label="S/N:"
                                 fieldName="serial"
                                 value={asset.serial.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('serial')}
                             />
                         </div>
                         <div className="asset--details-sub-group">
@@ -396,24 +406,28 @@ export default function AssetView() {
                                 fieldName="location"
                                 value={asset.location.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('location')}
                             />
                             <AssetField
                                 label="Keywords:"
                                 fieldName="keywords"
                                 value={asset.keywords.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('keywords')}
                             />
                             <AssetField
                                 label="AU Inventory:"
                                 fieldName="auInventory"
                                 value={asset.auInventory.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('auInventory')}
                             />
                             <AssetField
                                 label="Quantity:"
                                 fieldName="quantity"
                                 value={asset.quantity.String}
                                 onSave={saveChangesToField}
+                                isEdited={isFieldEdited('quantity')}
                             />
                         </div>
                     </div>
@@ -428,6 +442,7 @@ export default function AssetView() {
                         fieldName="vendor"
                         value={asset.vendor}
                         onSave={saveChangesToField}
+                        isEdited={isFieldEdited('vendor')}
                     />
                     <AssetField
                         label="Purchase Date:"
@@ -435,6 +450,7 @@ export default function AssetView() {
                         value={asset.purchaseDate.Time}
                         onSave={saveChangesToField}
                         inputType='date'
+                        isEdited={isFieldEdited('purchaseDate')}
                     />
                     <AssetField
                         label="Purchase Amount:"
@@ -443,6 +459,7 @@ export default function AssetView() {
                         onSave={saveChangesToField}
                         validator={currencyValidator}
                         helperText='Value must be formatted as currency'
+                        isEdited={isFieldEdited('purchaseAmount')}
                     />
                     <AssetField
                         label="Unit Price:"
@@ -451,12 +468,14 @@ export default function AssetView() {
                         onSave={saveChangesToField}
                         validator={currencyValidator}
                         helperText='Value must be formatted as currency'
+                        isEdited={isFieldEdited('unitPrice')}
                     />
-                    <AssetDocumentField label='Receipt:'
-                                        documentAvailable={asset.receiptAvailable}
-                                        onView={() => viewDocument('receipt')}
-                                        onRemove={() => removeDocument('receipt')}
-                                        onUpload={() => uploadDocument('receipt')}
+                    <AssetDocumentField
+                        label='Receipt:'
+                        documentAvailable={asset.receiptAvailable}
+                        onView={() => viewDocument('receipt')}
+                        onRemove={() => removeDocument('receipt')}
+                        onUpload={() => uploadDocument('receipt')}
                     />
                 </div>
             </div>
@@ -464,28 +483,33 @@ export default function AssetView() {
             <div className="asset--details-addl">
                 <p>Documents</p>
                 <div className="asset--details-addl-content">
-                    <AssetFieldWithAction label='Record #:'
-                                          fieldName='recordLocator'
-                                          value={asset.recordLocator >= 0 ? asset.recordLocator.toString().padStart(5, '0') : ''}
-                                          onSave={saveChangesToField}
-                                          showAction={asset.recordLocator == -1 && edits['recordLocator'] === undefined}
-                                          actionLabel='Auto-assign'
-                                          onAction={assignRecordLocator}
-                                          validator={recordLocatorValidator}
-                                          helperText='Only numbers allowed'
+                    <AssetFieldWithAction
+                        label='Record #:'
+                        fieldName='recordLocator'
+                        value={asset.recordLocator >= 0 ? asset.recordLocator.toString().padStart(5, '0') : ''}
+                        onSave={saveChangesToField}
+                        showAction={asset.recordLocator === -1 && edits['recordLocator'] === undefined}
+                        actionLabel='Auto-assign'
+                        onAction={assignRecordLocator}
+                        validator={recordLocatorValidator}
+                        helperText='Only numbers allowed'
+                        isEdited={isFieldEdited('recordLocator')}
                     />
-                    <AssetSelectField label='Physical Manual:'
-                                      fieldName='hardCopyAvailable'
-                                      value={asset.hardCopyAvailable}
-                                      options={[{value: true, label: 'Available'}, {value: false, label: 'Not Available'}]}
-                                      onSave={saveChangesToField}
-                                      placeholder=''
+                    <AssetSelectField
+                        label='Physical Manual:'
+                        fieldName='hardCopyAvailable'
+                        value={asset.hardCopyAvailable}
+                        options={[{value: true, label: 'Available'}, {value: false, label: 'Not Available'}]}
+                        onSave={saveChangesToField}
+                        placeholder=''
+                        isEdited={isFieldEdited('hardCopyAvailable')}
                     />
-                    <AssetDocumentField label='Digital Manual:'
-                                        documentAvailable={asset.softCopyAvailable}
-                                        onView={() => viewDocument('manual')}
-                                        onRemove={() => removeDocument('manual')}
-                                        onUpload={() => uploadDocument('manual')}
+                    <AssetDocumentField
+                        label='Digital Manual:'
+                        documentAvailable={asset.softCopyAvailable}
+                        onView={() => viewDocument('manual')}
+                        onRemove={() => removeDocument('manual')}
+                        onUpload={() => uploadDocument('manual')}
                     />
                 </div>
             </div>
@@ -493,59 +517,54 @@ export default function AssetView() {
             <div className="asset--details-addl">
                 <p>Maintenance</p>
                 <div className="asset--details-addl-content">
-                    <AssetSelectField label='Repair Status:'
-                                      fieldName='repairStatus'
-                                      value={asset.repairStatus} options={[
-                                            {
-                                                value: 'W',
-                                                label: 'Working'
-                                            }, {
-                                                value: 'C',
-                                                label: 'Out for calibration'
-                                            },
-                                            {
-                                                value: 'R',
-                                                label: 'Out for repair'
-                                            },
-                                            {
-                                                value: 'T',
-                                                label: 'Out for testing'
-                                            },
-                                            {
-                                                value: 'U',
-                                                label: 'Unknown'
-                                            }
-                                        ]}
-                                      onSave={saveChangesToField}
+                    <AssetSelectField
+                        label='Repair Status:'
+                        fieldName='repairStatus'
+                        value={asset.repairStatus}
+                        options={[
+                            {value: 'W', label: 'Working'},
+                            {value: 'C', label: 'Out for calibration'},
+                            {value: 'R', label: 'Out for repair'},
+                            {value: 'T', label: 'Out for testing'},
+                            {value: 'U', label: 'Unknown'}
+                        ]}
+                        onSave={saveChangesToField}
+                        isEdited={isFieldEdited('repairStatus')}
                     />
-                    <AssetInfoField label='Status Changed:'
-                                    value={asset.statusChangeDate.Valid ? formatDate(asset.statusChangeDate.Time) : ''}
+                    <AssetInfoField
+                        label='Status Changed:'
+                        value={asset.statusChangeDate.Valid ? formatDate(asset.statusChangeDate.Time) : ''}
                     />
-                    
+
                     <div style={{margin: '16px 0'}}>
                         <AssetStatusHistory statusHistory={asset.statusHistory} />
                     </div>
 
-                    <AssetInfoField label='Last Calibration:'
-                                    value={asset.lastCalibrationDate.Valid ? formatDate(asset.lastCalibrationDate.Time) : ''}
+                    <AssetInfoField
+                        label='Last Calibration:'
+                        value={asset.lastCalibrationDate.Valid ? formatDate(asset.lastCalibrationDate.Time) : ''}
                     />
-                    <AssetField label='Next Calibration:'
-                                fieldName='nextCalibrationDate'
-                                value={asset.nextCalibrationDate.Time}
-                                onSave={saveChangesToField}
-                                inputType='date'
+                    <AssetField
+                        label='Next Calibration:'
+                        fieldName='nextCalibrationDate'
+                        value={asset.nextCalibrationDate.Time}
+                        onSave={saveChangesToField}
+                        inputType='date'
+                        isEdited={isFieldEdited('nextCalibrationDate')}
                     />
 
                     <div style={{margin: '16px 0'}}>
                         <AssetCalibrationHistory calibrationHistory={asset.calibrationHistory} />
                     </div>
 
-                    <AssetField label='Maintenance Notes:'
-                                fieldName='maintenanceNotes'
-                                value={asset.maintenanceNotes.String}
-                                onSave={saveChangesToField}
-                                multiline
-                                placeholder='Click to add notes...'
+                    <AssetField
+                        label='Maintenance Notes:'
+                        fieldName='maintenanceNotes'
+                        value={asset.maintenanceNotes.String}
+                        onSave={saveChangesToField}
+                        multiline
+                        placeholder='Click to add notes...'
+                        isEdited={isFieldEdited('maintenanceNotes')}
                     />
                 </div>
             </div>
@@ -559,6 +578,7 @@ export default function AssetView() {
                             onSave={(newText) => saveChangesToField('notes', newText)}
                             multiline
                             placeholder="Click to add notes..."
+                            isEdited={isFieldEdited('notes')}
                         />
                     </div>
                 </div>

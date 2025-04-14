@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Select, MenuItem, FormControl, InputLabel, SelectChangeEvent } from '@mui/material'
+import { Edit } from '@mui/icons-material'
 
 interface Props {
     label: string
@@ -8,6 +9,7 @@ interface Props {
     options: Array<{ value: any, label: string }>
     onSave: (field: string, value: any) => void
     placeholder?: string
+    isEdited?: boolean
 }
 
 export default function AssetSelectField({
@@ -16,7 +18,8 @@ export default function AssetSelectField({
                                              value,
                                              options,
                                              onSave,
-                                             placeholder = 'Select an option'
+                                             placeholder = 'Select an option',
+                                             isEdited = false
                                          }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
     const [currentValue, setCurrentValue] = useState<any>(value)
@@ -59,14 +62,19 @@ export default function AssetSelectField({
                     </Select>
                 </FormControl>
             ) : (
-                <p
-                    className="editable-paragraph"
-                    onClick={handleClick}
-                    style={{ cursor: 'pointer' }}
-                >
-                    {options.find(opt => opt.value === currentValue)?.label ||
-                        <span style={{ color: '#999', fontStyle: 'italic' }}>{placeholder}</span>}
-                </p>
+                <div className={`editable-paragraph-container ${isEdited ? 'edited-field' : ''}`}>
+                    <p
+                        className="editable-paragraph"
+                        onClick={handleClick}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        {options.find(opt => opt.value === currentValue)?.label ||
+                            <span style={{ color: '#999', fontStyle: 'italic' }}>{placeholder}</span>}
+                    </p>
+                    {isEdited && (
+                        <Edit className="edit-indicator" fontSize="small" titleAccess="Field has unsaved changes" />
+                    )}
+                </div>
             )}
         </div>
     )
