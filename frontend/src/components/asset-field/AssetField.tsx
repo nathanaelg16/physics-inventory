@@ -4,13 +4,16 @@ interface Props {
     label: string,
     fieldName: string,
     value: string,
-    onSave: (field: string, value: any) => void,
+    onSave: (field: string, value: string) => void,
     multiline?: boolean,
     placeholder?: string,
     inputType?: string,
+    validator?: (value: string) => boolean,
+    helperText?: string,
+    slotProps?: any,
 }
 
-export default function AssetField({label, fieldName, value, onSave, multiline = false, placeholder = 'N/A', inputType = 'text'}: Props) {
+export default function AssetField({label, fieldName, value, onSave, multiline = false, placeholder = 'N/A', inputType = 'text', validator = (_: string) => true, helperText = '', slotProps = {}}: Props) {
     return (
         <div className="asset--details-field">
             <p><strong>{label}</strong></p>
@@ -20,6 +23,9 @@ export default function AssetField({label, fieldName, value, onSave, multiline =
                 multiline={multiline}
                 placeholder={placeholder}
                 inputType={inputType}
+                validator={validator}
+                helperText={helperText}
+                slotProps={slotProps}
             />
         </div>
     )

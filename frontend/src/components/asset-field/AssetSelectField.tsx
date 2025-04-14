@@ -27,14 +27,12 @@ export default function AssetSelectField({
 
     const handleChange = (event: SelectChangeEvent<any>) => {
         const newValue = event.target.value
+        onSave(fieldName, newValue)
         setCurrentValue(newValue)
     }
 
     const handleClose = () => {
         setEditing(false)
-        if (currentValue !== value) {
-            onSave(fieldName, currentValue)
-        }
     }
 
     return (

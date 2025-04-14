@@ -66,7 +66,7 @@ export default function AssetView() {
     const saveChangesToField = (field: string, newValue: any) => {
         if (!asset) return
 
-        let currentValue: any = ''
+        let currentValue: any
 
         switch (field) {
             case 'vendor':
@@ -74,7 +74,7 @@ export default function AssetView() {
                 currentValue = asset[field] || ''
                 break
             case 'purchaseDate':
-                currentValue = asset.purchaseDate.Time || ''
+                currentValue = formatDate(asset.purchaseDate.Time) || ''
                 break
             case 'name':
                 currentValue = asset.name.String || ''
@@ -108,6 +108,12 @@ export default function AssetView() {
                 break
             case 'notes':
                 currentValue = asset.notes.String || ''
+                break
+            case 'recordLocator':
+                currentValue = asset.recordLocator
+                break
+            case 'hardCopyAvailable':
+                currentValue = asset.hardCopyAvailable
                 break
             default:
                 currentValue = ''
@@ -196,6 +202,29 @@ export default function AssetView() {
 
                 setTimeout(() => getAsset(), 4000)
             })
+    }
+
+    const recordLocatorValidator = (recordLocator: string): boolean => {
+        // Check if the string is empty or consists only of digits 0-9
+        const digitRegex = /^[0-9]*$/;
+        return digitRegex.test(recordLocator);
+    }
+
+    const currencyValidator = (amount: string): boolean => {
+        // Basic check for valid currency format with or without leading $
+        const currencyRegex = /^\$?(\d+)(\.\d{2})?$|^\$?(0\.\d{2})$/;
+
+        // Check for the case where we have a decimal without a leading 0
+        if (/^\$?\.\d{2}$/.test(amount)) {
+            return false; // Reject .XX format, should be 0.XX
+        }
+
+        // Reject if it's just a dollar sign or decimal point or empty
+        if (amount === '$' || amount === '.' || amount === '$.' || amount === '') {
+            return false;
+        }
+
+        return currencyRegex.test(amount);
     }
 
     const viewDocument = (document: string) => {
@@ -412,12 +441,16 @@ export default function AssetView() {
                         fieldName="purchaseAmount"
                         value={asset.purchaseAmount.String}
                         onSave={saveChangesToField}
+                        validator={currencyValidator}
+                        helperText='Value must be formatted as currency'
                     />
                     <AssetField
                         label="Unit Price:"
                         fieldName="unitPrice"
                         value={asset.unitPrice}
                         onSave={saveChangesToField}
+                        validator={currencyValidator}
+                        helperText='Value must be formatted as currency'
                     />
                     <AssetDocumentField label='Receipt:'
                                         documentAvailable={asset.receiptAvailable}
@@ -438,6 +471,8 @@ export default function AssetView() {
                                           showAction={asset.recordLocator == -1 && edits['recordLocator'] === undefined}
                                           actionLabel='Auto-assign'
                                           onAction={assignRecordLocator}
+                                          validator={recordLocatorValidator}
+                                          helperText='Only numbers allowed'
                     />
                     <AssetSelectField label='Physical Manual:'
                                       fieldName='hardCopyAvailable'

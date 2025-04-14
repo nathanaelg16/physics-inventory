@@ -9,6 +9,9 @@ interface Props {
     multiline?: boolean,
     placeholder?: string,
     inputType?: string,
+    validator?: (value: string) => boolean,
+    helperText?: string,
+    slotProps?: any,
 }
 
 export default function EditableParagraph({
@@ -17,7 +20,10 @@ export default function EditableParagraph({
                                               className = '',
                                               multiline = false,
                                               placeholder = 'N/A',
-                                              inputType = 'text'
+                                              inputType = 'text',
+                                              validator = (_: string) => true,
+                                              helperText = '',
+                                              slotProps = {}
                                           }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
     const [value, setValue] = useState<string>(() => {
@@ -42,17 +48,24 @@ export default function EditableParagraph({
     };
 
     const handleBlur = () => {
-        setEditing(false);
-        if (value !== text) {
-            onSave(value)
+        if (!validator(value)) {
+            if (textFieldRef.current) textFieldRef.current.focus()
+            return
         }
+
+        setEditing(false);
+        onSave(value)
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !multiline) {
             e.preventDefault()
-            setEditing(false)
-            onSave(value)
+            if (validator(value)) {
+                setEditing(false)
+                onSave(value)
+            } else {
+                if (textFieldRef.current) textFieldRef.current.focus()
+            }
         } else if (e.key === 'Escape') {
             e.preventDefault()
             setValue(text) // Reset to original value
@@ -74,6 +87,9 @@ export default function EditableParagraph({
             sx={{margin: '4px 0'}}
             autoComplete='off'
             type={inputType}
+            error={!validator(value)}
+            helperText={!validator(value) && helperText}
+            slotProps={slotProps}
         />) : (<p
             className={`editable-paragraph ${className}`}
             onClick={handleClick}
