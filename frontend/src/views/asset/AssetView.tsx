@@ -66,11 +66,6 @@ export default function AssetView() {
         getAsset()
     }, [id])
 
-    // todo remove this later
-    useEffect(() => {
-        console.log('Edits:', edits)
-    }, [edits])
-
     const saveChangesToField = (field: string, newValue: any) => {
         if (!asset) return
 
@@ -168,12 +163,13 @@ export default function AssetView() {
                 })
                 setEdits({}) // Clear edits after successful save
                 setSaving(false)
+                getAsset()
             })
             .catch((err) => {
                 console.error('Error updating asset:', err)
                 showAlert({
                     severity: 'error',
-                    msg: 'Failed to update asset. Please try again.'
+                    msg: err
                 })
                 setSaving(false)
             })
