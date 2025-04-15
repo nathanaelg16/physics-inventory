@@ -219,11 +219,13 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 	// Handle the repair status updates
 	if hasRepairStatus {
 		var currentStatus sql.NullString
-		err = tx.QueryRow("select repair_status from maintenance where id = ?", id).Scan(&currentStatus)
+		var currentHistory sql.NullString
+		err = tx.QueryRow("select repair_status, status_history from maintenance where id = ?", id).Scan(&currentStatus, &currentHistory)
 
 		// If there's no maintenance record yet, treat as if status is unknown
 		if errors.Is(err, sql.ErrNoRows) {
 			currentStatus = sql.NullString{String: string(UNKNOWN), Valid: true}
+			currentHistory = sql.NullString{Valid: false}
 			err = nil
 		}
 
@@ -233,15 +235,22 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 		}
 
 		var currentDate = time.Now().Format("2006-01-02")
-		var statusHistory = fmt.Sprintf("%s: %s", parseRepairStatus(currentStatus.String).Expanded(), currentDate)
+		var newHistoryEntry = fmt.Sprintf("%s: %s", parseRepairStatus(currentStatus.String).Expanded(), currentDate)
 
-		// Insert/update the repair status
+		var combinedHistory string
+		if !currentHistory.Valid || currentHistory.String == "" {
+			combinedHistory = newHistoryEntry
+		} else {
+			combinedHistory = currentHistory.String + ";" + newHistoryEntry
+		}
+
+		// Insert/update the repair status with history
 		query := `insert into maintenance (id, repair_status, status_change_date, status_history) 
 				  values (?, ?, ?, ?) as new_row
 				  on duplicate key update 
 				  repair_status = new_row.repair_status, 
 				  status_change_date = new_row.status_change_date, 
-				  status_history = if(status_history is null, ?, concat_ws(';', status_history, ?))`
+				  status_history = ?`
 
 		stmt, err := tx.Prepare(query)
 		if err != nil {
@@ -250,8 +259,8 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 		}
 
 		_, err = stmt.Exec(
-			id, newRepairStatus, currentDate, statusHistory, // INSERT values
-			statusHistory, statusHistory) // UPDATE values for history
+			id, newRepairStatus, currentDate, newHistoryEntry, // INSERT values
+			combinedHistory) // UPDATE value for history
 		stmt.Close()
 
 		if err != nil {
@@ -261,9 +270,32 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 
 		// Handle the CALIBRATING case
 		if newRepairStatus == "C" {
+			// Get current calibration history
+			var calibHistory sql.NullString
+			err = tx.QueryRow("select calibration_history from maintenance where id = ?", id).Scan(&calibHistory)
+
+			// Handle the case where the row might not exist yet (should be rare since we just inserted/updated it)
+			if errors.Is(err, sql.ErrNoRows) {
+				calibHistory = sql.NullString{Valid: false}
+				err = nil
+			}
+
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "UpdateAsset: calibration history query failed: %v", err)
+				return fmt.Errorf("database error -- failed to query calibration history: %w", err)
+			}
+
+			// Build the new calibration history string
+			var combinedCalibHistory string
+			if !calibHistory.Valid || calibHistory.String == "" {
+				combinedCalibHistory = currentDate
+			} else {
+				combinedCalibHistory = calibHistory.String + ";" + currentDate
+			}
+
 			calibQuery := `update maintenance 
 							   set last_calibration_date = ?, 
-							   calibration_history = if(calibration_history is null, ?, concat_ws(';', calibration_history, ?))
+							   calibration_history = ?
 							   where id = ?`
 
 			stmt, err := tx.Prepare(calibQuery)
@@ -272,8 +304,8 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 				return fmt.Errorf("database error -- failed to prepare statement: %w", err)
 			}
 
-			_, err = stmt.Exec(currentDate, currentDate, currentDate, id)
-			stmt.Close() // Close the statement regardless of error
+			_, err = stmt.Exec(currentDate, combinedCalibHistory, id)
+			stmt.Close()
 
 			if err != nil {
 				runtime.LogErrorf(a.ctx, "UpdateAsset: calibration update failed: %v", err)
