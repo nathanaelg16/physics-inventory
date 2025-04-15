@@ -94,9 +94,8 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 }
 
 func (a *App) UpdateAsset(id int64, updates map[string]string) error {
-	var db = a.db
-
-	var equipmentTableFieldNames = map[string]string{
+	// Define field mappings
+	equipmentTableFieldNames := map[string]string{
 		"name":              "item_name",
 		"location":          "location",
 		"keywords":          "keywords",
@@ -115,145 +114,178 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 		"vendor":            "vendor",
 	}
 
-	var maintenanceTableFieldNames = map[string]string{
+	maintenanceTableFieldNames := map[string]string{
 		"nextCalibrationDate": "next_calibration_date",
 		"maintenanceNotes":    "notes",
 	}
 
-	var mappedEquipmentTableUpdates = make(map[string]any)
-	var mappedMaintenanceTableUpdates = make(map[string]any)
+	// Validate all inputs
+	validatedEquipmentUpdates := make(map[string]any)
+	validatedMaintenanceUpdates := make(map[string]any)
+	var newRepairStatus any
+	var hasRepairStatus bool
 
 	for key, value := range updates {
-		equipmentTableFieldName, ok := equipmentTableFieldNames[key]
-		if ok {
-			validatedValue, err := validateValue(key, value)
-			if err != nil {
-				runtime.LogErrorf(a.ctx, "UpdateAsset failed for field '%s': %v", equipmentTableFieldName, err)
-				return err
-			}
-			mappedEquipmentTableUpdates[equipmentTableFieldName] = validatedValue
-		} else {
-			maintenanceTableFieldName, ok1 := maintenanceTableFieldNames[key]
-			if ok1 {
-				validatedValue, err := validateValue(key, value)
-				if err != nil {
-					runtime.LogErrorf(a.ctx, "UpdateAsset failed for field '%s': %v", maintenanceTableFieldName, err)
-					return err
-				}
-				mappedMaintenanceTableUpdates[maintenanceTableFieldName] = validatedValue
-			}
+		validatedValue, err := validateValue(key, value)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset validation failed for field '%s': %v", key, err)
+			return fmt.Errorf("validation failed for field '%s': %w", key, err)
+		}
+
+		if key == "repairStatus" {
+			newRepairStatus = validatedValue
+			hasRepairStatus = true
+			continue // Handle repair status separately
+		}
+
+		if dbField, ok := equipmentTableFieldNames[key]; ok {
+			validatedEquipmentUpdates[dbField] = validatedValue
+		} else if dbField, ok := maintenanceTableFieldNames[key]; ok {
+			validatedMaintenanceUpdates[dbField] = validatedValue
 		}
 	}
 
-	if len(mappedEquipmentTableUpdates) > 0 {
+	// Begin transaction
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "UpdateAsset: failed to begin transaction: %v", err)
+		return fmt.Errorf("database error -- failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback() // Will be ignored if transaction is committed
+
+	// Update equipment table if needed
+	if len(validatedEquipmentUpdates) > 0 {
 		query := "update equipment set "
 
-		placeholders := make([]string, 0, len(mappedEquipmentTableUpdates))
-		values := make([]any, 0, len(mappedEquipmentTableUpdates)+1)
+		placeholders := make([]string, 0, len(validatedEquipmentUpdates))
+		values := make([]any, 0, len(validatedEquipmentUpdates)+1)
 
-		for field, value := range mappedEquipmentTableUpdates {
+		for field, value := range validatedEquipmentUpdates {
 			placeholders = append(placeholders, field+" = ?")
 			values = append(values, value)
 		}
 
 		query += strings.Join(placeholders, ", ")
 		query += " where id = ?;"
-
 		values = append(values, id)
 
-		stmt, err := db.Prepare(query)
+		stmt, err := tx.Prepare(query)
 		if err != nil {
 			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to prepare statement: %v", err)
-			return fmt.Errorf("A database error occurred: %v", err)
+			return fmt.Errorf("database error -- failed to prepare statement: %w", err)
 		}
-		defer stmt.Close()
 
 		_, err = stmt.Exec(values...)
+		stmt.Close() // Close the statement regardless of error
+
 		if err != nil {
-			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to update: %v", err)
-			return fmt.Errorf("A database error occurred: %v", err)
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to update equipment: %v", err)
+			return fmt.Errorf("failed to update asset: %w", err)
 		}
 	}
 
-	if len(mappedMaintenanceTableUpdates) > 0 {
+	// Update maintenance table if needed
+	if len(validatedMaintenanceUpdates) > 0 {
 		query := "insert into maintenance (id"
 		valuesPlaceholders := "?"
 		values := []any{id}
 
 		var updateParts []string
-		for field := range mappedMaintenanceTableUpdates {
+		for field, value := range validatedMaintenanceUpdates {
 			query += ", " + field
 			valuesPlaceholders += ", ?"
-			values = append(values, mappedMaintenanceTableUpdates[field])
+			values = append(values, value)
 			updateParts = append(updateParts, field+" = new_values."+field)
 		}
 
 		query += ") values (" + valuesPlaceholders + ") as new_values"
 		query += " on duplicate key update " + strings.Join(updateParts, ", ")
 
-		runtime.LogDebugf(a.ctx, "UpdateAsset query: %s", query)
-
-		// Prepare and execute the statement
-		stmt, err := db.Prepare(query)
+		stmt, err := tx.Prepare(query)
 		if err != nil {
 			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to prepare maintenance statement: %v", err)
-			return fmt.Errorf("A database error occurred: %v", err)
+			return fmt.Errorf("database error -- failed to prepare statement: %w", err)
 		}
-		defer stmt.Close()
 
 		_, err = stmt.Exec(values...)
+		stmt.Close()
+
 		if err != nil {
 			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to update maintenance: %v", err)
-			return fmt.Errorf("A database error occurred: %v", err)
+			return fmt.Errorf("failed to update asset maintenance details: %w", err)
 		}
 	}
 
-	// update maintenance status
-	if value, contains := updates["repairStatus"]; contains {
-		newStatus, err := validateValue("repairStatus", value)
-		if err != nil {
-			runtime.LogErrorf(a.ctx, "UpdateAsset failed for field 'repairStatus': %v", err)
-			return err
+	// Handle the repair status updates
+	if hasRepairStatus {
+		var currentStatus sql.NullString
+		err = tx.QueryRow("select repair_status from maintenance where id = ?", id).Scan(&currentStatus)
+
+		// If there's no maintenance record yet, treat as if status is unknown
+		if errors.Is(err, sql.ErrNoRows) {
+			currentStatus = sql.NullString{String: string(UNKNOWN), Valid: true}
+			err = nil
 		}
 
-		var currentStatus sql.NullString
-		err = db.QueryRow("select repair_status from maintenance where id = ?;", id).Scan(&currentStatus)
 		if err != nil {
 			runtime.LogErrorf(a.ctx, "UpdateAsset: repair status query failed: %v", err)
-			return fmt.Errorf("A database error occurred: %v", err)
+			return fmt.Errorf("database error -- failed to query current repair status: %w", err)
 		}
 
 		var currentDate = time.Now().Format("2006-01-02")
 		var statusHistory = fmt.Sprintf("%s: %s", parseRepairStatus(currentStatus.String).Expanded(), currentDate)
 
+		// Insert/update the repair status
 		query := `insert into maintenance (id, repair_status, status_change_date, status_history) 
-          values (?, ?, ?, ?) 
-          on duplicate key update 
-          repair_status = ?, 
-          status_change_date = ?, 
-          status_history = concat_ws(?, status_history, ?)`
+				  values (?, ?, ?, ?) as new_row
+				  on duplicate key update 
+				  repair_status = new_row.repair_status, 
+				  status_change_date = new_row.status_change_date, 
+				  status_history = if(status_history is null, ?, concat_ws(';', status_history, ?))`
 
-		_, err = db.Exec(query,
-			id, newStatus, currentDate, statusHistory, // INSERT values
-			newStatus, currentDate, ";", statusHistory) // UPDATE values
+		stmt, err := tx.Prepare(query)
 		if err != nil {
-			runtime.LogErrorf(a.ctx, "UpdateAsset: maintenance upsert failed: %v", err)
-			return fmt.Errorf("A database error occurred: %v", err)
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to prepare status statement: %v", err)
+			return fmt.Errorf("database error -- failed to prepare statement: %w", err)
 		}
 
-		// Handle the special CALIBRATING case
-		if newStatus == "C" {
-			calibQuery := `update maintenance 
-                   set last_calibration_date = ?, 
-                   calibration_history = concat_ws(?, calibration_history, ?) 
-                   where id = ?`
+		_, err = stmt.Exec(
+			id, newRepairStatus, currentDate, statusHistory, // INSERT values
+			statusHistory, statusHistory) // UPDATE values for history
+		stmt.Close()
 
-			_, err = db.Exec(calibQuery, currentDate, ";", currentDate, id)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: status update failed: %v", err)
+			return fmt.Errorf("failed to update repair status: %w", err)
+		}
+
+		// Handle the CALIBRATING case
+		if newRepairStatus == "C" {
+			calibQuery := `update maintenance 
+							   set last_calibration_date = ?, 
+							   calibration_history = if(calibration_history is null, ?, concat_ws(';', calibration_history, ?))
+							   where id = ?`
+
+			stmt, err := tx.Prepare(calibQuery)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "UpdateAsset: failed to prepare calibration statement: %v", err)
+				return fmt.Errorf("database error -- failed to prepare statement: %w", err)
+			}
+
+			_, err = stmt.Exec(currentDate, currentDate, currentDate, id)
+			stmt.Close() // Close the statement regardless of error
+
 			if err != nil {
 				runtime.LogErrorf(a.ctx, "UpdateAsset: calibration update failed: %v", err)
-				return fmt.Errorf("A database error occurred while updating calibration: %v", err)
+				return fmt.Errorf("failed to update calibration information: %w", err)
 			}
 		}
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		runtime.LogErrorf(a.ctx, "UpdateAsset: failed to commit transaction: %v", err)
+		return fmt.Errorf("database error -- failed to commit transaction: %w", err)
 	}
 
 	return nil

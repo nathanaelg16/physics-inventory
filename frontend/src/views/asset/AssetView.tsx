@@ -66,6 +66,11 @@ export default function AssetView() {
         getAsset()
     }, [id])
 
+    // todo remove this later
+    useEffect(() => {
+        console.log('Edits:', edits)
+    }, [edits])
+
     const saveChangesToField = (field: string, newValue: any) => {
         if (!asset) return
 
