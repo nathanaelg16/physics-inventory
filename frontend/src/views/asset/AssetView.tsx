@@ -11,7 +11,7 @@ import {
 import { ArrowBack, Save, ErrorOutline, Close } from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
 import Asset = main.Asset
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import imageNotAvailable from '../../assets/image_not_available.png'
 import { SnackbarAlert } from '../../utils/snackbar-alert'
 import {AssignRecordLocator, GetAsset, UpdateAsset} from '../../../wailsjs/go/main/App'
@@ -38,11 +38,39 @@ export default function AssetView() {
     const [alert, showAlert] = useState<SnackbarAlert | null>(null)
     const [edits, setEdits] = useState<any>({})
     const [saving, setSaving] = useState<boolean>(false)
+    const [isStuck, setIsStuck] = useState<boolean>(false)
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+    const containerRef = useRef<HTMLDivElement>(null)
 
     const hasEdits = Object.keys(edits).length > 0
+
+    // Set up intersection observer for sticky container effect
+    useEffect(() => {
+        if (!containerRef.current || isSmallScreen || !hasEdits) return
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // When the container intersects with the threshold, it's not stuck
+                // When it doesn't intersect, it's stuck to the top
+                setIsStuck(!entry.isIntersecting)
+            },
+            {
+                // This threshold is the point where we consider the element "stuck"
+                threshold: 0,
+                rootMargin: '-16px 0px 0px 0px'
+            }
+        )
+
+        observer.observe(containerRef.current)
+
+        return () => {
+            if (containerRef.current) {
+                observer.unobserve(containerRef.current)
+            }
+        }
+    }, [containerRef, isSmallScreen, hasEdits])
 
     const getAsset = () => {
         if (id !== undefined) {
@@ -153,7 +181,7 @@ export default function AssetView() {
 
         const editsConv = Object.fromEntries(
             Object.entries(edits).map(([key, value]) => [key, String(value)])
-        );
+        )
 
         UpdateAsset(parseInt(id), editsConv)
             .then(() => {
@@ -321,45 +349,49 @@ export default function AssetView() {
                 >
                     Back
                 </Button>
-
-                {hasEdits && (
-                    <div className="asset-unsaved-container">
-                        <Alert
-                            severity="warning"
-                            className="asset-unsaved-warning"
-                            variant={isSmallScreen ? "outlined" : "standard"}
-                        >
-                            You have unsaved changes
-                        </Alert>
-                        <div className="asset-action-buttons">
-                            <Button
-                                variant="outlined"
-                                style={{
-                                    color: '#B8860B',
-                                    borderColor: '#B8860B'
-                                }}
-                                startIcon={<Close />}
-                                onClick={cancelEdits}
-                                className="asset-cancel-button"
-                                size={isSmallScreen ? 'small' : 'medium'}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<Save />}
-                                onClick={saveChanges}
-                                disabled={saving}
-                                className="asset-save-button"
-                                size={isSmallScreen ? 'small' : 'medium'}
-                            >
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </Button>
-                        </div>
-                    </div>
-                )}
             </div>
+
+            {/* Floating unsaved changes container */}
+            {hasEdits && (
+                <div
+                    ref={containerRef}
+                    className={`asset-unsaved-container ${isStuck ? 'is-stuck' : ''}`}
+                >
+                    <Alert
+                        severity="warning"
+                        className="asset-unsaved-warning"
+                        variant={isSmallScreen ? "outlined" : "standard"}
+                    >
+                        You have unsaved changes
+                    </Alert>
+                    <div className="asset-action-buttons">
+                        <Button
+                            variant="outlined"
+                            style={{
+                                color: '#B8860B',
+                                borderColor: '#B8860B'
+                            }}
+                            startIcon={<Close />}
+                            onClick={cancelEdits}
+                            className="asset-cancel-button"
+                            size={isSmallScreen ? 'small' : 'medium'}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<Save />}
+                            onClick={saveChanges}
+                            disabled={saving}
+                            className="asset-save-button"
+                            size={isSmallScreen ? 'small' : 'medium'}
+                        >
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Missing asset banner above the main details when asset is missing */}
             {asset.missing && (
@@ -572,7 +604,7 @@ export default function AssetView() {
                     <AssetField
                         label='Next Calibration:'
                         fieldName='nextCalibrationDate'
-                        value={asset.nextCalibrationDate.Valid ? asset.nextCalibrationDate.Time : ''}
+                        value={asset.nextCalibrationDate.Valid ? formatDate(asset.nextCalibrationDate.Time) : ''}
                         onSave={saveChangesToField}
                         inputType='date'
                         isEdited={isFieldEdited('nextCalibrationDate')}

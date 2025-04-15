@@ -193,6 +193,70 @@
     min-width: 100px;
 }
 
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.asset-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+}
+
+.asset-unsaved-container {
+    position: sticky;
+    top: 16px;
+    z-index: 100;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    background-color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-left: auto;
+    margin-right: 0;
+    width: fit-content;
+    justify-content: flex-end;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+    animation: fadeSlideIn 0.4s ease-out;
+}
+
+.asset-unsaved-container:not(.is-stuck) {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.asset-unsaved-container.is-stuck {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #fffff8;
+}
+
 @media (max-width: 916px) {
     .asset-view-container {
         padding: 12px;
@@ -234,6 +298,61 @@
     .asset--missing-banner {
         margin-bottom: 12px;
         padding: 8px 12px;
+    }
+}
+
+@media (max-width: 650px) {
+    .asset-header {
+        padding-bottom: 0.5rem;
+    }
+
+    .asset-back-button {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .asset-unsaved-container {
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        left: 0;
+        right: 0;
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 8px 12px;
+        z-index: 1000;
+        animation: fadeSlideUp 0.4s ease-out;
+        box-sizing: border-box;
+    }
+
+    .asset-unsaved-warning {
+        padding: 0.5rem;
+        width: auto;
+        max-width: 100%;
+    }
+
+    .asset-unsaved-warning .MuiAlert-message {
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .asset-action-buttons {
+        display: flex;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .asset-cancel-button,
+    .asset-save-button {
+        flex: 1;
+        padding: 0.5rem;
+        min-width: 0;
     }
 }
 
@@ -284,72 +403,40 @@
         padding: 6px 8px;
         font-size: 0.8125rem;
     }
-}
-
-.asset-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.asset-unsaved-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-}
-
-.asset-unsaved-warning {
-    margin: 0;
-}
-
-.asset-save-button {
-    white-space: nowrap;
-}
-
-@media (max-width: 650px) {
-    .asset-header {
-        padding-bottom: 0.5rem;
-    }
-
-    .asset-back-button {
-        margin-bottom: 0.5rem !important;
-    }
 
     .asset-unsaved-container {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
+        padding: 8px;
+        box-sizing: border-box;
     }
 
     .asset-unsaved-warning {
-        padding: 0.5rem;
+        width: auto;
+        max-width: 100%;
+        margin: 0;
+        padding: 4px 8px;
     }
 
     .asset-unsaved-warning .MuiAlert-icon {
-        padding: 0.5rem 0;
-        font-size: 1rem;
-    }
-
-    .asset-unsaved-warning .MuiAlert-message {
-        padding: 0.5rem 0;
+        padding: 4px 0;
         font-size: 0.875rem;
     }
 
+    .asset-unsaved-warning .MuiAlert-message {
+        padding: 4px 0;
+        font-size: 0.75rem;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
     .asset-action-buttons {
-        display: flex;
-        width: 100%;
-        gap: 8px;
+        margin-top: 4px;
     }
 
     .asset-cancel-button,
     .asset-save-button {
-        flex: 1;
-        padding: 0.5rem;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        min-width: 0;
     }
 }
 
