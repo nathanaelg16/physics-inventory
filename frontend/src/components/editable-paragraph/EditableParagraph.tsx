@@ -30,7 +30,7 @@ export default function EditableParagraph({
                                           }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
     const [value, setValue] = useState<string>(() => {
-        if (inputType === 'date') return formatDate(text)
+        if (inputType === 'date' && text !== '') return formatDate(text)
         else return text
     })
     const textFieldRef = useRef<HTMLInputElement>(null)

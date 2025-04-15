@@ -17,6 +17,7 @@ interface Props {
     helperText?: string,
     slotProps?: any,
     isEdited?: boolean,
+    className?: string,
 }
 
 export default function AssetFieldWithAction({
@@ -33,7 +34,8 @@ export default function AssetFieldWithAction({
                                                  validator = (_: string) => true,
                                                  helperText = '',
                                                  slotProps = {},
-                                                 isEdited = false
+                                                 isEdited = false,
+                                                 className = ''
                                              }: Props) {
     return (<div className="asset--details-field asset--field-with-button">
         <p><strong>{label}</strong></p>
@@ -43,7 +45,7 @@ export default function AssetFieldWithAction({
                 onSave={(newText) => onSave(fieldName, newText)}
                 multiline={multiline}
                 placeholder={placeholder}
-                className="field-editable-content"
+                className={`field-editable-content ${className}`}
                 inputType={inputType}
                 validator={validator}
                 helperText={helperText}

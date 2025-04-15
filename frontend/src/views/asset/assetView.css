@@ -372,3 +372,7 @@
 .edited-field .editable-paragraph:hover {
     background-color: rgba(255, 235, 59, 0.25);
 }
+
+.uppercase-text {
+    text-transform: uppercase;
+}

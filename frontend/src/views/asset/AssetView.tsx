@@ -26,6 +26,9 @@ import AssetCalibrationHistory from '../../components/asset-calibration-history/
 import {formatDate} from '../../utils/utils'
 import './assetView.css'
 
+// todo enable replacing asset image
+// todo enable marking asset as missing
+
 export default function AssetView() {
     const { id } = useParams()
     const navigate = useNavigate()
@@ -71,62 +74,69 @@ export default function AssetView() {
         switch (field) {
             case 'vendor':
             case 'unitPrice':
-                currentValue = asset[field] || ''
+            case 'repairStatus':
+                currentValue = asset[field]
                 break
             case 'purchaseDate':
-                currentValue = formatDate(asset.purchaseDate.Time) || ''
+                currentValue = asset.purchaseDate.Valid ? formatDate(asset.purchaseDate.Time) : ''
                 break
             case 'name':
-                currentValue = asset.name.String || ''
+                currentValue = asset.name.String
                 break
             case 'location':
-                currentValue = asset.location.String || ''
+                currentValue = asset.location.String
+                newValue = (newValue as string).toUpperCase()
                 break
             case 'keywords':
-                currentValue = asset.keywords.String || ''
+                currentValue = asset.keywords.String
                 break
             case 'brand':
-                currentValue = asset.brand.String || ''
+                currentValue = asset.brand.String
                 break
             case 'model':
-                currentValue = asset.model.String || ''
+                currentValue = asset.model.String
                 break
             case 'part':
-                currentValue = asset.part.String || ''
+                currentValue = asset.part.String
                 break
             case 'serial':
-                currentValue = asset.serial.String || ''
+                currentValue = asset.serial.String
                 break
             case 'auInventory':
-                currentValue = asset.auInventory.String || ''
+                currentValue = asset.auInventory.String
                 break
             case 'quantity':
-                currentValue = asset.quantity.String || ''
+                currentValue = asset.quantity.String
                 break
             case 'purchaseAmount':
-                currentValue = asset.purchaseAmount.String || ''
+                currentValue = asset.purchaseAmount.String
                 break
             case 'notes':
-                currentValue = asset.notes.String || ''
+                currentValue = asset.notes.String
+                break
+            case 'nextCalibrationDate':
+                currentValue = asset.nextCalibrationDate.Valid ? formatDate(asset.nextCalibrationDate.Time) : ''
+                break
+            case 'maintenanceNotes':
+                currentValue = asset.maintenanceNotes.String
                 break
             case 'recordLocator':
-                currentValue = asset.recordLocator
+                currentValue = asset.recordLocator.toString()
+                if ((newValue as string) === '') newValue = "-1"
                 break
             case 'hardCopyAvailable':
                 currentValue = asset.hardCopyAvailable
                 break
             default:
-                currentValue = ''
+                return
         }
 
         // Check if the value is actually changing
         if (currentValue === newValue) {
-            // If the values are the same, remove the field from edits if it exists
-            if (edits[field]) {
-                const newEdits = { ...edits }
-                delete newEdits[field]
-                setEdits(newEdits)
-            }
+            // If the values are the same, remove the field from edits
+            const newEdits = { ...edits }
+            delete newEdits[field]
+            setEdits(newEdits)
         } else {
             // If the values are different, update the edits object
             setEdits({
@@ -137,11 +147,15 @@ export default function AssetView() {
     }
 
     const saveChanges = () => {
-        if (!asset || !hasEdits) return
+        if (id === undefined || !asset || !hasEdits) return
 
         setSaving(true)
 
-        UpdateAsset(edits)
+        const editsConv = Object.fromEntries(
+            Object.entries(edits).map(([key, value]) => [key, String(value)])
+        );
+
+        UpdateAsset(parseInt(id), editsConv)
             .then(() => {
                 showAlert({
                     severity: 'success',
@@ -225,6 +239,10 @@ export default function AssetView() {
         }
 
         return currencyRegex.test(amount)
+    }
+
+    const nonEmptyFieldValidator = (value: string): boolean => {
+        return value.trim() !== ''
     }
 
     const viewDocument = (document: string) => {
@@ -367,6 +385,8 @@ export default function AssetView() {
                         onSave={(newText) => saveChangesToField('name', newText)}
                         className="asset--details-name"
                         isEdited={isFieldEdited('name')}
+                        validator={nonEmptyFieldValidator}
+                        helperText='Asset name must not be empty'
                     />
 
                     <div className="asset--details-sub-group-container">
@@ -407,6 +427,9 @@ export default function AssetView() {
                                 value={asset.location.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('location')}
+                                validator={nonEmptyFieldValidator}
+                                helperText='Location must not be empty'
+                                className='uppercase-text'
                             />
                             <AssetField
                                 label="Keywords:"
@@ -428,6 +451,7 @@ export default function AssetView() {
                                 value={asset.quantity.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('quantity')}
+                                validator={nonEmptyFieldValidator}
                             />
                         </div>
                     </div>
@@ -447,7 +471,7 @@ export default function AssetView() {
                     <AssetField
                         label="Purchase Date:"
                         fieldName="purchaseDate"
-                        value={asset.purchaseDate.Time}
+                        value={asset.purchaseDate.Valid ? formatDate(asset.purchaseDate.Time) : ''}
                         onSave={saveChangesToField}
                         inputType='date'
                         isEdited={isFieldEdited('purchaseDate')}
@@ -547,7 +571,7 @@ export default function AssetView() {
                     <AssetField
                         label='Next Calibration:'
                         fieldName='nextCalibrationDate'
-                        value={asset.nextCalibrationDate.Time}
+                        value={asset.nextCalibrationDate.Valid ? asset.nextCalibrationDate.Time : ''}
                         onSave={saveChangesToField}
                         inputType='date'
                         isEdited={isFieldEdited('nextCalibrationDate')}

@@ -5,8 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Asset struct {
@@ -90,7 +93,169 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 	return asset, nil
 }
 
-func (a *App) UpdateAsset(updates map[string]any) error {
+func (a *App) UpdateAsset(id int64, updates map[string]string) error {
+	var db = a.db
+
+	var equipmentTableFieldNames = map[string]string{
+		"name":              "item_name",
+		"location":          "location",
+		"keywords":          "keywords",
+		"brand":             "brand",
+		"model":             "model",
+		"part":              "part",
+		"serial":            "serial_number",
+		"auInventory":       "au_inventory",
+		"quantity":          "quantity",
+		"purchaseDate":      "purchase_date",
+		"purchaseAmount":    "purchase_amount",
+		"recordLocator":     "record_locator",
+		"notes":             "notes",
+		"hardCopyAvailable": "hard_copy_available",
+		"unitPrice":         "unit_price",
+		"vendor":            "vendor",
+	}
+
+	var maintenanceTableFieldNames = map[string]string{
+		"nextCalibrationDate": "next_calibration_date",
+		"maintenanceNotes":    "notes",
+	}
+
+	var mappedEquipmentTableUpdates = make(map[string]any)
+	var mappedMaintenanceTableUpdates = make(map[string]any)
+
+	for key, value := range updates {
+		equipmentTableFieldName, ok := equipmentTableFieldNames[key]
+		if ok {
+			validatedValue, err := validateValue(key, value)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "UpdateAsset failed for field '%s': %v", equipmentTableFieldName, err)
+				return err
+			}
+			mappedEquipmentTableUpdates[equipmentTableFieldName] = validatedValue
+		} else {
+			maintenanceTableFieldName, ok1 := maintenanceTableFieldNames[key]
+			if ok1 {
+				validatedValue, err := validateValue(key, value)
+				if err != nil {
+					runtime.LogErrorf(a.ctx, "UpdateAsset failed for field '%s': %v", maintenanceTableFieldName, err)
+					return err
+				}
+				mappedMaintenanceTableUpdates[maintenanceTableFieldName] = validatedValue
+			}
+		}
+	}
+
+	if len(mappedEquipmentTableUpdates) > 0 {
+		query := "update equipment set "
+
+		placeholders := make([]string, 0, len(mappedEquipmentTableUpdates))
+		values := make([]any, 0, len(mappedEquipmentTableUpdates)+1)
+
+		for field, value := range mappedEquipmentTableUpdates {
+			placeholders = append(placeholders, field+" = ?")
+			values = append(values, value)
+		}
+
+		query += strings.Join(placeholders, ", ")
+		query += " where id = ?;"
+
+		values = append(values, id)
+
+		stmt, err := db.Prepare(query)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to prepare statement: %v", err)
+			return fmt.Errorf("A database error occurred: %v", err)
+		}
+		defer stmt.Close()
+
+		_, err = stmt.Exec(values...)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to update: %v", err)
+			return fmt.Errorf("A database error occurred: %v", err)
+		}
+	}
+
+	if len(mappedMaintenanceTableUpdates) > 0 {
+		query := "insert into maintenance (id"
+		valuesPlaceholders := "?"
+		values := []any{id}
+
+		var updateParts []string
+		for field := range mappedMaintenanceTableUpdates {
+			query += ", " + field
+			valuesPlaceholders += ", ?"
+			values = append(values, mappedMaintenanceTableUpdates[field])
+			updateParts = append(updateParts, field+" = new_values."+field)
+		}
+
+		query += ") values (" + valuesPlaceholders + ") as new_values"
+		query += " on duplicate key update " + strings.Join(updateParts, ", ")
+
+		runtime.LogDebugf(a.ctx, "UpdateAsset query: %s", query)
+
+		// Prepare and execute the statement
+		stmt, err := db.Prepare(query)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to prepare maintenance statement: %v", err)
+			return fmt.Errorf("A database error occurred: %v", err)
+		}
+		defer stmt.Close()
+
+		_, err = stmt.Exec(values...)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to update maintenance: %v", err)
+			return fmt.Errorf("A database error occurred: %v", err)
+		}
+	}
+
+	// update maintenance status
+	if value, contains := updates["repairStatus"]; contains {
+		newStatus, err := validateValue("repairStatus", value)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset failed for field 'repairStatus': %v", err)
+			return err
+		}
+
+		var currentStatus sql.NullString
+		err = db.QueryRow("select repair_status from maintenance where id = ?;", id).Scan(&currentStatus)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: repair status query failed: %v", err)
+			return fmt.Errorf("A database error occurred: %v", err)
+		}
+
+		var currentDate = time.Now().Format("2006-01-02")
+		var statusHistory = fmt.Sprintf("%s: %s", parseRepairStatus(currentStatus.String).Expanded(), currentDate)
+
+		query := `insert into maintenance (id, repair_status, status_change_date, status_history) 
+          values (?, ?, ?, ?) 
+          on duplicate key update 
+          repair_status = ?, 
+          status_change_date = ?, 
+          status_history = concat_ws(?, status_history, ?)`
+
+		_, err = db.Exec(query,
+			id, newStatus, currentDate, statusHistory, // INSERT values
+			newStatus, currentDate, ";", statusHistory) // UPDATE values
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: maintenance upsert failed: %v", err)
+			return fmt.Errorf("A database error occurred: %v", err)
+		}
+
+		// Handle the special CALIBRATING case
+		if newStatus == "C" {
+			calibQuery := `update maintenance 
+                   set last_calibration_date = ?, 
+                   calibration_history = concat_ws(?, calibration_history, ?) 
+                   where id = ?`
+
+			_, err = db.Exec(calibQuery, currentDate, ";", currentDate, id)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "UpdateAsset: calibration update failed: %v", err)
+				return fmt.Errorf("A database error occurred while updating calibration: %v", err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -207,6 +372,21 @@ func parseRepairStatus(s string) RepairStatus {
 	}
 }
 
+func (r RepairStatus) Expanded() string {
+	switch r {
+	case WORKING:
+		return "Working"
+	case CALIBRATING:
+		return "Out for calibration"
+	case REPAIRING:
+		return "Out for repair"
+	case TESTING:
+		return "Out for testing"
+	default:
+		return "Unknown"
+	}
+}
+
 type HistoricalStatus struct {
 	RepairStatus     string `json:"repairStatus"`
 	StatusChangeDate string `json:"statusChangeDate"`
@@ -229,6 +409,157 @@ func parseStatusHistory(history string) (statusHistory []HistoricalStatus) {
 	slices.Reverse(statusHistory) // order by date desc
 
 	return statusHistory
+}
+
+func validateValue(key string, value string) (any, error) {
+	value = strings.TrimSpace(value)
+
+	switch key {
+	case "name", "location":
+		if len(value) == 0 {
+			return nil, fmt.Errorf("field '%s' is empty", key)
+		}
+		return value, nil
+	case "keywords", "brand", "model", "part", "serial", "auInventory", "quantity", "notes", "vendor":
+		if len(value) == 0 {
+			return sql.NullString{Valid: false}, nil
+		} else {
+			return value, nil
+		}
+	case "purchaseDate":
+		if len(value) == 0 {
+			return sql.NullTime{Valid: false}, nil
+		} else {
+			valueDate, err := time.Parse("2006-01-02", value)
+			if err != nil {
+				return nil, fmt.Errorf("field '%s' must be a valid date in the form YYYY-MM-DD", key)
+			} else {
+				return sql.NullTime{Time: valueDate, Valid: true}, nil
+			}
+		}
+	case "purchaseAmount":
+		if len(value) == 0 {
+			return sql.NullString{Valid: false}, nil
+		} else {
+			validatedValue, valid := validateCurrency(value)
+			if !valid {
+				return nil, fmt.Errorf("field '%s' must be a valid currency amount", key)
+			} else {
+				return validatedValue, nil
+			}
+		}
+	case "unitPrice":
+		if len(value) == 0 {
+			return value, nil
+		} else {
+			validatedValue, valid := validateCurrency(value)
+			if !valid {
+				return nil, fmt.Errorf("field '%s' must be a valid currency amount", key)
+			} else {
+				return validatedValue, nil
+			}
+		}
+	case "recordLocator":
+		valueInt, err := strconv.Atoi(value)
+		if err == nil {
+			return valueInt, nil
+		} else {
+			return nil, fmt.Errorf("field '%s' must be an integer", key)
+		}
+	case "hardCopyAvailable":
+		if value == "true" {
+			return true, nil
+		} else if value == "false" {
+			return false, nil
+		} else {
+			return nil, fmt.Errorf("field '%s' must be a boolean", key)
+		}
+	case "repairStatus":
+		repairStatus := parseRepairStatus(value)
+		if repairStatus == UNKNOWN && value != "U" {
+			return nil, fmt.Errorf("field '%s' must be a valid status value", key)
+		} else {
+			// we return value instead of repairStatus because we want the string to be stored in the db
+			// by checking if the repairStatus parsed successfully we ensure we are only putting
+			// proper repair status values in the db
+			return value, nil
+		}
+	default:
+		return value, nil
+	}
+}
+
+// ValidateCurrency processes currency amounts:
+// 1. Validates the format
+// 2. Strips leading zeros from whole number part (except $0.XX)
+// 3. Adds dollar sign if not present
+// 4. Adds .00 to whole dollar amounts
+func validateCurrency(amount string) (string, bool) {
+	// Check for invalid cases
+	if amount == "$" || amount == "." || amount == "$." || amount == "" {
+		return amount, false
+	}
+
+	// Store if the amount already has a dollar sign
+	hasDollarSign := strings.HasPrefix(amount, "$")
+
+	// Remove dollar sign temporarily for processing
+	processAmount := amount
+	if hasDollarSign {
+		processAmount = amount[1:]
+	}
+
+	// Check if amount has decimal places
+	hasDecimal := strings.Contains(processAmount, ".")
+
+	// Check for invalid formats: multiple decimal points
+	if strings.Count(processAmount, ".") > 1 {
+		return amount, false
+	}
+
+	// Check for decimal format without leading 0 (like .50)
+	if hasDecimal && strings.HasPrefix(processAmount, ".") {
+		return amount, false
+	}
+
+	if hasDecimal {
+		parts := strings.Split(processAmount, ".")
+		wholePart := parts[0]
+		decimalPart := parts[1]
+
+		// Validate decimal has exactly 2 digits
+		if len(decimalPart) != 2 {
+			return amount, false
+		}
+
+		// Strip leading zeros from whole part, but keep a single 0 if it's all zeros
+		wholePart = strings.TrimLeft(wholePart, "0")
+		if wholePart == "" {
+			wholePart = "0"
+		}
+
+		processAmount = wholePart + "." + decimalPart
+	} else {
+		// Strip leading zeros from whole part when no decimal
+		processAmount = strings.TrimLeft(processAmount, "0")
+		if processAmount == "" {
+			processAmount = "0"
+		}
+
+		// Add .00 to whole dollar amounts
+		processAmount = processAmount + ".00"
+	}
+
+	// Validate the corrected format
+	currencyRegex := regexp.MustCompile(`^(\d+)(\.\d{2})$`)
+	if !currencyRegex.MatchString(processAmount) {
+		return amount, false
+	}
+
+	// Add dollar sign
+	processAmount = "$" + processAmount
+
+	return processAmount, true
 }
 
 // todo when implementing add asset, insert row into maintenance table with working status

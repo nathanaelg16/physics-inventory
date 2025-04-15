@@ -12,6 +12,7 @@ interface Props {
     helperText?: string,
     slotProps?: any,
     isEdited?: boolean,
+    className?: string,
 }
 
 export default function AssetField({
@@ -25,7 +26,8 @@ export default function AssetField({
                                        validator = (_: string) => true,
                                        helperText = '',
                                        slotProps = {},
-                                       isEdited = false
+                                       isEdited = false,
+                                       className = ''
                                    }: Props) {
     return (
         <div className="asset--details-field">
@@ -40,6 +42,7 @@ export default function AssetField({
                 helperText={helperText}
                 slotProps={slotProps}
                 isEdited={isEdited}
+                className={className}
             />
         </div>
     )
