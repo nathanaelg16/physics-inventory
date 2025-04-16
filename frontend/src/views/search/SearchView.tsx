@@ -3,9 +3,9 @@ import {useState} from "react";
 import {main} from "../../../wailsjs/go/models";
 import Asset = main.Asset;
 import {Alert, Skeleton, Snackbar, Typography} from "@mui/material";
-import "./searchView.css"
 import AssetCard from "../../components/asset-card/AssetCard";
 import {SnackbarAlert} from "../../utils/snackbar-alert";
+import "./searchView.css"
 
 export default function SearchView() {
     const [results, setResults] = useState<Array<Asset>>([])
