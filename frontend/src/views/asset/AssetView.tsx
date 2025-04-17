@@ -575,8 +575,8 @@ export default function AssetView() {
                     <AssetSelectField
                         label='Physical Manual:'
                         fieldName='hardCopyAvailable'
-                        value={asset.hardCopyAvailable}
-                        options={[{value: true, label: 'Available'}, {value: false, label: 'Not Available'}]}
+                        value={asset.hardCopyAvailable ? "true" : "false"}
+                        options={[{value: "true", label: 'Available'}, {value: "false", label: 'Not Available'}]}
                         onSave={saveChangesToField}
                         placeholder=''
                         isEdited={isFieldEdited('hardCopyAvailable')}

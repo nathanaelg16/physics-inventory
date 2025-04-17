@@ -5,7 +5,7 @@ import { Edit } from '@mui/icons-material'
 interface Props {
     label: string
     fieldName: string
-    value: any
+    value: string | number
     options: Array<{ value: any, label: string }>
     onSave: (field: string, value: any) => void
     placeholder?: string
@@ -22,7 +22,7 @@ export default function AssetSelectField({
                                              isEdited = false
                                          }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
-    const [currentValue, setCurrentValue] = useState<any>(value)
+    const [currentValue, setCurrentValue] = useState<string | number>(value)
 
     const handleClick = () => {
         setEditing(true)
