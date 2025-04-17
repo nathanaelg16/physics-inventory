@@ -22,4 +22,6 @@ export function SearchModeRegular(arg1:string,arg2:string):Promise<Array<main.As
 
 export function SetDefaultSearchMode(arg1:string):Promise<void>;
 
+export function ToggleMissing(arg1:number,arg2:boolean,arg3:string):Promise<void>;
+
 export function UpdateAsset(arg1:number,arg2:Record<string, string>):Promise<void>;

@@ -42,6 +42,10 @@ export function SetDefaultSearchMode(arg1) {
   return window['go']['main']['App']['SetDefaultSearchMode'](arg1);
 }
 
+export function ToggleMissing(arg1, arg2, arg3) {
+  return window['go']['main']['App']['ToggleMissing'](arg1, arg2, arg3);
+}
+
 export function UpdateAsset(arg1, arg2) {
   return window['go']['main']['App']['UpdateAsset'](arg1, arg2);
 }

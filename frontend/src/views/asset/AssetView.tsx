@@ -8,13 +8,13 @@ import {
     Snackbar,
     Tooltip
 } from '@mui/material'
-import { ArrowBack, Save, ErrorOutline, Close } from '@mui/icons-material'
+import {ArrowBack, Save, ErrorOutline, Close} from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
 import Asset = main.Asset
 import { useEffect, useState, useRef } from 'react'
 import imageNotAvailable from '../../assets/image_not_available.png'
 import { SnackbarAlert } from '../../utils/snackbar-alert'
-import {AssignRecordLocator, GetAsset, UpdateAsset} from '../../../wailsjs/go/main/App'
+import {AssignRecordLocator, GetAsset, ToggleMissing, UpdateAsset} from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
 import AssetFieldWithAction from '../../components/asset-field/AssetFieldWithAction'
@@ -24,10 +24,10 @@ import AssetInfoField from '../../components/asset-field/AssetInfoField'
 import AssetStatusHistory from '../../components/asset-status-history/AssetStatusHistory'
 import AssetCalibrationHistory from '../../components/asset-calibration-history/AssetCalibrationHistory'
 import {formatDate} from '../../utils/utils'
+import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMissingUpdater";
 import './assetView.css'
 
 // todo enable replacing asset image
-// todo enable marking asset as missing
 
 export default function AssetView() {
     const { id } = useParams()
@@ -235,16 +235,27 @@ export default function AssetView() {
                     severity: 'success',
                     msg: 'Record number assigned!'
                 })
-
-                getAsset()
             }).catch(() => {
                 showAlert({
                     severity: 'error',
                     msg: 'An error occurred while assigning the record number.'
                 })
+            }).finally(() => getAsset())
+    }
 
-                setTimeout(() => getAsset(), 4000)
-            })
+    const toggleMissing = (missing: boolean, quantityMissing: string) => {
+        if (id === undefined || !asset) return
+
+        ToggleMissing(parseInt(id), missing, quantityMissing)
+            .then(() => showAlert({
+                severity: 'success',
+                msg: 'Asset updated!'
+            })).catch((err) => {
+                showAlert({
+                    severity: 'error',
+                    msg: `Error updating missing status: ${err}`
+                })
+            }).finally(() => getAsset())
     }
 
     const recordLocatorValidator = (recordLocator: string): boolean => {
@@ -399,7 +410,7 @@ export default function AssetView() {
                     <Tooltip title={missingTooltipText} arrow placement="bottom">
                         <div className="asset--missing-banner-content">
                             <ErrorOutline className="asset--missing-icon" />
-                            <span>This asset is currently marked as missing</span>
+                            <span>This asset is currently marked as missing.</span>
                         </div>
                     </Tooltip>
                 </div>
@@ -486,7 +497,16 @@ export default function AssetView() {
                                 isEdited={isFieldEdited('quantity')}
                                 validator={nonEmptyFieldValidator}
                             />
+                            {asset.missing && <AssetInfoField label='Missing:' value={asset.quantityMissing.String} className='asset--missing-text' />}
                         </div>
+                    </div>
+                    <div className="asset--status-actions" style={{ marginTop: '16px' }}>
+                        <AssetMissingUpdater isMissing={asset.missing}
+                                             quantity={asset.quantity.String}
+                                             missingQuantity={asset.quantityMissing.String}
+                                             disabled={hasEdits}
+                                             onUpdate={toggleMissing}
+                        />
                     </div>
                 </div>
             </div>

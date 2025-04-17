@@ -409,6 +409,40 @@ func (a *App) AssignRecordLocator(assetID int64) error {
 	return nil
 }
 
+func (a *App) ToggleMissing(id int64, isMissing bool, quantityMissing string) error {
+	var missing string
+	var reportedBy sql.NullString
+	var reportDate sql.NullTime
+	var missingQuantity sql.NullString
+
+	if isMissing {
+		missing = "1"
+		reportedBy = sql.NullString{Valid: true, String: a.username}
+		reportDate = sql.NullTime{Valid: true, Time: time.Now()}
+		missingQuantity = sql.NullString{Valid: true, String: quantityMissing}
+	} else {
+		missing = "0"
+		reportedBy = sql.NullString{Valid: false}
+		reportDate = sql.NullTime{Valid: false}
+		missingQuantity = sql.NullString{Valid: false}
+	}
+
+	stmt, err := a.db.Prepare("update equipment set missing = ?, reported_missing_by = ?, date_reported_missing = ?, quantity_missing = ? where id = ?;")
+	defer stmt.Close()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "ToggleMissing: Error preparing statement: %v", err)
+		return fmt.Errorf("database error -- failed to prepare statement: %w", err)
+	}
+
+	_, err = stmt.Exec(missing, reportedBy, reportDate, missingQuantity, id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "ToggleMissing: Error executing statement: %v", err)
+		return fmt.Errorf("database error -- failed to update missing status: %w", err)
+	}
+
+	return nil
+}
+
 type RepairStatus string
 
 const (

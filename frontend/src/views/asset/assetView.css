@@ -57,6 +57,10 @@
     margin-right: 12px;
 }
 
+.asset--missing-text > p {
+    color: #d32f2f !important;
+}
+
 .asset--details {
     flex: 1;
 }

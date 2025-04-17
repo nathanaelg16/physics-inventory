@@ -1,0 +1,64 @@
+.yes-no-selector {
+    display: flex;
+    border-radius: 4px;
+    overflow: hidden;
+    width: fit-content;
+    border: 1px solid #e0e0e0;
+    margin: 8px 0;
+}
+
+.option-button {
+    background-color: #f5f5f5;
+    border: none;
+    padding: 8px 16px;
+    min-width: 60px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    color: #757575;
+    outline: none;
+}
+
+.option-button:hover {
+    background-color: #eeeeee;
+}
+
+.option-button:focus {
+    z-index: 1;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
+}
+
+.option-button.selected {
+    background-color: #1976d2;
+    color: white;
+    font-weight: 600;
+}
+
+.option-button.selected:hover {
+    background-color: #1565c0;
+}
+
+/* No button styling */
+.option-button:first-child {
+    border-right: 1px solid #e0e0e0;
+}
+
+.option-button:first-child.selected {
+    background-color: #f44336;
+    border-right-color: #f44336;
+}
+
+.option-button:first-child.selected:hover {
+    background-color: #e53935;
+}
+
+/* Yes button styling */
+.option-button:last-child.selected {
+    background-color: #4caf50;
+}
+
+.option-button:last-child.selected:hover {
+    background-color: #43a047;
+}
