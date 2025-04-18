@@ -1,0 +1,221 @@
+.asset-image-manager {
+    position: relative;
+    width: 100%;
+}
+
+.image-paper {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.image-paper:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.asset-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    padding: 12px;
+    transition: opacity 0.3s ease;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 8px;
+    z-index: 2;
+}
+
+.image-container:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-overlay-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+}
+
+.upload-button,
+.delete-button,
+.zoom-button {
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.upload-button:hover,
+.delete-button:hover,
+.zoom-button:hover {
+    transform: translateY(-2px);
+}
+
+.upload-button {
+    background-color: rgba(33, 150, 243, 0.9) !important;
+    color: white !important;
+}
+
+.upload-button:hover {
+    background-color: rgb(33, 150, 243) !important;
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3) !important;
+}
+
+.delete-button {
+    background-color: rgba(244, 67, 54, 0.9) !important;
+    color: white !important;
+}
+
+.delete-button:hover {
+    background-color: rgb(244, 67, 54) !important;
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3) !important;
+}
+
+.zoom-button {
+    background-color: rgba(0, 150, 136, 0.9) !important;
+    color: white !important;
+}
+
+.zoom-button:hover {
+    background-color: rgb(0, 150, 136) !important;
+    box-shadow: 0 4px 8px rgba(0, 150, 136, 0.3) !important;
+}
+
+.processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 10;
+}
+
+.zoom-dialog-content {
+    padding: 24px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #f5f5f5;
+}
+
+.zoom-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+}
+
+.close-button {
+    min-width: unset !important;
+    padding: 4px !important;
+}
+
+.zoom-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    height: calc(100vh - 200px);
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    padding: 16px;
+}
+
+.zoom-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.delete-dialog-title {
+    padding-bottom: 8px !important;
+}
+
+.delete-dialog-title-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.delete-warning-icon {
+    font-size: 24px !important;
+}
+
+.delete-dialog-actions {
+    padding: 16px !important;
+    padding-top: 8px !important;
+}
+
+@media (max-width: 916px) {
+    .image-container {
+        height: 200px;
+    }
+
+    .image-overlay-content {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .zoom-image-container {
+        height: calc(100vh - 160px);
+    }
+}
+
+@media (max-width: 480px) {
+    .image-container {
+        height: 180px;
+    }
+
+    .image-overlay {
+        opacity: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .image-container:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .zoom-dialog-content {
+        padding: 16px !important;
+    }
+
+    .zoom-header {
+        padding-bottom: 12px;
+    }
+
+    .zoom-image-container {
+        height: calc(100vh - 140px);
+        min-height: 200px;
+        padding: 8px;
+    }
+}

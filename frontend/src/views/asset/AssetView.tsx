@@ -12,9 +12,15 @@ import {ArrowBack, Save, ErrorOutline, Close} from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
 import Asset = main.Asset
 import { useEffect, useState, useRef } from 'react'
-import imageNotAvailable from '../../assets/image_not_available.png'
 import { SnackbarAlert } from '../../utils/snackbar-alert'
-import {AssignRecordLocator, GetAsset, ToggleMissing, UpdateAsset} from '../../../wailsjs/go/main/App'
+import {
+    AssignRecordLocator,
+    ChangeImage,
+    GetAsset,
+    RemoveImage,
+    ToggleMissing,
+    UpdateAsset
+} from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
 import AssetFieldWithAction from '../../components/asset-field/AssetFieldWithAction'
@@ -25,9 +31,8 @@ import AssetStatusHistory from '../../components/asset-status-history/AssetStatu
 import AssetCalibrationHistory from '../../components/asset-calibration-history/AssetCalibrationHistory'
 import {formatDate} from '../../utils/utils'
 import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMissingUpdater";
+import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
 import './assetView.css'
-
-// todo enable replacing asset image
 
 export default function AssetView() {
     const { id } = useParams()
@@ -285,7 +290,43 @@ export default function AssetView() {
         return value.trim() !== ''
     }
 
-    const viewDocument = (document: string) => {
+    const uploadAssetImage = async (): Promise<void> => {
+        if (!asset) return
+
+        ChangeImage(asset.id)
+            .then((success) => {
+                if (success) {
+                    showAlert({
+                        severity: 'success',
+                        msg: 'Image changed successfully!'
+                    })
+
+                    getAsset()
+                }
+            }).catch((err) => showAlert({
+            severity: 'error',
+            msg: err
+        }))
+    }
+
+    const deleteAssetImage = async (): Promise<void> => {
+        if (!asset) return
+
+        RemoveImage(asset.id)
+            .then(() => {
+                showAlert({
+                    severity: 'success',
+                    msg: 'Image deleted successfully!'
+                })
+
+                getAsset()
+            }).catch((err) => showAlert({
+            severity: 'error',
+            msg: err
+        }))
+    }
+
+    const viewDocument = (document: 'manual' | 'receipt') => {
         if (hasEdits) {
             showAlert({
                 severity: 'warning',
@@ -298,11 +339,11 @@ export default function AssetView() {
         // todo implement this
     }
 
-    const removeDocument = (document: string) => {
+    const removeDocument = (document: 'manual' | 'receipt') => {
         // todo implement this
     }
 
-    const uploadDocument = (document: string) => {
+    const uploadDocument = (document: 'manual' | 'receipt') => {
         // todo implement this
     }
 
@@ -418,9 +459,12 @@ export default function AssetView() {
 
             <div className="asset--main-details">
                 <div className="asset--image">
-                    <img
-                        alt={asset.name.String}
-                        src={asset.image !== null ? `data:image/unknown;base64,${asset.image}` : imageNotAvailable}
+                    <AssetImageManager
+                        imageData={asset.image}
+                        assetName={asset.name.String}
+                        onChangeImage={uploadAssetImage}
+                        onDeleteImage={deleteAssetImage}
+                        disabled={loading}
                     />
                 </div>
                 <div className="asset--details">

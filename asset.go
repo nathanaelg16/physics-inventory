@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"os"
 	"regexp"
 	"slices"
 	"strconv"
@@ -438,6 +439,51 @@ func (a *App) ToggleMissing(id int64, isMissing bool, quantityMissing string) er
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "ToggleMissing: Error executing statement: %v", err)
 		return fmt.Errorf("database error -- failed to update missing status: %w", err)
+	}
+
+	return nil
+}
+
+func (a *App) ChangeImage(id int64) (bool, error) {
+	options := runtime.OpenDialogOptions{
+		Filters: []runtime.FileFilter{{
+			DisplayName: "Images (*.png, *.jpg, *.tiff)",
+			Pattern:     "*.png;*.jpg;*.jpeg;*.tiff",
+		}},
+	}
+
+	imagePath, err := runtime.OpenFileDialog(a.ctx, options)
+	if err != nil || len(imagePath) == 0 {
+		runtime.LogErrorf(a.ctx, "Error with open file dialog: %v", err)
+		return false, nil
+	}
+
+	imageBytes, err := os.ReadFile(imagePath)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error reading file: %v", err)
+		return false, fmt.Errorf("error reading file: %w", err)
+	}
+
+	query := `insert into images_and_receipts (id, image_one) 
+				values (?, ?) as new_row
+				on duplicate key update image_one = new_row.image_one;`
+
+	_, err = a.db.Exec(query, id, imageBytes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error changing image for asset id #%d: %v", id, err)
+		return false, fmt.Errorf("updating image failed: %w", err)
+	}
+
+	return true, nil
+}
+
+func (a *App) RemoveImage(id int64) error {
+	query := `update images_and_receipts set image_one = null where id = ?;`
+
+	_, err := a.db.Exec(query, id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error removing image for asset id #%d: %v", id, err)
+		return fmt.Errorf("deleting image failed: %w", err)
 	}
 
 	return nil

@@ -6,6 +6,10 @@ export function AssignRecordLocator(arg1) {
   return window['go']['main']['App']['AssignRecordLocator'](arg1);
 }
 
+export function ChangeImage(arg1) {
+  return window['go']['main']['App']['ChangeImage'](arg1);
+}
+
 export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }
@@ -20,6 +24,10 @@ export function GetProductVersion() {
 
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
+}
+
+export function RemoveImage(arg1) {
+  return window['go']['main']['App']['RemoveImage'](arg1);
 }
 
 export function SearchModeBoolean(arg1) {
