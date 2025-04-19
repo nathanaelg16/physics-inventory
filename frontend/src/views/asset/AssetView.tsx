@@ -6,7 +6,7 @@ import {
     useTheme,
     Alert,
     Snackbar,
-    Tooltip
+    Tooltip, Typography, Box
 } from '@mui/material'
 import {ArrowBack, Save, ErrorOutline, Close} from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
@@ -407,6 +407,8 @@ export default function AssetView() {
         return edits.hasOwnProperty(fieldName)
     }
 
+    const noRecordLocator = asset?.recordLocator == -1
+
     if (loading) {
         return (
             <div className="asset-view-container">
@@ -659,6 +661,21 @@ export default function AssetView() {
             <div className="asset--details-addl">
                 <p>Documents</p>
                 <div className="asset--details-addl-content">
+                    {noRecordLocator && <Box
+                        sx={{
+                            mt: 2,
+                            mb: 2,
+                            p: 1.5,
+                            borderLeft: '4px solid',
+                            borderColor: 'info.main',
+                            backgroundColor: 'info.lighter',
+                            borderRadius: 1
+                        }}
+                    >
+                        <Typography variant="body2">
+                            <Typography component="span" fontWeight={600}>Note:</Typography> A record number is required before you can add or modify documents.
+                        </Typography>
+                    </Box>}
                     <AssetFieldWithAction
                         label='Record #:'
                         fieldName='recordLocator'
@@ -679,6 +696,7 @@ export default function AssetView() {
                         onSave={saveChangesToField}
                         placeholder=''
                         isEdited={isFieldEdited('hardCopyAvailable')}
+                        disabled={noRecordLocator}
                     />
                     <AssetDocumentField
                         label='Digital Manual:'
@@ -686,6 +704,7 @@ export default function AssetView() {
                         onDownload={() => downloadDocument('manual')}
                         onRemove={() => removeDocument('manual')}
                         onUpload={() => uploadDocument('manual')}
+                        disabled={noRecordLocator}
                     />
                 </div>
             </div>

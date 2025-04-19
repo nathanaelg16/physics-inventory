@@ -862,9 +862,17 @@ func validateValue(key string, value string) (any, error) {
 			}
 		}
 	case "recordLocator":
+		if len(value) == 0 {
+			return -1, nil
+		}
+
 		valueInt, err := strconv.Atoi(value)
 		if err == nil {
 			return valueInt, nil
+		} else if valueInt == -1 {
+			return -1, nil
+		} else if valueInt <= 0 {
+			return nil, fmt.Errorf("field '%s' must be a positive integer", key)
 		} else {
 			return nil, fmt.Errorf("field '%s' must be an integer", key)
 		}

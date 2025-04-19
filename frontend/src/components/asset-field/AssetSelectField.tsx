@@ -10,6 +10,7 @@ interface Props {
     onSave: (field: string, value: any) => void
     placeholder?: string
     isEdited?: boolean
+    disabled?: boolean
 }
 
 export default function AssetSelectField({
@@ -19,12 +20,14 @@ export default function AssetSelectField({
                                              options,
                                              onSave,
                                              placeholder = 'Select an option',
-                                             isEdited = false
+                                             isEdited = false,
+                                             disabled = false
                                          }: Props) {
     const [isEditing, setEditing] = useState<boolean>(false)
     const [currentValue, setCurrentValue] = useState<string | number>(value)
 
     const handleClick = () => {
+        if (disabled) return
         setEditing(true)
     }
 
