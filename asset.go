@@ -57,7 +57,19 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 	var missing, repairStatus, statusHistory, calibrationHistory sql.NullString
 	var hardCopyAvailable sql.NullBool
 
-	row := db.QueryRow("select e.id, i.image_one, e.item_name, e.location, e.keywords, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.purchase_date, e.purchase_amount, e.missing, e.quantity_missing, e.record_locator, e.date_reported_missing, e.reported_missing_by, e.notes, not isnull(mn.soft_copy_manual) as soft_copy_available, mn.hard_copy_available, not isnull(i.receipt) as receipt_available, e.unit_price, e.vendor, m.repair_status, m.status_change_date, m.status_history, m.last_calibration_date, m.next_calibration_date, m.calibration_history, m.notes as maintenanceNotes from equipment e left join images_and_receipts i on e.id = i.id left join maintenance m on e.id = m.id left join manuals mn on e.record_locator = mn.record_locator where e.id = ?", id)
+	row := db.QueryRow(`select e.id, i.image_one, e.item_name, e.location, e.keywords, e.brand, e.model, e.part,
+								   e.serial_number, e.au_inventory, e.quantity, e.purchase_date, e.purchase_amount, 
+								   e.missing, e.quantity_missing, e.record_locator, e.date_reported_missing, 
+								   e.reported_missing_by, e.notes, not isnull(mn.soft_copy_manual) as soft_copy_available,
+								   mn.hard_copy_available, not isnull(i.receipt) as receipt_available, e.unit_price, 
+								   e.vendor, m.repair_status, m.status_change_date, m.status_history, 
+								   m.last_calibration_date, m.next_calibration_date, m.calibration_history, 
+								   m.notes as maintenanceNotes 
+							from equipment e 
+								left join images_and_receipts i on e.id = i.id 
+								left join maintenance m on e.id = m.id 
+								left join manuals mn on e.record_locator = mn.record_locator 
+							where e.id = ?`, id)
 	err := row.Scan(&asset.Id, &asset.Image, &asset.Name, &asset.Location, &asset.Keywords, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &asset.PurchaseDate, &asset.PurchaseAmount, &missing, &asset.QuantityMissing, &asset.RecordLocator, &asset.DateReportedMissing, &asset.ReportedMissingBy, &asset.Notes, &asset.SoftCopyAvailable, &hardCopyAvailable, &asset.ReceiptAvailable, &asset.UnitPrice, &asset.Vendor, &repairStatus, &asset.StatusChangeDate, &statusHistory, &asset.LastCalibrationDate, &asset.NextCalibrationDate, &calibrationHistory, &asset.MaintenanceNotes)
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
@@ -96,22 +108,21 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 	// Define field mappings
 	equipmentTableFieldNames := map[string]string{
-		"name":              "item_name",
-		"location":          "location",
-		"keywords":          "keywords",
-		"brand":             "brand",
-		"model":             "model",
-		"part":              "part",
-		"serial":            "serial_number",
-		"auInventory":       "au_inventory",
-		"quantity":          "quantity",
-		"purchaseDate":      "purchase_date",
-		"purchaseAmount":    "purchase_amount",
-		"recordLocator":     "record_locator",
-		"notes":             "notes",
-		"hardCopyAvailable": "hard_copy_available",
-		"unitPrice":         "unit_price",
-		"vendor":            "vendor",
+		"name":           "item_name",
+		"location":       "location",
+		"keywords":       "keywords",
+		"brand":          "brand",
+		"model":          "model",
+		"part":           "part",
+		"serial":         "serial_number",
+		"auInventory":    "au_inventory",
+		"quantity":       "quantity",
+		"purchaseDate":   "purchase_date",
+		"purchaseAmount": "purchase_amount",
+		"recordLocator":  "record_locator",
+		"notes":          "notes",
+		"unitPrice":      "unit_price",
+		"vendor":         "vendor",
 	}
 
 	maintenanceTableFieldNames := map[string]string{
@@ -311,6 +322,25 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 				runtime.LogErrorf(a.ctx, "UpdateAsset: calibration update failed: %v", err)
 				return fmt.Errorf("failed to update calibration information: %w", err)
 			}
+		}
+	}
+
+	// Update manuals table if needed
+	if val, ok := updates["hardCopyAvailable"]; ok {
+		validatedHardCopyAvailable, err := validateValue("hardCopyAvailable", val)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset validation failed for field '%s': %v", "hardCopyAvailable", err)
+			return fmt.Errorf("validation failed for field '%s': %w", "hardCopyAvailable", err)
+		}
+
+		_, err = tx.Exec(`insert into manuals (record_locator, hard_copy_available)
+    								select * from (select e.record_locator, ? as hard_copy_available from equipment e
+										where e.id = ? and e.record_locator <> -1) as new_row
+									on duplicate key update
+									hard_copy_available = new_row.hard_copy_available;`, validatedHardCopyAvailable, id)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "UpdateAsset: failed to update hard_copy_available: %v", err)
+			return fmt.Errorf("database error -- failed to update hardcopy manual availibility: %w", err)
 		}
 	}
 
