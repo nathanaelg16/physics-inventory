@@ -115,10 +115,6 @@ export default function AssetMissingUpdater({ isMissing, quantity, missingQuanti
                 <DialogContent sx={{ pt: 2, pb: 1, mt: 2}}>
                     {!isMissing ? (
                         <>
-                            <Alert severity="warning" sx={{ mb: 2 }}>
-                                This will mark the asset as missing in the system
-                            </Alert>
-
                             <Typography variant="body1" sx={{ mb: 2 }}>
                                 How many units are missing?
                             </Typography>
