@@ -50,18 +50,15 @@ type Asset struct {
 	MaintenanceNotes    sql.NullString     `json:"maintenanceNotes"`
 }
 
-// todo set receiptAvailable and softCopyAvailable based on receipt and manual availability on respective tables
-// todo fix bug when user cancels download dialog, error is shown
-
 func (a *App) GetAsset(id int64) (Asset, error) {
 	db := a.db
 
 	var asset Asset
 	var missing, repairStatus, statusHistory, calibrationHistory sql.NullString
-	var softCopyAvailable, hardCopyAvailable, receiptAvailable uint8
+	var hardCopyAvailable sql.NullBool
 
-	row := db.QueryRow("select e.id, i.image_one, e.item_name, e.location, e.keywords, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.purchase_date, e.purchase_amount, e.missing, e.quantity_missing, e.record_locator, e.date_reported_missing, e.reported_missing_by, e.notes, e.soft_copy_available, e.hard_copy_available, e.receipt_available, e.unit_price, e.vendor, m.repair_status, m.status_change_date, m.status_history, m.last_calibration_date, m.next_calibration_date, m.calibration_history, m.notes as maintenanceNotes from equipment e left join images_and_receipts i on e.id = i.id left join maintenance m on e.id = m.id where e.id = ?", id)
-	err := row.Scan(&asset.Id, &asset.Image, &asset.Name, &asset.Location, &asset.Keywords, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &asset.PurchaseDate, &asset.PurchaseAmount, &missing, &asset.QuantityMissing, &asset.RecordLocator, &asset.DateReportedMissing, &asset.ReportedMissingBy, &asset.Notes, &softCopyAvailable, &hardCopyAvailable, &receiptAvailable, &asset.UnitPrice, &asset.Vendor, &repairStatus, &asset.StatusChangeDate, &statusHistory, &asset.LastCalibrationDate, &asset.NextCalibrationDate, &calibrationHistory, &asset.MaintenanceNotes)
+	row := db.QueryRow("select e.id, i.image_one, e.item_name, e.location, e.keywords, e.brand, e.model, e.part, e.serial_number, e.au_inventory, e.quantity, e.purchase_date, e.purchase_amount, e.missing, e.quantity_missing, e.record_locator, e.date_reported_missing, e.reported_missing_by, e.notes, not isnull(mn.soft_copy_manual) as soft_copy_available, mn.hard_copy_available, not isnull(i.receipt) as receipt_available, e.unit_price, e.vendor, m.repair_status, m.status_change_date, m.status_history, m.last_calibration_date, m.next_calibration_date, m.calibration_history, m.notes as maintenanceNotes from equipment e left join images_and_receipts i on e.id = i.id left join maintenance m on e.id = m.id left join manuals mn on e.record_locator = mn.record_locator where e.id = ?", id)
+	err := row.Scan(&asset.Id, &asset.Image, &asset.Name, &asset.Location, &asset.Keywords, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &asset.PurchaseDate, &asset.PurchaseAmount, &missing, &asset.QuantityMissing, &asset.RecordLocator, &asset.DateReportedMissing, &asset.ReportedMissingBy, &asset.Notes, &asset.SoftCopyAvailable, &hardCopyAvailable, &asset.ReceiptAvailable, &asset.UnitPrice, &asset.Vendor, &repairStatus, &asset.StatusChangeDate, &statusHistory, &asset.LastCalibrationDate, &asset.NextCalibrationDate, &calibrationHistory, &asset.MaintenanceNotes)
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return asset, err
@@ -77,9 +74,7 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 		asset.Missing = false
 	}
 
-	asset.SoftCopyAvailable = softCopyAvailable == 1
-	asset.HardCopyAvailable = hardCopyAvailable == 1
-	asset.ReceiptAvailable = receiptAvailable == 1
+	asset.HardCopyAvailable = hardCopyAvailable.Bool
 
 	if repairStatus.Valid {
 		asset.RepairStatus = parseRepairStatus(repairStatus.String)
@@ -495,9 +490,9 @@ func (a *App) RemoveImage(id int64) error {
 
 func (a *App) UploadManual(recordLocator int64) (bool, error) {
 	filePath, err := chooseUploadFile(&a.ctx)
-	if err != nil {
+	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error selecting manual: %v", err)
-		return false, fmt.Errorf("error selecting manual: %w", err)
+		return false, nil
 	}
 
 	fileBytes, err := readDocument(filePath)
@@ -506,7 +501,7 @@ func (a *App) UploadManual(recordLocator int64) (bool, error) {
 		return false, err
 	}
 
-	_, err = a.db.Exec("insert into manuals (record_locator, `manual`) values (?, ?) as new_row on duplicate key update `manual` = new_row.`manual`;", recordLocator, fileBytes)
+	_, err = a.db.Exec("insert into manuals (record_locator, soft_copy_manual) values (?, ?) as new_row on duplicate key update soft_copy_manual = new_row.soft_copy_manual;", recordLocator, fileBytes)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "Error inserting manual: %v", err)
 		return false, fmt.Errorf("error uploading manual: %w", err)
@@ -517,9 +512,9 @@ func (a *App) UploadManual(recordLocator int64) (bool, error) {
 
 func (a *App) UploadReceipt(id int64) (bool, error) {
 	filePath, err := chooseUploadFile(&a.ctx)
-	if err != nil {
+	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error selecting receipt: %v", err)
-		return false, fmt.Errorf("error selecting receipt: %w", err)
+		return false, nil
 	}
 
 	fileBytes, err := readDocument(filePath)
@@ -546,16 +541,13 @@ func (a *App) DownloadManual(id, recordLocator int64) (bool, error) {
 
 	defaultFileName := assetName + " - Manual.pdf"
 	filePath, err := chooseSaveFile(&a.ctx, defaultFileName)
-	if err != nil {
+	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error save file dialog: %v", err)
-		return false, fmt.Errorf("failed to save document: %w", err)
-	}
-	if len(filePath) == 0 {
 		return false, nil
 	}
 
 	fileBytes := make([]byte, 512)
-	err = a.db.QueryRow("select m.manual from manuals m where record_locator = ?;", recordLocator).Scan(&fileBytes)
+	err = a.db.QueryRow("select soft_copy_manual from manuals where record_locator = ?;", recordLocator).Scan(&fileBytes)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			runtime.LogErrorf(a.ctx, "No manual file found with record_locator %d", recordLocator)
@@ -583,11 +575,8 @@ func (a *App) DownloadReceipt(id int64) (bool, error) {
 
 	defaultFileName := assetName + " - Receipt.pdf"
 	filePath, err := chooseSaveFile(&a.ctx, defaultFileName)
-	if err != nil {
+	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error save file dialog: %v", err)
-		return false, fmt.Errorf("failed to save document: %w", err)
-	}
-	if len(filePath) == 0 {
 		return false, nil
 	}
 
@@ -613,7 +602,7 @@ func (a *App) DownloadReceipt(id int64) (bool, error) {
 }
 
 func (a *App) RemoveManual(recordLocator int64) error {
-	query := "delete from manuals where record_locator = ?;"
+	query := "update manuals set soft_copy_manual = null where record_locator = ?;"
 
 	_, err := a.db.Exec(query, recordLocator)
 	if err != nil {
@@ -712,7 +701,7 @@ func readDocument(filePath string) ([]byte, error) {
 	}
 
 	if fileInfo.Size() > MaxFileSize {
-		return nil, fmt.Errorf("error: selected file exceeds 32MB")
+		return nil, fmt.Errorf("error: selected file too large -- exceeds 32MB")
 	}
 
 	fileBytes := make([]byte, fileInfo.Size())
