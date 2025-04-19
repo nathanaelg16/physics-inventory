@@ -489,6 +489,10 @@ func (a *App) RemoveImage(id int64) error {
 }
 
 func (a *App) UploadManual(recordLocator int64) (bool, error) {
+	if recordLocator <= 0 {
+		return false, fmt.Errorf("asset must have a valid record number")
+	}
+
 	filePath, err := chooseUploadFile(&a.ctx)
 	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error selecting manual: %v", err)
