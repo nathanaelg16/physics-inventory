@@ -15,11 +15,11 @@ import { useEffect, useState, useRef } from 'react'
 import { SnackbarAlert } from '../../utils/snackbar-alert'
 import {
     AssignRecordLocator,
-    ChangeImage,
+    ChangeImage, DownloadManual, DownloadReceipt,
     GetAsset,
-    RemoveImage,
+    RemoveImage, RemoveManual, RemoveReceipt,
     ToggleMissing,
-    UpdateAsset
+    UpdateAsset, UploadManual, UploadReceipt
 } from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
@@ -326,7 +326,28 @@ export default function AssetView() {
         }))
     }
 
-    const viewDocument = (document: 'manual' | 'receipt') => {
+    const downloadDocument = (document: 'manual' | 'receipt') => {
+        if (!asset) return
+
+        const promise = document === 'manual'
+            ? DownloadManual(asset.id, asset.recordLocator) : DownloadReceipt(asset.id)
+
+        promise.then((success) => {
+            if (success) {
+                showAlert({
+                    severity: 'success',
+                    msg: 'File downloaded successfully!'
+                })
+            }
+        }).catch((err) => showAlert({
+            severity: 'error',
+            msg: err
+        }))
+    }
+
+    const removeDocument = (document: 'manual' | 'receipt') => {
+        if (!asset) return
+
         if (hasEdits) {
             showAlert({
                 severity: 'warning',
@@ -336,15 +357,49 @@ export default function AssetView() {
             return
         }
 
-        // todo implement this
-    }
+        // todo issue warning that removing manual will remove for all assets with given record number
+        const promise: Promise<void> = document === 'manual' ? RemoveManual(asset.recordLocator) : RemoveReceipt(asset.id)
+        promise.then(() => {
+            showAlert({
+                severity: 'success',
+                msg: 'Document removed successfully!'
+            })
 
-    const removeDocument = (document: 'manual' | 'receipt') => {
-        // todo implement this
+            getAsset()
+        }).catch(err => showAlert({
+            severity: 'error',
+            msg: err
+        }))
     }
 
     const uploadDocument = (document: 'manual' | 'receipt') => {
-        // todo implement this
+        if (!asset) return
+
+        if (hasEdits) {
+            showAlert({
+                severity: 'warning',
+                msg: 'Please save or discard all changes before performing this action.'
+            })
+
+            return
+        }
+
+        const promise: Promise<boolean> = document == 'manual'
+            ? UploadManual(asset.recordLocator)
+            : UploadReceipt(asset.id)
+        promise.then((success) => {
+            if (success) {
+                showAlert({
+                    severity: 'success',
+                    msg: 'Document uploaded successfully!'
+                })
+
+                getAsset()
+            }
+        }).catch((err) => showAlert({
+            severity: 'error',
+            msg: err
+        }))
     }
 
     // Helper function to check if a field has been edited
@@ -594,7 +649,7 @@ export default function AssetView() {
                     <AssetDocumentField
                         label='Receipt:'
                         documentAvailable={asset.receiptAvailable}
-                        onView={() => viewDocument('receipt')}
+                        onDownload={() => downloadDocument('receipt')}
                         onRemove={() => removeDocument('receipt')}
                         onUpload={() => uploadDocument('receipt')}
                     />
@@ -628,7 +683,7 @@ export default function AssetView() {
                     <AssetDocumentField
                         label='Digital Manual:'
                         documentAvailable={asset.softCopyAvailable}
-                        onView={() => viewDocument('manual')}
+                        onDownload={() => downloadDocument('manual')}
                         onRemove={() => removeDocument('manual')}
                         onUpload={() => uploadDocument('manual')}
                     />

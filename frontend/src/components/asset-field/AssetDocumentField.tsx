@@ -1,10 +1,10 @@
 import { Button, Tooltip, useMediaQuery, useTheme } from '@mui/material'
-import { Visibility, Delete, Upload } from '@mui/icons-material'
+import { Download, Delete, Upload } from '@mui/icons-material'
 
 interface Props {
     label: string
     documentAvailable: boolean
-    onView: () => void
+    onDownload: () => void
     onRemove: () => void
     onUpload: () => void
     disabled?: boolean
@@ -13,7 +13,7 @@ interface Props {
 export default function AssetDocumentField({
                                                label,
                                                documentAvailable,
-                                               onView,
+                                               onDownload,
                                                onRemove,
                                                onUpload,
                                                disabled = false
@@ -25,16 +25,16 @@ export default function AssetDocumentField({
         <div className="asset--details-field">
             <p><strong>{label}</strong></p>
             <div className="asset-document-field-buttons">
-                <Tooltip title={documentAvailable ? 'View document' : 'No document available'}>
+                <Tooltip title={documentAvailable ? 'Download document' : 'No document available'}>
                     <span>
                         <Button
                             variant="outlined"
                             size={isSmallScreen ? 'small' : 'medium'}
                             disabled={!documentAvailable || disabled}
-                            onClick={onView}
-                            startIcon={<Visibility />}
+                            onClick={onDownload}
+                            startIcon={<Download />}
                         >
-                            View
+                            Download
                         </Button>
                     </span>
                 </Tooltip>

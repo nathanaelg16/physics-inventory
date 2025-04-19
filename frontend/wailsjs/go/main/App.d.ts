@@ -6,6 +6,10 @@ export function AssignRecordLocator(arg1:number):Promise<void>;
 
 export function ChangeImage(arg1:number):Promise<boolean>;
 
+export function DownloadManual(arg1:number,arg2:number):Promise<boolean>;
+
+export function DownloadReceipt(arg1:number):Promise<boolean>;
+
 export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;
@@ -15,6 +19,10 @@ export function GetProductVersion():Promise<string>;
 export function Login(arg1:string,arg2:string):Promise<boolean>;
 
 export function RemoveImage(arg1:number):Promise<void>;
+
+export function RemoveManual(arg1:number):Promise<void>;
+
+export function RemoveReceipt(arg1:number):Promise<void>;
 
 export function SearchModeBoolean(arg1:string):Promise<Array<main.Asset>>;
 
@@ -29,3 +37,7 @@ export function SetDefaultSearchMode(arg1:string):Promise<void>;
 export function ToggleMissing(arg1:number,arg2:boolean,arg3:string):Promise<void>;
 
 export function UpdateAsset(arg1:number,arg2:Record<string, string>):Promise<void>;
+
+export function UploadManual(arg1:number):Promise<boolean>;
+
+export function UploadReceipt(arg1:number):Promise<boolean>;

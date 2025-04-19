@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -48,6 +49,9 @@ type Asset struct {
 	CalibrationHistory  []string           `json:"calibrationHistory"`
 	MaintenanceNotes    sql.NullString     `json:"maintenanceNotes"`
 }
+
+// todo set receiptAvailable and softCopyAvailable based on receipt and manual availability on respective tables
+// todo fix bug when user cancels download dialog, error is shown
 
 func (a *App) GetAsset(id int64) (Asset, error) {
 	db := a.db
@@ -483,10 +487,241 @@ func (a *App) RemoveImage(id int64) error {
 	_, err := a.db.Exec(query, id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "Error removing image for asset id #%d: %v", id, err)
-		return fmt.Errorf("deleting image failed: %w", err)
+		return fmt.Errorf("failed to delete image: %w", err)
 	}
 
 	return nil
+}
+
+func (a *App) UploadManual(recordLocator int64) (bool, error) {
+	filePath, err := chooseUploadFile(&a.ctx)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error selecting manual: %v", err)
+		return false, fmt.Errorf("error selecting manual: %w", err)
+	}
+
+	fileBytes, err := readDocument(filePath)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return false, err
+	}
+
+	_, err = a.db.Exec("insert into manuals (record_locator, `manual`) values (?, ?) as new_row on duplicate key update `manual` = new_row.`manual`;", recordLocator, fileBytes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error inserting manual: %v", err)
+		return false, fmt.Errorf("error uploading manual: %w", err)
+	}
+
+	return true, nil
+}
+
+func (a *App) UploadReceipt(id int64) (bool, error) {
+	filePath, err := chooseUploadFile(&a.ctx)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error selecting receipt: %v", err)
+		return false, fmt.Errorf("error selecting receipt: %w", err)
+	}
+
+	fileBytes, err := readDocument(filePath)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return false, err
+	}
+
+	_, err = a.db.Exec(`insert into images_and_receipts (id, receipt) values (?, ?) as new_row
+								on duplicate key update receipt = new_row.receipt;`, id, fileBytes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error inserting receipt: %v", err)
+		return false, fmt.Errorf("error uploading receipt: %w", err)
+	}
+
+	return true, nil
+}
+
+func (a *App) DownloadManual(id, recordLocator int64) (bool, error) {
+	assetName, err := retrieveAssetName(a, id)
+	if err != nil {
+		return false, err
+	}
+
+	defaultFileName := assetName + " - Manual.pdf"
+	filePath, err := chooseSaveFile(&a.ctx, defaultFileName)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error save file dialog: %v", err)
+		return false, fmt.Errorf("failed to save document: %w", err)
+	}
+	if len(filePath) == 0 {
+		return false, nil
+	}
+
+	fileBytes := make([]byte, 512)
+	err = a.db.QueryRow("select m.manual from manuals m where record_locator = ?;", recordLocator).Scan(&fileBytes)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			runtime.LogErrorf(a.ctx, "No manual file found with record_locator %d", recordLocator)
+			return false, fmt.Errorf("no manual found")
+		} else {
+			runtime.LogErrorf(a.ctx, "Error retrieving manual: %v", err)
+			return false, fmt.Errorf("database error -- failed to retrieve manual: %w", err)
+		}
+	}
+
+	err = saveDocument(filePath, fileBytes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error saving document: %v", err)
+		return false, fmt.Errorf("failed to save document: %w", err)
+	}
+
+	return true, nil
+}
+
+func (a *App) DownloadReceipt(id int64) (bool, error) {
+	assetName, err := retrieveAssetName(a, id)
+	if err != nil {
+		return false, err
+	}
+
+	defaultFileName := assetName + " - Receipt.pdf"
+	filePath, err := chooseSaveFile(&a.ctx, defaultFileName)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error save file dialog: %v", err)
+		return false, fmt.Errorf("failed to save document: %w", err)
+	}
+	if len(filePath) == 0 {
+		return false, nil
+	}
+
+	fileBytes := make([]byte, 512)
+	err = a.db.QueryRow("select receipt from images_and_receipts where id = ?;", id).Scan(&fileBytes)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			runtime.LogErrorf(a.ctx, "No receipt file found for assset id %d", id)
+			return false, fmt.Errorf("no receipt found")
+		} else {
+			runtime.LogErrorf(a.ctx, "Error retrieving receipt: %v", err)
+			return false, fmt.Errorf("database error -- failed to retrieve receipt: %w", err)
+		}
+	}
+
+	err = saveDocument(filePath, fileBytes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error saving document: %v", err)
+		return false, fmt.Errorf("failed to save document: %w", err)
+	}
+
+	return true, nil
+}
+
+func (a *App) RemoveManual(recordLocator int64) error {
+	query := "delete from manuals where record_locator = ?;"
+
+	_, err := a.db.Exec(query, recordLocator)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error removing manual for record locator #%d: %v", recordLocator, err)
+		return fmt.Errorf("failed to delete manual: %w", err)
+	}
+
+	return nil
+}
+
+func (a *App) RemoveReceipt(id int64) error {
+	query := "update images_and_receipts set receipt = null where id = ?;"
+
+	_, err := a.db.Exec(query, id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "Error removing receipt for asset id #%d: %v", id, err)
+		return fmt.Errorf("failed to delete receipt: %w", err)
+	}
+
+	return nil
+}
+
+func retrieveAssetName(a *App, id int64) (string, error) {
+	runtime.LogInfof(a.ctx, "Retrieving asset name for asset id #%d", id)
+
+	var assetName sql.NullString
+
+	err := a.db.QueryRow("select item_name from equipment where id = ?;", id).Scan(&assetName)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			runtime.LogErrorf(a.ctx, "no asset found with id %d", id)
+			return "", fmt.Errorf("no asset found with id %d", id)
+		} else {
+			runtime.LogErrorf(a.ctx, "Error retrieving equipment info: %v", err)
+			return "", fmt.Errorf("database error -- failed to retrieve asset info: %w", err)
+		}
+	}
+
+	return assetName.String, nil
+}
+
+func chooseSaveFile(ctx *context.Context, defaultFileName string) (string, error) {
+	saveDialogOptions := runtime.SaveDialogOptions{
+		DefaultFilename: defaultFileName,
+		Filters: []runtime.FileFilter{{
+			DisplayName: "PDF (*.pdf)",
+			Pattern:     "*.pdf",
+		}},
+	}
+
+	return runtime.SaveFileDialog(*ctx, saveDialogOptions)
+}
+
+func saveDocument(filePath string, data []byte) error {
+	if len(filePath) == 0 {
+		return fmt.Errorf("no file path specified")
+	}
+
+	if len(data) == 0 {
+		return fmt.Errorf("no data")
+	}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	return err
+}
+
+const MaxFileSize int64 = 33_554_432 // 32 MiB
+
+func chooseUploadFile(ctx *context.Context) (string, error) {
+	dialogOptions := runtime.OpenDialogOptions{
+		Filters: []runtime.FileFilter{{
+			DisplayName: "PDF files (*.pdf)",
+			Pattern:     "*.pdf",
+		}},
+	}
+
+	return runtime.OpenFileDialog(*ctx, dialogOptions)
+}
+
+func readDocument(filePath string) ([]byte, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %w", err)
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("error getting file info: %w", err)
+	}
+
+	if fileInfo.Size() > MaxFileSize {
+		return nil, fmt.Errorf("error: selected file exceeds 32MB")
+	}
+
+	fileBytes := make([]byte, fileInfo.Size())
+	_, err = file.Read(fileBytes)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file: %w", err)
+	}
+
+	return fileBytes, nil
 }
 
 type RepairStatus string

@@ -10,6 +10,14 @@ export function ChangeImage(arg1) {
   return window['go']['main']['App']['ChangeImage'](arg1);
 }
 
+export function DownloadManual(arg1, arg2) {
+  return window['go']['main']['App']['DownloadManual'](arg1, arg2);
+}
+
+export function DownloadReceipt(arg1) {
+  return window['go']['main']['App']['DownloadReceipt'](arg1);
+}
+
 export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }
@@ -28,6 +36,14 @@ export function Login(arg1, arg2) {
 
 export function RemoveImage(arg1) {
   return window['go']['main']['App']['RemoveImage'](arg1);
+}
+
+export function RemoveManual(arg1) {
+  return window['go']['main']['App']['RemoveManual'](arg1);
+}
+
+export function RemoveReceipt(arg1) {
+  return window['go']['main']['App']['RemoveReceipt'](arg1);
 }
 
 export function SearchModeBoolean(arg1) {
@@ -56,4 +72,12 @@ export function ToggleMissing(arg1, arg2, arg3) {
 
 export function UpdateAsset(arg1, arg2) {
   return window['go']['main']['App']['UpdateAsset'](arg1, arg2);
+}
+
+export function UploadManual(arg1) {
+  return window['go']['main']['App']['UploadManual'](arg1);
+}
+
+export function UploadReceipt(arg1) {
+  return window['go']['main']['App']['UploadReceipt'](arg1);
 }
