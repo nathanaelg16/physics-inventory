@@ -6,7 +6,8 @@ import {
     useTheme,
     Alert,
     Snackbar,
-    Tooltip, Typography, Box
+    Tooltip, Typography, Box,
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material'
 import {ArrowBack, Save, ErrorOutline, Close} from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
@@ -44,6 +45,19 @@ export default function AssetView() {
     const [edits, setEdits] = useState<any>({})
     const [saving, setSaving] = useState<boolean>(false)
     const [isStuck, setIsStuck] = useState<boolean>(false)
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean,
+        title: string,
+        message: string,
+        onConfirm: () => void,
+        onConfirmButtonText: string,
+    }>({
+        open: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+        onConfirmButtonText: 'OK'
+    })
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -357,19 +371,42 @@ export default function AssetView() {
             return
         }
 
-        // todo issue warning that removing manual will remove for all assets with given record number
-        const promise: Promise<void> = document === 'manual' ? RemoveManual(asset.recordLocator) : RemoveReceipt(asset.id)
-        promise.then(() => {
-            showAlert({
-                severity: 'success',
-                msg: 'Document removed successfully!'
+        if (document === 'manual') {
+            setConfirmDialog({
+                open: true,
+                title: 'Remove Manual',
+                message: `Warning: Removing this manual will affect all assets with record number ${asset.recordLocator.toString().padStart(5, '0')}. Are you sure you want to continue?`,
+                onConfirm: () => {
+                    RemoveManual(asset.recordLocator)
+                        .then(() => {
+                            showAlert({
+                                severity: 'success',
+                                msg: 'Document removed successfully!'
+                            })
+                            setConfirmDialog({ ...confirmDialog, open: false })
+                            getAsset()
+                        })
+                        .catch(err => showAlert({
+                            severity: 'error',
+                            msg: err
+                        }))
+                },
+                onConfirmButtonText: 'Remove'
             })
-
-            getAsset()
-        }).catch(err => showAlert({
-            severity: 'error',
-            msg: err
-        }))
+        } else {
+            RemoveReceipt(asset.id)
+                .then(() => {
+                    showAlert({
+                        severity: 'success',
+                        msg: 'Document removed successfully!'
+                    })
+                    getAsset()
+                })
+                .catch(err => showAlert({
+                    severity: 'error',
+                    msg: err
+                }))
+        }
     }
 
     const uploadDocument = (document: 'manual' | 'receipt') => {
@@ -778,6 +815,35 @@ export default function AssetView() {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            <Dialog
+                open={confirmDialog.open}
+                onClose={() => setConfirmDialog({ ...confirmDialog, open: false })}
+            >
+                <DialogTitle id="alert-dialog-title">{confirmDialog.title}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        {confirmDialog.message}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setConfirmDialog({ ...confirmDialog, open: false })}
+                        color="primary"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={confirmDialog.onConfirm}
+                        color="error"
+                        variant="contained"
+                        autoFocus
+                    >
+                        {confirmDialog.onConfirmButtonText}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Alert/Snackbar for messages */}
             {alert && (
