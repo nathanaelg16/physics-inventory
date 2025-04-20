@@ -98,7 +98,7 @@ export default function SearchBox(props: Props) {
         } catch (e: any) {
             props.onAlert({
                 severity: 'error',
-                msg: 'An error occurred.'
+                msg: `Error: ${e}`
             })
         }
 
