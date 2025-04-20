@@ -7,7 +7,7 @@ import {
     Alert,
     Snackbar,
     Tooltip, Typography, Box,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Chip
 } from '@mui/material'
 import {ArrowBack, Save, ErrorOutline, Close} from '@mui/icons-material'
 import { main } from '../../../wailsjs/go/models'
@@ -562,14 +562,28 @@ export default function AssetView() {
                     />
                 </div>
                 <div className="asset--details">
-                    <EditableParagraph
-                        text={asset.name.String}
-                        onSave={(newText) => saveChangesToField('name', newText)}
-                        className="asset--details-name"
-                        isEdited={isFieldEdited('name')}
-                        validator={nonEmptyFieldValidator}
-                        helperText='Asset name must not be empty'
-                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <EditableParagraph
+                            text={asset.name.String}
+                            onSave={(newText) => saveChangesToField('name', newText)}
+                            className="asset--details-name"
+                            isEdited={isFieldEdited('name')}
+                            validator={nonEmptyFieldValidator}
+                            helperText='Asset name must not be empty'
+                        />
+                        <Chip
+                            label={`ID: ${asset.id}`}
+                            size='small'
+                            color="primary"
+                            variant="outlined"
+                            sx={{
+                                marginBottom: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: 500,
+                                borderColor: theme.palette.primary.light
+                            }}
+                        />
+                    </div>
 
                     <div className="asset--details-sub-group-container">
                         <div className="asset--details-sub-group">
