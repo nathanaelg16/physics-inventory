@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -114,6 +115,13 @@ func (a *App) SearchModeRegular(query string, withType string) ([]Asset, error) 
 
 			return a.runKeywordQuery(name, keywords, 0)
 		}
+	case "record_locator":
+		toInt, err := strconv.Atoi(query)
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			return nil, fmt.Errorf("query must consist of numeric values")
+		}
+		query = strconv.Itoa(toInt)
 	default:
 		if len(query) == 0 {
 			query = "%"
