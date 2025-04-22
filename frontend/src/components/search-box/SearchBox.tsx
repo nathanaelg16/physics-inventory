@@ -1,31 +1,36 @@
-import {main} from "../../../wailsjs/go/models";
+import { main } from '../../../wailsjs/go/models'
 import {
-    Button,
     Dialog, DialogActions,
     DialogContent,
     DialogTitle,
-    Grid,
     MenuItem,
     Select,
     SelectChangeEvent,
-    TextField, useMediaQuery, useTheme
-} from "@mui/material";
-import {KeyboardEvent, useEffect, useState} from "react";
-import Asset = main.Asset;
-import {useNavigate} from "react-router";
+    useMediaQuery, useTheme,
+    Paper, Chip, Button, IconButton, InputBase,
+    Box, Divider, Tooltip, Card, Typography,
+} from '@mui/material'
+import { KeyboardEvent, useEffect, useState } from 'react'
+import Asset = main.Asset
+import { useNavigate } from 'react-router'
 import {
     GetDefaultSearchMode, SearchModeBoolean,
     SearchModeFullText, SearchModeFullTextWithQueryExpansion,
     SearchModeRegular,
     SetDefaultSearchMode
-} from "../../../wailsjs/go/main/App";
-import {SnackbarAlert} from "../../utils/snackbar-alert"
-import {useSessionStorage} from "@uidotdev/usehooks"
+} from '../../../wailsjs/go/main/App'
+import { SnackbarAlert } from '../../utils/snackbar-alert'
+import { useSessionStorage } from '@uidotdev/usehooks'
+import SearchIcon from '@mui/icons-material/Search'
+import AddIcon from '@mui/icons-material/Add'
+import TuneIcon from '@mui/icons-material/Tune'
+import SaveIcon from '@mui/icons-material/Save'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 
 interface Props {
-    onResult: (results: Array<Asset>) => void,
-    onAlert: (alert: SnackbarAlert) => void,
-    setSearching: (isSearching: boolean) => void,
+    onResult: (results: Array<Asset>) => void
+    onAlert: (alert: SnackbarAlert) => void
+    setSearching: (isSearching: boolean) => void
 }
 
 type SearchType = 'au_inventory' | 'brand' | 'item_name' | 'keywords' | 'location' | 'model' | 'notes'
@@ -38,7 +43,7 @@ export default function SearchBox(props: Props) {
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
-    const isExtraSmallScreen = useMediaQuery(theme.breakpoints.down(495))
+    const isMediumScreen = useMediaQuery(theme.breakpoints.down(1116))
 
     const [searchQuery, setSearchQuery] = useSessionStorage<string>('search_query', '')
     const [searchMode, setSearchMode] = useSessionStorage<SearchMode>('search_mode', 'regular')
@@ -46,10 +51,10 @@ export default function SearchBox(props: Props) {
     const [showAdvancedOptionsDialog, setShowAdvancedOptionsDialog] = useState<boolean>(false)
 
     useEffect(() => {
-        // load initial list of assets
+        // Load initial list of assets
         void performSearch()
 
-        // load default search mode
+        // Load default search mode
         GetDefaultSearchMode()
             .then((res) => setSearchMode(res as SearchMode))
             .catch(() => setSearchMode('regular'))
@@ -69,9 +74,9 @@ export default function SearchBox(props: Props) {
                 severity: 'success',
                 msg: 'Updated successfully!'
             })).catch(() => props.onAlert({
-                severity: 'error',
-                msg: 'An error occurred while updating your default search mode.'
-            }))
+            severity: 'error',
+            msg: 'An error occurred while updating your default search mode.'
+        }))
     }
 
     const performSearch = async () => {
@@ -80,18 +85,20 @@ export default function SearchBox(props: Props) {
             let results: Array<Asset>
 
             switch (searchMode) {
-                case "regular":
+                case 'regular':
                     results = await SearchModeRegular(searchQuery, searchType)
                     break
-                case "full_text":
+                case 'full_text':
                     results = await SearchModeFullText(searchQuery)
                     break
-                case "full_text_query_expansion":
+                case 'full_text_query_expansion':
                     results = await SearchModeFullTextWithQueryExpansion(searchQuery)
                     break
-                case "boolean":
+                case 'boolean':
                     results = await SearchModeBoolean(searchQuery)
                     break
+                default:
+                    results = []
             }
 
             props.onResult(results)
@@ -106,70 +113,283 @@ export default function SearchBox(props: Props) {
     }
 
     const enterKeyListener = async (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key == 'Enter') {
+        if (e.key === 'Enter') {
             await performSearch()
         }
     }
 
-    return <>
-        <Grid container alignItems='center' spacing={2}>
+    const handleAddNewAsset = () => {
+        navigate('/assets/new')
+    }
 
-            {/* search type */}
-            <Grid size={isExtraSmallScreen ? 12 : (isSmallScreen ? 6 : 2)}>
-                <Select disabled={searchMode !== 'regular'} fullWidth sx={{maxWidth: '150px'}} variant='standard'
-                        value={searchType} onChange={handleSearchTypeChange}>
-                    <MenuItem value='AU Inventory Number'>AU Inventory Number</MenuItem>
-                    <MenuItem value='Brand'>Brand</MenuItem>
-                    <MenuItem value='item_name'>Name</MenuItem>
-                    <MenuItem value='keywords'>Keywords</MenuItem>
-                    <MenuItem value='location'>Location</MenuItem>
-                    <MenuItem value='model'>Model</MenuItem>
-                    <MenuItem value='notes'>Notes</MenuItem>
-                    <MenuItem value='part'>Part Number</MenuItem>
-                    <MenuItem value='record_locator'>Record Number</MenuItem>
-                    <MenuItem value='serial_number'>Serial Number</MenuItem>
-                    <MenuItem value='vendor'>Vendor</MenuItem>
-                </Select>
-            </Grid>
+    const getFieldLabel = (field: SearchType): string => {
+        const labels: Record<SearchType, string> = {
+            au_inventory: 'AU Inventory',
+            brand: 'Brand',
+            item_name: 'Name',
+            keywords: 'Keywords',
+            location: 'Location',
+            model: 'Model',
+            notes: 'Notes',
+            part: 'Part Number',
+            record_locator: 'Record Number',
+            serial_number: 'Serial Number',
+            vendor: 'Vendor'
+        }
+        return labels[field] || field
+    }
 
-            {/* search box */}
-            <Grid size={isExtraSmallScreen ? 12 : (isSmallScreen ? 6 : 8)}>
-                <TextField fullWidth variant='outlined' label='Search' value={searchQuery}
-                           onChange={(e: any) => setSearchQuery(e.target.value)}
-                           onKeyUp={enterKeyListener}
-                           autoComplete='off'
-                />
-            </Grid>
+    const getModeLabel = (mode: SearchMode): string => {
+        switch (mode) {
+            case 'regular':
+                return 'Normal'
+            case 'full_text':
+                return 'Full-Text'
+            case 'full_text_query_expansion':
+                return 'Expanded'
+            case 'boolean':
+                return 'Boolean'
+        }
+    }
 
-            {/* options */}
-            <Grid size={isSmallScreen ? 12 : 2}>
-                <Button fullWidth={isSmallScreen} variant='contained' onClick={() => setShowAdvancedOptionsDialog(true)}>Advanced</Button>
-            </Grid>
+    return (
+        <Box sx={{ width: '100%' }}>
+            {/* Main Search Card */}
+            <Card
+                elevation={3}
+                sx={{
+                    p: 2,
+                    mb: 2,
+                    borderRadius: '12px',
+                    background: theme.palette.mode === 'dark' ? 'rgba(66, 66, 66, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)'
+                }}
+            >
+                {/* Search Input Row */}
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: isMediumScreen ? 'column' : 'row',
+                    gap: 2,
+                    mb: 2
+                }}>
+                    {/* Search Bar with Type Selector */}
+                    <Paper
+                        sx={{
+                            p: '2px 4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: isMediumScreen ? '100%' : '75%',
+                            borderRadius: '8px',
+                            border: `1px solid ${theme.palette.divider}`
+                        }}
+                    >
+                        {searchMode === 'regular' && (
+                            <>
+                                <Select
+                                    value={searchType}
+                                    onChange={handleSearchTypeChange}
+                                    variant="standard"
+                                    disableUnderline
+                                    sx={{
+                                        mx: 1,
+                                        minWidth: isSmallScreen ? '90px' : '120px',
+                                        '& .MuiSelect-select': {
+                                            py: 1,
+                                            fontSize: '0.9rem'
+                                        }
+                                    }}
+                                >
+                                    <MenuItem value="au_inventory">AU Inventory</MenuItem>
+                                    <MenuItem value="brand">Brand</MenuItem>
+                                    <MenuItem value="item_name">Name</MenuItem>
+                                    <MenuItem value="keywords">Keywords</MenuItem>
+                                    <MenuItem value="location">Location</MenuItem>
+                                    <MenuItem value="model">Model</MenuItem>
+                                    <MenuItem value="notes">Notes</MenuItem>
+                                    <MenuItem value="part">Part Number</MenuItem>
+                                    <MenuItem value="record_locator">Record Number</MenuItem>
+                                    <MenuItem value="serial_number">Serial Number</MenuItem>
+                                    <MenuItem value="vendor">Vendor</MenuItem>
+                                </Select>
+                                <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+                            </>
+                        )}
 
-            {/* search button */}
-            <Grid size={12}>
-                <Button fullWidth variant='contained' onClick={performSearch}>Search</Button>
-            </Grid>
+                        <InputBase
+                            sx={{ ml: 1, flex: 1 }}
+                            placeholder={`Search ${searchMode === 'regular' ? getFieldLabel(searchType) : 'all fields'}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyUp={enterKeyListener}
+                        />
 
-        </Grid>
+                        <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
 
-        <Dialog open={showAdvancedOptionsDialog} onClose={() => setShowAdvancedOptionsDialog(false)}>
-            <DialogTitle>Search Mode</DialogTitle>
-            <DialogContent>
-                <Select fullWidth variant='outlined' value={searchMode}
-                        onChange={handleSearchModeChange}>
-                    <MenuItem value='regular'>Normal</MenuItem>
-                    <MenuItem value='full_text'>Full-Text</MenuItem>
-                    <MenuItem value='full_text_query_expansion'>Full-Text w/ Query Expansion</MenuItem>
-                    <MenuItem value='boolean'>Boolean</MenuItem>
-                </Select>
-                <Button onClick={() => navigate('/help/search-modes')}>What's the difference?</Button>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={setDefaultSearchMode}>Set Default</Button>
-                <Button onClick={() => setShowAdvancedOptionsDialog(false)}>OK</Button>
-            </DialogActions>
-        </Dialog>
+                        <Tooltip title="Search">
+                            <IconButton
+                                color="primary"
+                                sx={{ p: '10px' }}
+                                onClick={performSearch}
+                            >
+                                <SearchIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Paper>
 
-    </>
+                    {/* Action Buttons */}
+                    <Box sx={{
+                        display: 'flex',
+                        gap: 1,
+                        width: isMediumScreen ? '100%' : '25%',
+                        justifyContent: 'flex-end'
+                    }}>
+                        <Tooltip title="Search settings">
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<TuneIcon />}
+                                onClick={() => setShowAdvancedOptionsDialog(true)}
+                                sx={{
+                                    borderRadius: '8px',
+                                    textTransform: 'none'
+                                }}
+                            >
+                                Settings
+                            </Button>
+                        </Tooltip>
+
+                        <Tooltip title="Add new asset">
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={handleAddNewAsset}
+                                sx={{
+                                    borderRadius: '8px',
+                                    textTransform: 'none',
+                                    backgroundColor: '#a89254',
+                                    color: 'white'
+                                }}
+                            >
+                                New
+                            </Button>
+                        </Tooltip>
+                    </Box>
+                </Box>
+
+                {/* Search Mode Pills in a Row */}
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1
+                }}>
+                    <Typography
+                        variant="caption"
+                        color="textSecondary"
+                        sx={{ mr: 1, whiteSpace: 'nowrap' }}
+                    >
+                        Search Mode:
+                    </Typography>
+
+                    <Box sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 1
+                    }}>
+                        {['regular', 'full_text', 'full_text_query_expansion', 'boolean'].map((mode) => (
+                            <Chip
+                                key={mode}
+                                label={getModeLabel(mode as SearchMode)}
+                                size="small"
+                                color={searchMode === mode ? 'primary' : 'default'}
+                                variant={searchMode === mode ? 'filled' : 'outlined'}
+                                onClick={() => setSearchMode(mode as SearchMode)}
+                                sx={{
+                                    borderRadius: '16px',
+                                    '&:hover': {
+                                        backgroundColor: searchMode === mode ?
+                                            theme.palette.primary.main :
+                                            theme.palette.action.hover
+                                    }
+                                }}
+                            />
+                        ))}
+
+                        <Tooltip title="Learn about search modes">
+                            <IconButton
+                                size="small"
+                                onClick={() => navigate('/help/search-modes')}
+                            >
+                                <HelpOutlineIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                </Box>
+            </Card>
+
+            {/* Advanced Options Dialog */}
+            <Dialog
+                open={showAdvancedOptionsDialog}
+                onClose={() => setShowAdvancedOptionsDialog(false)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>
+                    Search Settings
+                </DialogTitle>
+                <DialogContent dividers>
+                    <Typography variant="subtitle2" gutterBottom>
+                        Search Mode
+                    </Typography>
+                    <Select
+                        fullWidth
+                        variant="outlined"
+                        value={searchMode}
+                        onChange={handleSearchModeChange}
+                        size="small"
+                        sx={{ mb: 2 }}
+                    >
+                        <MenuItem value="regular">Normal</MenuItem>
+                        <MenuItem value="full_text">Full-Text</MenuItem>
+                        <MenuItem value="full_text_query_expansion">Full-Text w/ Query Expansion</MenuItem>
+                        <MenuItem value="boolean">Boolean</MenuItem>
+                    </Select>
+
+                    <Button
+                        variant="text"
+                        size="small"
+                        startIcon={<HelpOutlineIcon />}
+                        onClick={() => {
+                            setShowAdvancedOptionsDialog(false)
+                            navigate('/help/search-modes')
+                        }}
+                        sx={{ mb: 3 }}
+                    >
+                        What's the difference?
+                    </Button>
+
+                    <Divider sx={{ my: 1 }} />
+
+                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+                        Save Preferences
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary" component='p'>
+                        Make this search mode your default when opening the search page.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={setDefaultSearchMode}
+                        startIcon={<SaveIcon />}
+                        color="primary"
+                    >
+                        Set as Default
+                    </Button>
+                    <Button onClick={() => setShowAdvancedOptionsDialog(false)}>
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    )
 }
