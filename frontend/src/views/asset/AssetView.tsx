@@ -34,6 +34,7 @@ import {formatDate} from '../../utils/utils'
 import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMissingUpdater";
 import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
 import './assetView.css'
+import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
 
 export default function AssetView() {
     const { id } = useParams()
@@ -275,33 +276,6 @@ export default function AssetView() {
                     msg: `Error updating missing status: ${err}`
                 })
             }).finally(() => getAsset())
-    }
-
-    const recordLocatorValidator = (recordLocator: string): boolean => {
-        // Check if the string is empty or consists only of digits 0-9
-        const digitRegex = /^[0-9]*$/
-        return digitRegex.test(recordLocator)
-    }
-
-    const currencyValidator = (amount: string): boolean => {
-        // Basic check for valid currency format with or without leading $
-        const currencyRegex = /^\$?(\d+)(\.\d{2})?$|^\$?(0\.\d{2})$/
-
-        // Check for the case where we have a decimal without a leading 0
-        if (/^\$?\.\d{2}$/.test(amount)) {
-            return false // Reject .XX format, should be 0.XX
-        }
-
-        // Reject if it's just a dollar sign or decimal point or empty
-        if (amount === '$' || amount === '.' || amount === '$.' || amount === '') {
-            return false
-        }
-
-        return currencyRegex.test(amount)
-    }
-
-    const nonEmptyFieldValidator = (value: string): boolean => {
-        return value.trim() !== ''
     }
 
     const uploadAssetImage = async (): Promise<void> => {
