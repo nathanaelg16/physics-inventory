@@ -6,7 +6,7 @@ interface Props {
     label: string
     fieldName: string
     value: string | number
-    options: Array<{ value: any, label: string }>
+    options: Array<{ value: string | number, label: string }>
     onSave: (field: string, value: any) => void
     placeholder?: string
     isEdited?: boolean
