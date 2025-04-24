@@ -119,7 +119,7 @@ export default function SearchBox(props: Props) {
     }
 
     const handleAddNewAsset = () => {
-        navigate('/assets/new')
+        navigate('/asset/new')
     }
 
     const getFieldLabel = (field: SearchType): string => {
