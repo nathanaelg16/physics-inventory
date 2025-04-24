@@ -95,3 +95,26 @@ func (a *App) Login(username string, password string) (bool, error) {
 	a.username = username
 	return true, nil
 }
+
+func (a *App) SelectFile(fileType string) (string, error) {
+	var displayName, pattern string
+
+	if fileType == "document" {
+		displayName = "PDF files (*.pdf)"
+		pattern = "*.pdf"
+	} else if fileType == "image" {
+		displayName = "Images (*.png, *.jpg, *.tiff)"
+		pattern = "*.png;*.jpg;*.jpeg;*.tiff"
+	} else {
+		return "", fmt.Errorf("invalid file type")
+	}
+
+	dialogOptions := runtime.OpenDialogOptions{
+		Filters: []runtime.FileFilter{{
+			DisplayName: displayName,
+			Pattern:     pattern,
+		}},
+	}
+
+	return runtime.OpenFileDialog(a.ctx, dialogOptions)
+}

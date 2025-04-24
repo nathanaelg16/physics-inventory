@@ -32,6 +32,8 @@ export function SearchModeFullTextWithQueryExpansion(arg1:string):Promise<Array<
 
 export function SearchModeRegular(arg1:string,arg2:string):Promise<Array<main.Asset>>;
 
+export function SelectFile(arg1:string):Promise<string>;
+
 export function SetDefaultSearchMode(arg1:string):Promise<void>;
 
 export function ToggleMissing(arg1:number,arg2:boolean,arg3:string):Promise<void>;

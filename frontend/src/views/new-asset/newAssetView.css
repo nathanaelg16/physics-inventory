@@ -1,0 +1,30 @@
+.new-asset--details-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 0;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.new-asset--details-section > p:first-child {
+    background: #004e89;
+    color: white;
+    font-weight: 500;
+    padding: 12px 16px;
+    margin: 0;
+    border-radius: 8px 8px 0 0;
+    font-size: 16px;
+}
+
+.new-asset--details-field {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    margin-bottom: 12px;
+    align-items: baseline;
+}
+
+.new-asset--record-locator {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    align-items: baseline;
+}

@@ -62,6 +62,10 @@ export function SearchModeRegular(arg1, arg2) {
   return window['go']['main']['App']['SearchModeRegular'](arg1, arg2);
 }
 
+export function SelectFile(arg1) {
+  return window['go']['main']['App']['SelectFile'](arg1);
+}
+
 export function SetDefaultSearchMode(arg1) {
   return window['go']['main']['App']['SetDefaultSearchMode'](arg1);
 }
