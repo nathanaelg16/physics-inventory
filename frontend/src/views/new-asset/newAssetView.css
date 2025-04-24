@@ -1,3 +1,32 @@
+.new-asset-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.new-asset-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.new-asset-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.new-asset-stepper {
+    margin-bottom: 32px;
+}
+
+.new-asset-form-container {
+    padding: 16px;
+    margin-bottom: 24px;
+    min-height: 400px;
+}
+
 .new-asset--details-section {
     background-color: white;
     border-radius: 8px;
@@ -16,15 +45,37 @@
     font-size: 16px;
 }
 
+.new-asset--details-content {
+    padding: 16px;
+}
+
 .new-asset--details-field {
     display: grid;
-    grid-template-columns: 160px 1fr;
-    margin-bottom: 12px;
+    grid-template-columns: 140px 1fr;
+    margin-bottom: 16px;
     align-items: baseline;
 }
 
-.new-asset--record-locator {
-    display: grid;
-    grid-template-columns: 1fr 200px;
-    align-items: baseline;
+.new-asset--details-field p {
+    margin: 0;
+}
+
+.new-asset-navigation {
+    display: flex;
+    justify-content: space-between;
+    position: sticky;
+    bottom: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+    .new-asset--details-field {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
 }

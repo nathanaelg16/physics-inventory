@@ -1,0 +1,47 @@
+.new-asset--record-locator {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f5f8fa;
+    border: 1px solid #e0e7ee;
+}
+
+.new-asset--record-field {
+    flex: 1;
+}
+
+.new-asset--auto-assign {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 140px;
+}
+
+.new-asset--auto-assign-label {
+    font-size: 0.875rem;
+    color: #666;
+    margin: 0 0 4px;
+}
+
+@media (max-width: 600px) {
+    .new-asset--record-locator {
+        flex-direction: column;
+    }
+
+    .new-asset--auto-assign {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .new-asset--auto-assign-label {
+        margin-bottom: 0;
+        margin-right: 8px;
+    }
+}
