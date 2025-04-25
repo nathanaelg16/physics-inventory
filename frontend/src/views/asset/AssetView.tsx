@@ -1,26 +1,38 @@
-import { useNavigate, useParams } from 'react-router'
+import {useNavigate, useParams} from 'react-router'
 import {
-    Button,
-    Skeleton,
-    useMediaQuery,
-    useTheme,
     Alert,
+    Box,
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Skeleton,
     Snackbar,
-    Tooltip, Typography, Box,
-    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Chip
+    Tooltip,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material'
-import {ArrowBack, Save, ErrorOutline, Close} from '@mui/icons-material'
-import { main } from '../../../wailsjs/go/models'
-import Asset = main.Asset
-import { useEffect, useState, useRef } from 'react'
-import { SnackbarAlert } from '../../utils/snackbar-alert'
+import {ArrowBack, Close, ErrorOutline, Save} from '@mui/icons-material'
+import {main} from '../../../wailsjs/go/models'
+import {useEffect, useRef, useState} from 'react'
+import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
     AssignRecordLocator,
-    ChangeImage, DownloadManual, DownloadReceipt,
+    ChangeImage,
+    DownloadManual,
+    DownloadReceipt,
     GetAsset,
-    RemoveImage, RemoveManual, RemoveReceipt,
+    RemoveImage,
+    RemoveManual,
+    RemoveReceipt,
     ToggleMissing,
-    UpdateAsset, UploadManual, UploadReceipt
+    UpdateAsset,
+    UploadManual,
+    UploadReceipt
 } from '../../../wailsjs/go/main/App'
 import EditableParagraph from '../../components/editable-paragraph/EditableParagraph'
 import AssetField from '../../components/asset-field/AssetField'
@@ -35,6 +47,9 @@ import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMis
 import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
 import './assetView.css'
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
+import Asset = main.Asset;
+
+// todo add duplicate and delete buttons
 
 export default function AssetView() {
     const { id } = useParams()
