@@ -7,14 +7,18 @@
 .new-asset-header {
     display: flex;
     align-items: center;
-    margin-bottom: 24px;
-    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
 }
 
-.new-asset-header h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 500;
+.header-cancel-button {
+    position: absolute;
+    right: 16px;
 }
 
 .new-asset-stepper {
@@ -72,7 +76,26 @@
     z-index: 10;
 }
 
-/* Responsive styles */
+.new-asset-validation-alert {
+    margin-bottom: 16px;
+    border-radius: 8px;
+}
+
+.record-dependency-notice {
+    margin: 8px 0 16px;
+    border-radius: 8px;
+}
+
+.record-dependency-notice .MuiAlert-root {
+    border-radius: 8px;
+    background-color: #e5f6fd;
+    color: #0277bd;
+}
+
+.record-dependency-notice .MuiAlert-icon {
+    color: #0277bd;
+}
+
 @media (max-width: 600px) {
     .new-asset--details-field {
         grid-template-columns: 1fr;

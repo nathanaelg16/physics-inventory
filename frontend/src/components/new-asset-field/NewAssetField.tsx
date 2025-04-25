@@ -1,6 +1,6 @@
-import { TextField, Tooltip, InputAdornment } from '@mui/material'
-import { Info } from '@mui/icons-material'
-import { useState, ReactNode } from 'react'
+import {TextField, Tooltip} from '@mui/material'
+import {Info} from '@mui/icons-material'
+import {useState} from 'react'
 
 interface Props {
     value: string
@@ -15,8 +15,9 @@ interface Props {
     tooltip?: string
     minRows?: number
     maxRows?: number
-    startAdornment?: ReactNode
-    endAdornment?: ReactNode
+    onBlur?: () => void
+    touched?: boolean
+    placeholder?: string
 }
 
 export default function NewAssetField({
@@ -32,15 +33,19 @@ export default function NewAssetField({
                                           tooltip = '',
                                           minRows = 3,
                                           maxRows = 5,
-                                          startAdornment,
-                                          endAdornment
+                                          onBlur,
+                                          touched = false,
+                                          placeholder = ''
                                       }: Props) {
-    const [touched, setTouched] = useState(false)
+    const [internalTouched, setInternalTouched] = useState(false)
     const isValid = validator(value)
-    const showError = touched && !isValid
+    const showError = (touched || internalTouched) && !isValid
 
     const handleBlur = () => {
-        setTouched(true)
+        setInternalTouched(true)
+        if (onBlur) {
+            onBlur()
+        }
     }
 
     return (
@@ -69,14 +74,7 @@ export default function NewAssetField({
                 error={showError}
                 helperText={showError ? helperText : ''}
                 disabled={disabled}
-                InputProps={{
-                    startAdornment: startAdornment ? (
-                        <InputAdornment position="start">{startAdornment}</InputAdornment>
-                    ) : undefined,
-                    endAdornment: endAdornment ? (
-                        <InputAdornment position="end">{endAdornment}</InputAdornment>
-                    ) : undefined,
-                }}
+                placeholder={placeholder}
                 sx={{
                     '& .MuiOutlinedInput-root': {
                         '&.Mui-focused fieldset': {

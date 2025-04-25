@@ -1,6 +1,6 @@
-import { TextField, FormControlLabel, Box, Switch } from '@mui/material'
-import { useState, ChangeEvent } from 'react'
-import {recordLocatorValidator} from "../../utils/validators";
+import {Box, FormControlLabel, Switch, TextField} from '@mui/material'
+import {ChangeEvent, useState} from 'react'
+import {recordLocatorValidator} from "../../utils/validators"
 import './newAssetRecordLocator.css'
 
 interface Props {
@@ -8,16 +8,20 @@ interface Props {
     setRecordLocator: (value: string) => void
     autoAssignRecordLocator: boolean
     setAutoAssignRecordLocator: (value: boolean) => void
+    touched?: boolean
+    onBlur?: () => void
 }
 
 export default function NewAssetRecordLocator({
-                                          recordLocator,
-                                          setRecordLocator,
-                                          autoAssignRecordLocator,
-                                          setAutoAssignRecordLocator
-                                      }: Props) {
-    const [touched, setTouched] = useState(false)
-    const showError = touched && !recordLocatorValidator(recordLocator) && !autoAssignRecordLocator
+                                                  recordLocator,
+                                                  setRecordLocator,
+                                                  autoAssignRecordLocator,
+                                                  setAutoAssignRecordLocator,
+                                                  touched = false,
+                                                  onBlur
+                                              }: Props) {
+    const [internalTouched, setInternalTouched] = useState(false)
+    const showError = (touched || internalTouched) && !recordLocatorValidator(recordLocator) && !autoAssignRecordLocator
 
     const handleRecordLocatorChange = (e: ChangeEvent<HTMLInputElement>) => {
         setRecordLocator(e.target.value)
@@ -32,7 +36,10 @@ export default function NewAssetRecordLocator({
     }
 
     const handleBlur = () => {
-        setTouched(true)
+        setInternalTouched(true)
+        if (onBlur) {
+            onBlur()
+        }
     }
 
     return (

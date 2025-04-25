@@ -1,6 +1,6 @@
-import { Button, Chip, Tooltip, Box } from '@mui/material'
-import { SelectFile } from '../../../wailsjs/go/main/App'
-import {AttachFile, Image, Delete, InsertDriveFile, Info} from '@mui/icons-material'
+import {Box, Button, Chip} from '@mui/material'
+import {SelectFile} from '../../../wailsjs/go/main/App'
+import {AttachFile, Delete, Image, InsertDriveFile} from '@mui/icons-material'
 
 function trimFileName(fileName: string): string {
     const split = fileName.split(/[\\/]/)
@@ -15,7 +15,7 @@ interface Props {
     onChange: (value: string) => void
     fileType: 'image' | 'document'
     required?: boolean
-    tooltip?: string
+    disabled?: boolean
 }
 
 export default function NewAssetDocumentSelectField({
@@ -24,15 +24,18 @@ export default function NewAssetDocumentSelectField({
                                                         onChange,
                                                         fileType,
                                                         required = false,
-                                                        tooltip = ''
+                                                        disabled = false
                                                     }: Props) {
     const handleClick = () => {
+        if (disabled) return
+
         SelectFile(fileType)
             .then((fileName) => onChange(fileName))
             .catch((error) => console.error('Error selecting file:', error))
     }
 
     const handleDelete = () => {
+        if (disabled) return
         onChange('')
     }
 
@@ -43,18 +46,14 @@ export default function NewAssetDocumentSelectField({
             <p>
                 <strong>{label}</strong>
                 {required && <span style={{ color: 'red' }}> *</span>}
-                {tooltip && (
-                    <Tooltip title={tooltip} arrow placement="top">
-                        <Info fontSize="small" style={{ marginLeft: '4px', fontSize: '16px', verticalAlign: 'middle', color: '#666' }} />
-                    </Tooltip>
-                )}
             </p>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: disabled ? 0.7 : 1 }}>
                 <Button
                     variant="outlined"
                     onClick={handleClick}
                     startIcon={<AttachFile />}
                     size="small"
+                    disabled={disabled}
                     sx={{
                         width: 'fit-content',
                         borderColor: '#004e89',
@@ -62,6 +61,11 @@ export default function NewAssetDocumentSelectField({
                         '&:hover': {
                             borderColor: '#003865',
                             backgroundColor: 'rgba(0, 78, 137, 0.05)',
+                        },
+                        '&.Mui-disabled': {
+                            backgroundColor: '#f0f0f0',
+                            borderColor: '#ccc',
+                            color: '#999'
                         }
                     }}
                 >
@@ -73,7 +77,7 @@ export default function NewAssetDocumentSelectField({
                         <Chip
                             icon={<FileIcon fontSize="small" />}
                             label={trimFileName(value)}
-                            onDelete={handleDelete}
+                            onDelete={disabled ? undefined : handleDelete}
                             deleteIcon={<Delete fontSize="small" />}
                             sx={{
                                 maxWidth: '100%',

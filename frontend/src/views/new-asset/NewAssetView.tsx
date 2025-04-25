@@ -1,24 +1,12 @@
 import './newAssetView.css'
-import {
-    Button,
-    Checkbox,
-    FormControlLabel,
-    TextField,
-    useMediaQuery,
-    useTheme,
-    Stepper,
-    Step,
-    StepLabel,
-    Paper,
-    Box
-} from '@mui/material'
+import {Alert, Box, Button, Paper, Step, StepLabel, Stepper, TextField, useMediaQuery, useTheme} from '@mui/material'
 import NewAssetField from '../../components/new-asset-field/NewAssetField'
-import { useState } from 'react'
+import {FormEvent, useEffect, useState} from 'react'
 import NewAssetSelectField from '../../components/new-asset-field/NewAssetSelectField'
-import { ArrowBack, Save, NavigateNext, NavigateBefore } from '@mui/icons-material'
-import { useNavigate } from 'react-router'
+import {Info, NavigateBefore, NavigateNext, Save} from '@mui/icons-material'
+import {useNavigate} from 'react-router'
 import NewAssetDocumentSelectField from '../../components/new-asset-field/NewAssetDocumentSelectField'
-import { currencyValidator, nonEmptyFieldValidator } from '../../utils/validators'
+import {currencyValidator, nonEmptyFieldValidator} from '../../utils/validators'
 import NewAssetRecordLocator from '../../components/new-asset-record-locator/NewAssetRecordLocator'
 
 export default function NewAssetView() {
@@ -47,8 +35,20 @@ export default function NewAssetView() {
     const [maintenanceNotes, setMaintenanceNotes] = useState<string>('')
     const [notes, setNotes] = useState<string>('')
 
-    // Add step state for stepper
     const [activeStep, setActiveStep] = useState(0)
+
+    const [showValidationError, setShowValidationError] = useState(false)
+    const [validationMessage, setValidationMessage] = useState('')
+
+    // Track if fields have been touched for validation
+    const [fieldsTouched, setFieldsTouched] = useState({
+        name: false,
+        location: false,
+        quantity: false,
+        purchaseAmount: false,
+        unitPrice: false,
+        recordLocator: false
+    })
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -62,35 +62,137 @@ export default function NewAssetView() {
         'Maintenance & Notes'
     ]
 
-    // Handle step navigation
+    // Check if record locator is valid or auto-assigned
+    const hasValidRecordLocator = Boolean(recordLocator) || autoAssignRecordLocator
+
+    // Mark a field as touched
+    const markFieldTouched = (field: keyof typeof fieldsTouched) => {
+        setFieldsTouched(prev => ({
+            ...prev,
+            [field]: true
+        }))
+    }
+
+    const validateStep = (step: number): boolean => {
+        switch (step) {
+            case 0: // General Details
+                if (!nonEmptyFieldValidator(name)) {
+                    setValidationMessage('Name is a required field')
+                    markFieldTouched('name')
+                    return false
+                }
+                if (!nonEmptyFieldValidator(location)) {
+                    setValidationMessage('Location is a required field')
+                    markFieldTouched('location')
+                    return false
+                }
+                if (!nonEmptyFieldValidator(quantity)) {
+                    setValidationMessage('Quantity is a required field')
+                    markFieldTouched('quantity')
+                    return false
+                }
+                return true
+
+            case 1: // Product Information
+                // No validation in this step
+                return true
+
+            case 2: // Purchase Details
+                if (purchaseAmount && !currencyValidator(purchaseAmount)) {
+                    setValidationMessage('Purchase Amount must be formatted as currency')
+                    markFieldTouched('purchaseAmount')
+                    return false
+                }
+                if (unitPrice && !currencyValidator(unitPrice)) {
+                    setValidationMessage('Unit Price must be formatted as currency')
+                    markFieldTouched('unitPrice')
+                    return false
+                }
+                return true
+
+            case 3: // Documents
+                if (!autoAssignRecordLocator && recordLocator && !/^\d*$/.test(recordLocator)) {
+                    setValidationMessage('Record # must contain only numbers')
+                    markFieldTouched('recordLocator')
+                    return false
+                }
+                return true
+
+            case 4: // Maintenance & Notes
+                // No validation for the last step
+                return true
+
+            default:
+                return true
+        }
+    }
+
     const handleNext = () => {
+        // Validate before proceeding
+        if (!validateStep(activeStep)) {
+            setShowValidationError(true)
+            return
+        }
+
+        setShowValidationError(false)
         setActiveStep((prevActiveStep) => prevActiveStep + 1)
     }
 
     const handleBack = () => {
+        setShowValidationError(false)
         setActiveStep((prevActiveStep) => prevActiveStep - 1)
     }
 
-    // Handle form submission
-    const handleSubmit = (event: React.FormEvent) => {
+    const handleSubmit = (event: FormEvent) => {
         event.preventDefault()
-        // Add your form submission logic here
-        console.log('Form submitted')
+
+        // Validate all steps before submission
+        let isValid = true
+        for (let i = 0; i < steps.length; i++) {
+            if (!validateStep(i)) {
+                setActiveStep(i)
+                setShowValidationError(true)
+                isValid = false
+                break
+            }
+        }
+
+        if (isValid) {
+            // TODO Add form submission logic here
+            console.log('Form submitted')
+        }
     }
+
+    // Reset manual fields when record locator is cleared or auto-assign is disabled
+    useEffect(() => {
+        if (!hasValidRecordLocator) {
+            setHardCopyAvailable('false')
+            setSoftCopyManual('')
+        }
+    }, [hasValidRecordLocator])
+
+    // Clear validation error when fields change
+    useEffect(() => {
+        if (showValidationError) {
+            setShowValidationError(false)
+        }
+    }, [name, location, quantity, purchaseAmount, unitPrice, recordLocator])
 
     return (
         <Box className="new-asset-container">
             <Box className="new-asset-header">
+                <div>
+                    <h1>Add a new asset</h1>
+                </div>
                 <Button
-                    variant="text"
-                    startIcon={<ArrowBack />}
-                    onClick={() => navigate(-1)}
-                    className="asset-back-button"
+                    variant="outlined"
+                    color="error"
                     size={isSmallScreen ? 'small' : 'medium'}
+                    onClick={() => navigate(-1)}
+                    className="header-cancel-button"
                 >
-                    Back
+                    Cancel
                 </Button>
-                <h1>New Asset</h1>
             </Box>
 
             {/* Stepper */}
@@ -103,6 +205,12 @@ export default function NewAssetView() {
             </Stepper>
 
             <form onSubmit={handleSubmit}>
+                {showValidationError && (
+                    <Alert severity="error" className="new-asset-validation-alert">
+                        {validationMessage || 'Please correct the errors before proceeding'}
+                    </Alert>
+                )}
+
                 <Paper elevation={2} className="new-asset-form-container">
                     {/* Step content */}
                     {activeStep === 0 && (
@@ -115,6 +223,8 @@ export default function NewAssetView() {
                                                validator={nonEmptyFieldValidator}
                                                helperText='Name is a required field'
                                                required
+                                               onBlur={() => markFieldTouched('name')}
+                                               touched={fieldsTouched.name}
                                 />
                                 <NewAssetField value={location}
                                                label='Location:'
@@ -122,6 +232,9 @@ export default function NewAssetView() {
                                                validator={nonEmptyFieldValidator}
                                                helperText='Location is a required field'
                                                required
+                                               onBlur={() => markFieldTouched('location')}
+                                               touched={fieldsTouched.location}
+                                               tooltip='e.g. HYH-211-A1'
                                 />
                                 <NewAssetField value={keywords}
                                                label='Keywords:'
@@ -133,6 +246,8 @@ export default function NewAssetView() {
                                                validator={nonEmptyFieldValidator}
                                                helperText='Quantity is a required field'
                                                required
+                                               onBlur={() => markFieldTouched('quantity')}
+                                               touched={fieldsTouched.quantity}
                                 />
                                 <NewAssetDocumentSelectField label='Image:'
                                                              value={image}
@@ -189,12 +304,16 @@ export default function NewAssetView() {
                                                onChange={setPurchaseAmount}
                                                validator={(value) => Boolean(purchaseAmount) ? currencyValidator(value) : true}
                                                helperText='Value must be formatted as currency'
+                                               onBlur={() => markFieldTouched('purchaseAmount')}
+                                               touched={fieldsTouched.purchaseAmount}
                                 />
                                 <NewAssetField value={unitPrice}
                                                label='Unit Price:'
                                                onChange={setUnitPrice}
                                                validator={(value) => Boolean(unitPrice) ? currencyValidator(value) : true}
                                                helperText='Value must be formatted as currency'
+                                               onBlur={() => markFieldTouched('unitPrice')}
+                                               touched={fieldsTouched.unitPrice}
                                 />
                                 <NewAssetDocumentSelectField label='Receipt:'
                                                              value={receipt}
@@ -214,12 +333,32 @@ export default function NewAssetView() {
                                     setRecordLocator={setRecordLocator}
                                     autoAssignRecordLocator={autoAssignRecordLocator}
                                     setAutoAssignRecordLocator={setAutoAssignRecordLocator}
+                                    touched={fieldsTouched.recordLocator}
+                                    onBlur={() => markFieldTouched('recordLocator')}
                                 />
-                                <NewAssetSelectField value={hardCopyAvailable} label='Physical Manual:' onChange={setHardCopyAvailable} options={[{value: 'true', label: 'Available'}, {value: 'false', label: 'Not Available'}]} />
-                                <NewAssetDocumentSelectField label='Digital Manual:'
-                                                             value={softCopyManual}
-                                                             onChange={setSoftCopyManual}
-                                                             fileType='document'
+
+                                {!hasValidRecordLocator && (
+                                    <div className="record-dependency-notice">
+                                        <Alert severity="info" icon={<Info />}>
+                                            A record number must be assigned or set to auto-assign before adding manual information
+                                        </Alert>
+                                    </div>
+                                )}
+
+                                <NewAssetSelectField
+                                    value={hardCopyAvailable}
+                                    label='Physical Manual:'
+                                    onChange={setHardCopyAvailable}
+                                    options={[{value: 'true', label: 'Available'}, {value: 'false', label: 'Not Available'}]}
+                                    disabled={!hasValidRecordLocator}
+                                />
+
+                                <NewAssetDocumentSelectField
+                                    label='Digital Manual:'
+                                    value={softCopyManual}
+                                    onChange={setSoftCopyManual}
+                                    fileType='document'
+                                    disabled={!hasValidRecordLocator}
                                 />
                             </div>
                         </div>
@@ -250,6 +389,7 @@ export default function NewAssetView() {
                                                    label='Maintenance Notes:'
                                                    onChange={setMaintenanceNotes}
                                                    multiline
+                                                   placeholder='Enter notes...'
                                     />
                                 </div>
                             </div>
