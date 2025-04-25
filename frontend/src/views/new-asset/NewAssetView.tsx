@@ -181,7 +181,7 @@ export default function NewAssetView() {
     return (
         <Box className="new-asset-container">
             <Box className="new-asset-header">
-                <div>
+                <div className="new-asset-header-title">
                     <h1>Add a new asset</h1>
                 </div>
                 <Button

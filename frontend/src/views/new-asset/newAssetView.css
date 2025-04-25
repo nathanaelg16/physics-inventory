@@ -16,6 +16,13 @@
     position: relative;
 }
 
+.new-asset-header-title h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #004e89;
+}
+
 .header-cancel-button {
     position: absolute;
     right: 16px;
@@ -62,6 +69,8 @@
 
 .new-asset--details-field p {
     margin: 0;
+    color: #455a64;
+    font-weight: 500;
 }
 
 .new-asset-navigation {
@@ -100,5 +109,9 @@
     .new-asset--details-field {
         grid-template-columns: 1fr;
         gap: 4px;
+    }
+
+    .new-asset-header-title h1 {
+        font-size: 20px;
     }
 }
