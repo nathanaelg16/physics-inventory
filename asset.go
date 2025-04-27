@@ -105,6 +105,206 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 	return asset, nil
 }
 
+// AddAsset adds an asset to the database
+//
+// The fields parameter is a map of field names to values.
+// The values are validated and converted to the appropriate types.
+//
+// The function returns the id of the newly added asset and an error if one occurred.
+//
+// The function also assumes that the added asset is not missing.
+func (a *App) AddAsset(fields map[string]string) (int64, error) {
+	asset := Asset{}
+
+	for key, value := range fields {
+		validatedValue, err := validateValue(key, value)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "AddAsset validation failed for field '%s': %v", key, err)
+			return -1, fmt.Errorf("validation failed for field '%s': %w", key, err)
+		}
+
+		switch key {
+		case "name":
+			asset.Name = validatedValue.(sql.NullString) // todo cast to string when field is marked as not null on db
+		case "location":
+			asset.Location = validatedValue.(sql.NullString) // todo cast to string when field is marked as not null on db
+		case "keywords":
+			asset.Keywords = validatedValue.(sql.NullString)
+		case "brand":
+			asset.Brand = validatedValue.(sql.NullString)
+		case "model":
+			asset.Model = validatedValue.(sql.NullString)
+		case "part":
+			asset.Part = validatedValue.(sql.NullString)
+		case "serial":
+			asset.Serial = validatedValue.(sql.NullString)
+		case "auInventory":
+			asset.AUInventory = validatedValue.(sql.NullString)
+		case "quantity":
+			asset.Quantity = validatedValue.(sql.NullString) // todo cast to string when field is marked as not null on db
+		case "purchaseDate":
+			asset.PurchaseDate = validatedValue.(sql.NullTime)
+		case "purchaseAmount":
+			asset.PurchaseAmount = validatedValue.(sql.NullString)
+		case "recordLocator":
+			asset.RecordLocator = int64(validatedValue.(int))
+		case "notes":
+			asset.Notes = validatedValue.(sql.NullString)
+		case "unitPrice":
+			asset.UnitPrice = validatedValue.(string) // todo cast to sql.NullString when field is marked nullable on db
+		case "vendor":
+			asset.Vendor = validatedValue.(string) // todo cast to sql.NullString when field is marked nullable on db
+		case "repairStatus":
+			asset.RepairStatus = validatedValue.(RepairStatus)
+		case "nextCalibrationDate":
+			asset.NextCalibrationDate = validatedValue.(sql.NullTime)
+		case "maintenanceNotes":
+			asset.MaintenanceNotes = validatedValue.(sql.NullString)
+		}
+	}
+
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "AddAsset: failed to begin transaction: %v", err)
+		return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+	}
+	defer tx.Rollback()
+
+	equipmentQuery := `insert into equipment (item_name, location, keywords, brand, model, part, serial_number, 
+                       		au_inventory, quantity, purchase_date, purchase_amount, missing, record_locator, notes, 
+                       		unit_price, vendor) 
+						values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?);`
+	res, err := tx.Exec(equipmentQuery, asset.Name, asset.Location, asset.Keywords, asset.Brand, asset.Model, asset.Part, asset.Serial, asset.AUInventory, asset.Quantity, asset.PurchaseDate, asset.PurchaseAmount, asset.RecordLocator, asset.Notes, asset.UnitPrice, asset.Vendor)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "AddAsset: failed to insert asset: %v", err)
+		return -1, fmt.Errorf("failed to add asset: %w", err)
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "AddAsset: failed to get last insert id: %v", err)
+		return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+	}
+
+	maintenanceQuery := `insert into maintenance (id, repair_status, status_change_date, next_calibration_date, notes) values (?, ?, ?, ?, ?);`
+	_, err = tx.Exec(maintenanceQuery, id, asset.RepairStatus, time.Now().Format("2006-01-02"), asset.NextCalibrationDate, asset.MaintenanceNotes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "AddAsset: failed to insert maintenance: %v", err)
+		return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+	}
+
+	/* Receipt and Image Upload */
+	var receiptFileBytes, imageFileBytes []byte
+	receiptPath := fields["receipt"]
+	imagePath := fields["image"]
+
+	if len(receiptPath) > 0 {
+		receiptFileBytes, err = readDocument(receiptPath)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "%v", err)
+			return -1, fmt.Errorf("add asset failed! %w", err)
+		}
+
+		_, err = tx.Exec(`insert into images_and_receipts (id, receipt) values (?, ?) as new_row
+								on duplicate key update receipt = new_row.receipt;`, id, receiptFileBytes)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "AddAsset: failed to insert receipt: %v", err)
+			return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+		}
+	}
+
+	if len(imagePath) > 0 {
+		imageFileBytes, err = readDocument(imagePath)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "%v", err)
+			return -1, fmt.Errorf("add asset failed! %w", err)
+		}
+
+		_, err = tx.Exec(`insert into images_and_receipts (id, image_one) 
+				values (?, ?) as new_row
+				on duplicate key update image_one = new_row.image_one;`, id, imageFileBytes)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "AddAsset: failed to insert image: %v", err)
+			return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+		}
+	}
+
+	/* Manuals section */
+	var recordLocator int64
+
+	// check whether to auto-assign a record locator
+	if autoAssign, ok := fields["autoAssignRecordLocator"]; ok {
+		if autoAssign == "true" {
+			recordLocator, err = assignRecordLocator(&a.ctx, tx, id)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "AddAsset: failed to assign record locator: %v", err)
+				return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+			}
+		}
+	} else {
+		recordLocator = asset.RecordLocator
+
+		// if recordLocator is <= 0, then there is no manual information to be added,
+		// so we can commit the transaction and return the id
+		if recordLocator <= 0 {
+			if err = tx.Commit(); err != nil {
+				runtime.LogErrorf(a.ctx, "AddAsset: failed to commit transaction: %v", err)
+				return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+			}
+
+			return id, nil
+		}
+	}
+
+	// first, check if manual information is already available in the database for the specified record locator
+	var rowExists bool
+	err = tx.QueryRow(`select exists(select * from manuals where record_locator = ?);`, recordLocator).Scan(&rowExists)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "AddAsset: failed to check if manual information is already available: %v", err)
+		return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+	}
+
+	// if the row exists, do nothing
+	// else, insert the new data
+	if !rowExists {
+		// insert hard-copy availability
+		if available, ok := fields["hardCopyAvailable"]; ok {
+			hardCopyAvailable := available == "true"
+			_, err = tx.Exec(`insert into manuals (record_locator, hard_copy_available) values (?, ?);`, recordLocator, hardCopyAvailable)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "AddAsset: failed to insert manuals: %v", err)
+				return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+			}
+		}
+
+		// upsert digital manual
+		if filePath, ok := fields["softCopyManual"]; ok {
+			// if a file path is provided, upload the file to the db
+			if len(filePath) > 0 {
+				fileBytes, err := readDocument(filePath)
+				if err != nil {
+					runtime.LogErrorf(a.ctx, "%v", err)
+					return -1, fmt.Errorf("failed to add asset due to an error: %w", err)
+				}
+
+				_, err = tx.Exec("insert into manuals (record_locator, soft_copy_manual) values (?, ?) as new_row on duplicate key update soft_copy_manual = new_row.soft_copy_manual;", recordLocator, fileBytes)
+				if err != nil {
+					runtime.LogErrorf(a.ctx, "Error inserting manual: %v", err)
+					return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+				}
+			}
+		}
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		runtime.LogErrorf(a.ctx, "AddAsset: failed to commit transaction: %v", err)
+		return -1, fmt.Errorf("failed to add asset due to a database error: %w", err)
+	}
+
+	runtime.LogInfof(a.ctx, "Asset added successfully with ID: %d", id)
+	return id, nil
+}
+
 func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 	// Define field mappings
 	equipmentTableFieldNames := map[string]string{
@@ -353,7 +553,7 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 	return nil
 }
 
-// AssignRecordLocator gets the next available record locator number and assigns it to the specified asset if needed
+// AssignRecordLocator checks if the specified asset has a record locator assigned, and if not, assigns it
 func (a *App) AssignRecordLocator(assetID int64) error {
 	db := a.db
 
@@ -387,12 +587,30 @@ func (a *App) AssignRecordLocator(assetID int64) error {
 	}
 
 	// If we get here, the asset needs a record locator assigned (it has the default -1 value)
-	// Get the last assigned record locator
-	var recordNumber int
-	err = tx.QueryRow("select record_locator from last_assigned_record_locator;").Scan(&recordNumber)
+	_, err = assignRecordLocator(&a.ctx, tx, assetID)
 	if err != nil {
-		runtime.LogErrorf(a.ctx, "Error retrieving last record locator: %v", err)
+		runtime.LogErrorf(a.ctx, "Error assigning record locator: %v", err)
 		return err
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		runtime.LogErrorf(a.ctx, "Error committing transaction: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+// assignRecordLocator gets the next available record locator number and assigns it to the specified asset
+// NOTE: The transaction must be started before calling this function and must be committed after calling it
+func assignRecordLocator(ctx *context.Context, tx *sql.Tx, assetID int64) (int64, error) {
+	// Get the last assigned record locator
+	var recordNumber int64
+	err := tx.QueryRow("select record_locator from last_assigned_record_locator for update;").Scan(&recordNumber)
+	if err != nil {
+		runtime.LogErrorf(*ctx, "Error retrieving last record locator: %v", err)
+		return -1, err
 	}
 
 	// Increment the record number
@@ -403,8 +621,8 @@ func (a *App) AssignRecordLocator(assetID int64) error {
 		var exists bool
 		err = tx.QueryRow("select exists(select 1 from equipment where record_locator = ?);", recordNumber).Scan(&exists)
 		if err != nil {
-			runtime.LogErrorf(a.ctx, "Error checking record locator existence: %v", err)
-			return err
+			runtime.LogErrorf(*ctx, "Error checking record locator existence: %v", err)
+			return -1, err
 		}
 
 		// If number is available, break out of loop
@@ -419,24 +637,18 @@ func (a *App) AssignRecordLocator(assetID int64) error {
 	// Update the equipment record with the new record locator
 	_, err = tx.Exec("update equipment set record_locator = ? where id = ?;", recordNumber, assetID)
 	if err != nil {
-		runtime.LogErrorf(a.ctx, "Error updating equipment record locator: %v", err)
-		return err
+		runtime.LogErrorf(*ctx, "Error updating equipment record locator: %v", err)
+		return -1, err
 	}
 
 	// Update the last assigned record locator in the database
 	_, err = tx.Exec("update last_assigned_record_locator set record_locator = ?;", recordNumber)
 	if err != nil {
-		runtime.LogErrorf(a.ctx, "Error updating last record locator: %v", err)
-		return err
+		runtime.LogErrorf(*ctx, "Error updating last record locator: %v", err)
+		return -1, err
 	}
 
-	// Commit the transaction
-	if err = tx.Commit(); err != nil {
-		runtime.LogErrorf(a.ctx, "Error committing transaction: %v", err)
-		return err
-	}
-
-	return nil
+	return recordNumber, nil
 }
 
 func (a *App) ToggleMissing(id int64, isMissing bool, quantityMissing string) error {
@@ -817,27 +1029,27 @@ func validateValue(key string, value string) (any, error) {
 	value = strings.TrimSpace(value)
 
 	switch key {
-	case "name", "location":
+	case "name", "location", "quantity":
 		if len(value) == 0 {
 			return nil, fmt.Errorf("field '%s' is empty", key)
 		}
-		return value, nil
-	case "keywords", "brand", "model", "part", "serial", "auInventory", "quantity", "notes", "vendor":
+		// todo change this to return just the string value when these fields are marked not null on db
+		return sql.NullString{Valid: true, String: value}, nil
+	//todo add vendor to the following case when db field gets marked nullable
+	case "keywords", "brand", "model", "part", "serial", "auInventory", "notes", "maintenanceNotes":
 		if len(value) == 0 {
 			return sql.NullString{Valid: false}, nil
-		} else {
-			return value, nil
 		}
-	case "purchaseDate":
+		return sql.NullString{Valid: true, String: value}, nil
+	case "purchaseDate", "nextCalibrationDate":
 		if len(value) == 0 {
 			return sql.NullTime{Valid: false}, nil
 		} else {
 			valueDate, err := time.Parse("2006-01-02", value)
 			if err != nil {
 				return nil, fmt.Errorf("field '%s' must be a valid date in the form YYYY-MM-DD", key)
-			} else {
-				return sql.NullTime{Time: valueDate, Valid: true}, nil
 			}
+			return sql.NullTime{Time: valueDate, Valid: true}, nil
 		}
 	case "purchaseAmount":
 		if len(value) == 0 {
@@ -846,20 +1058,19 @@ func validateValue(key string, value string) (any, error) {
 			validatedValue, valid := validateCurrency(value)
 			if !valid {
 				return nil, fmt.Errorf("field '%s' must be a valid currency amount", key)
-			} else {
-				return validatedValue, nil
 			}
+			return sql.NullString{Valid: true, String: validatedValue}, nil
 		}
 	case "unitPrice":
+		// todo return sql.NullString when field gets marked nullable on db
 		if len(value) == 0 {
 			return value, nil
 		} else {
 			validatedValue, valid := validateCurrency(value)
 			if !valid {
 				return nil, fmt.Errorf("field '%s' must be a valid currency amount", key)
-			} else {
-				return validatedValue, nil
 			}
+			return validatedValue, nil
 		}
 	case "recordLocator":
 		if len(value) == 0 {
@@ -894,6 +1105,8 @@ func validateValue(key string, value string) (any, error) {
 			// proper repair status values in the db
 			return value, nil
 		}
+	case "vendor":
+		fallthrough
 	default:
 		return value, nil
 	}
@@ -971,5 +1184,3 @@ func validateCurrency(amount string) (string, bool) {
 
 	return processAmount, true
 }
-
-// todo when implementing add asset, insert row into maintenance table with working status
