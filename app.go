@@ -18,9 +18,10 @@ var wailsJSON string
 
 // App struct
 type App struct {
-	ctx      context.Context
-	db       *sql.DB
-	username string
+	ctx         context.Context
+	db          *sql.DB
+	username    string
+	accessLevel AccessLevel
 }
 
 // NewApp creates a new App application struct
@@ -49,51 +50,42 @@ func (a *App) GetProductVersion() (string, error) {
 	}
 }
 
-func (a *App) Login(username string, password string) (bool, error) {
+func (a *App) Login(username string, password string) (uint8, error) {
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory?parseTime=true", username, password, DBHost))
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
-		return false, err
+		return uint8(Viewer), err
 	}
 
+	// check to see if we can log in with the supplied credentials
 	err = db.Ping()
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
-		return false, err
+		return uint8(Viewer), err
 	}
 
-	checkExistsStmt, err := db.Prepare("select exists(select 1 from users where username = ?);")
+	// get the user's access level from the DB
+	// if it doesn't exist, insert the user into the table with default access
+	var accessLevel uint8
+	err = db.QueryRow("select access_level from users where username = ?;", username).Scan(&accessLevel)
 	if err != nil {
-		runtime.LogError(a.ctx, err.Error())
-		return false, err
-	}
-
-	var checkExistsResult int
-	err = checkExistsStmt.QueryRow(username).Scan(&checkExistsResult)
-	if err != nil {
-		runtime.LogError(a.ctx, err.Error())
-		return false, err
-	}
-	defer checkExistsStmt.Close()
-
-	if checkExistsResult != 1 {
-		insertUserStmt, err := db.Prepare("insert into users (username) value (?);")
-		if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			_, err = db.Exec("insert into users (username) values (?);", username)
+			if err != nil {
+				runtime.LogError(a.ctx, err.Error())
+				return uint8(Viewer), err
+			}
+			accessLevel = uint8(Viewer)
+		} else {
 			runtime.LogError(a.ctx, err.Error())
-			return false, err
-		}
-		defer insertUserStmt.Close()
-
-		_, err = insertUserStmt.Exec(username)
-		if err != nil {
-			runtime.LogError(a.ctx, err.Error())
-			return false, err
+			return uint8(Viewer), err
 		}
 	}
 
 	a.db = db
 	a.username = username
-	return true, nil
+	a.accessLevel = AccessLevel(accessLevel)
+	return accessLevel, nil
 }
 
 func (a *App) SelectFile(fileType string) (string, error) {

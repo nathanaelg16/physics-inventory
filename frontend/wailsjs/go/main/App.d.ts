@@ -18,7 +18,7 @@ export function GetDefaultSearchMode():Promise<string>;
 
 export function GetProductVersion():Promise<string>;
 
-export function Login(arg1:string,arg2:string):Promise<boolean>;
+export function Login(arg1:string,arg2:string):Promise<number>;
 
 export function RemoveImage(arg1:number):Promise<void>;
 

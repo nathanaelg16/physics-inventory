@@ -1,12 +1,15 @@
 import "./login.css"
 import {Alert, Button, Snackbar, Stack, TextField} from "@mui/material";
-import {KeyboardEvent, useState} from "react";
-import { Login } from "../../../wailsjs/go/main/App"
+import {KeyboardEvent, useContext, useState} from "react";
+import {Login} from "../../../wailsjs/go/main/App"
 import {useNavigate} from "react-router";
 import logo from "../../assets/logo.png";
+import {AuthContext} from "../../utils/auth";
 
 export default function LoginView() {
     const navigate = useNavigate()
+    const authContext = useContext(AuthContext)
+
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string>('')
@@ -22,9 +25,10 @@ export default function LoginView() {
 
     async function login() {
         try {
-            const success = await Login(username, password)
-            if (success) navigate('/search')
-            else setErrorMessage('Unable to log in with the supplied credentials.')
+            const accessLevel = await Login(username, password)
+            authContext.setAuthenticated(true)
+            authContext.setAccessLevel(accessLevel)
+            navigate('/search', {replace: true})
         } catch (e: any) {
             setErrorMessage(e)
         }
