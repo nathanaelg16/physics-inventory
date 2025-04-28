@@ -430,8 +430,9 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 	// Handle the repair status updates
 	if hasRepairStatus {
 		var currentStatus sql.NullString
+		var statusChangeDate sql.NullTime
 		var currentHistory sql.NullString
-		err = tx.QueryRow("select repair_status, status_history from maintenance where id = ?", id).Scan(&currentStatus, &currentHistory)
+		err = tx.QueryRow("select repair_status, status_change_date, status_history from maintenance where id = ?", id).Scan(&currentStatus, &statusChangeDate, &currentHistory)
 
 		// If there's no maintenance record yet, treat as if status is unknown
 		if errors.Is(err, sql.ErrNoRows) {
@@ -446,7 +447,7 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 		}
 
 		var currentDate = time.Now().Format("2006-01-02")
-		var newHistoryEntry = fmt.Sprintf("%s: %s", parseRepairStatus(currentStatus.String).Expanded(), currentDate)
+		var newHistoryEntry = fmt.Sprintf("%s: %s", parseRepairStatus(currentStatus.String).Expanded(), statusChangeDate.Time.Format("2006-01-02"))
 
 		var combinedHistory string
 		if !currentHistory.Valid || currentHistory.String == "" {
