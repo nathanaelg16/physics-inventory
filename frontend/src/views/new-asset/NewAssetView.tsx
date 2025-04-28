@@ -1,16 +1,31 @@
 import './newAssetView.css'
-import {Alert, Box, Button, Paper, Step, StepLabel, Stepper, TextField, useMediaQuery, useTheme} from '@mui/material'
+import {
+    Alert,
+    Box,
+    Button,
+    Paper,
+    Snackbar,
+    Step,
+    StepLabel,
+    Stepper,
+    TextField,
+    useMediaQuery,
+    useTheme
+} from '@mui/material'
 import NewAssetField from '../../components/new-asset-field/NewAssetField'
-import {FormEvent, useEffect, useState} from 'react'
+import {useEffect, useState} from 'react'
 import NewAssetSelectField from '../../components/new-asset-field/NewAssetSelectField'
 import {Info, NavigateBefore, NavigateNext, Save} from '@mui/icons-material'
 import {useNavigate} from 'react-router'
 import NewAssetDocumentSelectField from '../../components/new-asset-field/NewAssetDocumentSelectField'
 import {currencyValidator, nonEmptyFieldValidator} from '../../utils/validators'
 import NewAssetRecordLocator from '../../components/new-asset-record-locator/NewAssetRecordLocator'
+import {AddAsset} from "../../../wailsjs/go/main/App";
+import {SnackbarAlert} from "../../utils/snackbar-alert";
 
 export default function NewAssetView() {
     const navigate = useNavigate()
+
     const [name, setName] = useState<string>('')
     const [location, setLocation] = useState<string>('')
     const [keywords, setKeywords] = useState<string>('')
@@ -39,6 +54,8 @@ export default function NewAssetView() {
 
     const [showValidationError, setShowValidationError] = useState(false)
     const [validationMessage, setValidationMessage] = useState('')
+
+    const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>(null)
 
     // Track if fields have been touched for validation
     const [fieldsTouched, setFieldsTouched] = useState({
@@ -143,9 +160,7 @@ export default function NewAssetView() {
         setActiveStep((prevActiveStep) => prevActiveStep - 1)
     }
 
-    const handleSubmit = (event: FormEvent) => {
-        event.preventDefault()
-
+    const handleSubmit = () => {
         // Validate all steps before submission
         let isValid = true
         for (let i = 0; i < steps.length; i++) {
@@ -158,12 +173,45 @@ export default function NewAssetView() {
         }
 
         if (isValid) {
-            // TODO Add form submission logic here
-            console.log('Form submitted')
+            const asset: Record<string, string> = {
+                name,
+                location,
+                keywords,
+                brand,
+                model,
+                part,
+                serial,
+                auInventory,
+                quantity,
+                vendor,
+                purchaseDate,
+                purchaseAmount,
+                unitPrice,
+                receipt,
+                image,
+                softCopyManual,
+                hardCopyAvailable,
+                recordLocator,
+                autoAssignRecordLocator: autoAssignRecordLocator ? 'true' : 'false',
+                repairStatus,
+                nextCalibrationDate,
+                maintenanceNotes,
+                notes
+            }
+
+            AddAsset(asset)
+                .then((id) => navigate(`/asset/${id}`, {replace: true}))
+                .catch((err) => {
+                    console.error(err)
+                    setSnackbarAlert({
+                        severity: 'error',
+                        msg: err
+                    })
+                })
         }
     }
 
-    // Reset manual fields when record locator is cleared or auto-assign is disabled
+    // Reset manual fields when the record locator is cleared or auto-assign is disabled
     useEffect(() => {
         if (!hasValidRecordLocator) {
             setHardCopyAvailable('false')
@@ -204,7 +252,7 @@ export default function NewAssetView() {
                 ))}
             </Stepper>
 
-            <form onSubmit={handleSubmit}>
+            <div>
                 {showValidationError && (
                     <Alert severity="error" className="new-asset-validation-alert">
                         {validationMessage || 'Please correct the errors before proceeding'}
@@ -423,7 +471,7 @@ export default function NewAssetView() {
                         <Button
                             variant="contained"
                             color="primary"
-                            type="submit"
+                            onClick={handleSubmit}
                             endIcon={<Save />}
                         >
                             Save Asset
@@ -439,7 +487,20 @@ export default function NewAssetView() {
                         </Button>
                     )}
                 </Box>
-            </form>
+            </div>
+
+            {snackbarAlert && (
+                <Snackbar
+                    open={!!snackbarAlert}
+                    autoHideDuration={6000}
+                    onClose={() => setSnackbarAlert(null)}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                >
+                    <Alert severity={snackbarAlert.severity} onClose={() => setSnackbarAlert(null)}>
+                        {snackbarAlert.msg}
+                    </Alert>
+                </Snackbar>
+            )}
         </Box>
     )
 }
