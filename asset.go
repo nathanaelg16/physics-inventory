@@ -1100,12 +1100,8 @@ func validateValue(key string, value string) (any, error) {
 		repairStatus := parseRepairStatus(value)
 		if repairStatus == UNKNOWN && value != "U" {
 			return nil, fmt.Errorf("field '%s' must be a valid status value", key)
-		} else {
-			// we return value instead of repairStatus because we want the string to be stored in the db
-			// by checking if the repairStatus parsed successfully we ensure we are only putting
-			// proper repair status values in the db
-			return value, nil
 		}
+		return repairStatus, nil
 	case "vendor":
 		fallthrough
 	default:
