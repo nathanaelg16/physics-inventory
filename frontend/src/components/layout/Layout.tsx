@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react'
 import logo from '../../assets/logo-no-text.png'
 import {GetProductVersion} from "../../../wailsjs/go/main/App"
 import {AccessLevel, AuthContext} from '../../utils/auth'
+import {useSessionStorage} from "@uidotdev/usehooks";
 import './layout.css'
 
 export default function Layout() {
@@ -11,8 +12,8 @@ export default function Layout() {
     const [expanded, setExpanded] = useState(true)
     const [productVersion, setProductVersion] = useState<string | null>(null)
 
-    const [isAuthenticated, setAuthenticated] = useState(false)
-    const [accessLevel, setAccessLevel] = useState<AccessLevel>(AccessLevel.Viewer)
+    const [isAuthenticated, setAuthenticated] = useSessionStorage('authenticated',false)
+    const [accessLevel, setAccessLevel] = useSessionStorage<AccessLevel>('accessLevel', AccessLevel.Viewer)
 
     // Get product version
     useEffect(() => {
