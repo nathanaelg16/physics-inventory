@@ -14,6 +14,10 @@ export function ChangeImage(arg1) {
   return window['go']['main']['App']['ChangeImage'](arg1);
 }
 
+export function DeleteUser(arg1) {
+  return window['go']['main']['App']['DeleteUser'](arg1);
+}
+
 export function DownloadManual(arg1, arg2) {
   return window['go']['main']['App']['DownloadManual'](arg1, arg2);
 }
@@ -32,6 +36,10 @@ export function GetDefaultSearchMode() {
 
 export function GetProductVersion() {
   return window['go']['main']['App']['GetProductVersion']();
+}
+
+export function GetUsers() {
+  return window['go']['main']['App']['GetUsers']();
 }
 
 export function Login(arg1, arg2) {
@@ -80,6 +88,10 @@ export function ToggleMissing(arg1, arg2, arg3) {
 
 export function UpdateAsset(arg1, arg2) {
   return window['go']['main']['App']['UpdateAsset'](arg1, arg2);
+}
+
+export function UpdateUserAccessLevel(arg1) {
+  return window['go']['main']['App']['UpdateUserAccessLevel'](arg1);
 }
 
 export function UploadManual(arg1) {

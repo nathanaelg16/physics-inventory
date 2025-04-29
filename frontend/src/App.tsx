@@ -6,6 +6,7 @@ import SearchView from "./views/search/SearchView";
 import HelpSearchModesView from "./views/help/search-modes/HelpSearchModesView";
 import AssetView from "./views/asset/AssetView";
 import NewAssetView from "./views/new-asset/NewAssetView";
+import AdminView from "./views/admin/AdminView";
 
 function App() {
     return <HashRouter>
@@ -16,6 +17,7 @@ function App() {
                 <Route path='/help/search-modes' element={<HelpSearchModesView />} />
                 <Route path='/asset/new' element={<NewAssetView />} />
                 <Route path='/asset/:id' element={<AssetView />} />
+                <Route path='/admin' element={<AdminView />} />
             </Route>
         </Routes>
     </HashRouter>

@@ -1,0 +1,194 @@
+.user-management {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.um-search-bar-container {
+    margin-bottom: 16px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.um-search-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 4px 12px;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.um-search-input-wrapper:hover,
+.um-search-input-wrapper:focus-within {
+    border-color: #3f51b5;
+}
+
+.um-search-icon {
+    color: #757575;
+    margin-right: 8px;
+}
+
+.um-search-input {
+    padding: 8px 4px;
+    font-size: 14px;
+}
+
+.um-table-container {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.um-table-header {
+    font-weight: 600;
+    color: #424242;
+    background-color: #f5f7fa;
+    font-size: 14px;
+}
+
+.um-table-row {
+    transition: background-color 0.15s ease;
+}
+
+.um-table-row:hover {
+    background-color: #f9fafc;
+}
+
+.um-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.um-username {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.um-access-level-select {
+    border-radius: 6px;
+}
+
+.um-access-level-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 16px;
+    font-weight: 500;
+}
+
+.um-access-level-viewer {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.um-access-level-viewer svg {
+    color: #1565c0;
+}
+
+.um-access-level-maintainer {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.um-access-level-maintainer svg {
+    color: #2e7d32;
+}
+
+.um-access-level-administrator {
+    background-color: #ede7f6;
+    color: #5e35b1;
+}
+
+.um-access-level-administrator svg {
+    color: #5e35b1;
+}
+
+.um-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.um-menu-item svg {
+    color: #757575;
+}
+
+.um-delete-button {
+    color: #f44336;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.um-delete-button:hover {
+    background-color: rgba(244, 67, 54, 0.08);
+    border-color: rgba(244, 67, 54, 0.25);
+}
+
+.um-no-results {
+    padding: 32px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.um-no-results-icon {
+    font-size: 48px;
+    color: #bdbdbd;
+}
+
+.um-no-results-text {
+    color: #757575;
+    font-size: 14px;
+}
+
+.um-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.um-pagination {
+    font-size: 14px;
+}
+
+.um-save-button {
+    background-color: #3f51b5;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.um-save-button:hover {
+    background-color: #303f9f;
+    box-shadow: none;
+}
+
+.um-save-button:disabled {
+    background-color: #e0e0e0;
+}
+
+.MuiTablePagination-select {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin: 0 8px;
+}
+
+@media (max-width: 600px) {
+    .um-table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
