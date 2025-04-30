@@ -1,31 +1,44 @@
-import { main } from '../../../wailsjs/go/models'
+import {main} from '../../../wailsjs/go/models'
 import {
-    Dialog, DialogActions,
+    Box,
+    Button,
+    Card,
+    Chip,
+    Dialog,
+    DialogActions,
     DialogContent,
     DialogTitle,
+    Divider,
+    IconButton,
+    InputBase,
     MenuItem,
+    Paper,
     Select,
     SelectChangeEvent,
-    useMediaQuery, useTheme,
-    Paper, Chip, Button, IconButton, InputBase,
-    Box, Divider, Tooltip, Card, Typography,
+    Tooltip,
+    Typography,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material'
-import { KeyboardEvent, useEffect, useState } from 'react'
-import Asset = main.Asset
-import { useNavigate } from 'react-router'
+import {KeyboardEvent, useContext, useEffect, useState} from 'react'
+import {useNavigate} from 'react-router'
 import {
-    GetDefaultSearchMode, SearchModeBoolean,
-    SearchModeFullText, SearchModeFullTextWithQueryExpansion,
+    GetDefaultSearchMode,
+    SearchModeBoolean,
+    SearchModeFullText,
+    SearchModeFullTextWithQueryExpansion,
     SearchModeRegular,
     SetDefaultSearchMode
 } from '../../../wailsjs/go/main/App'
-import { SnackbarAlert } from '../../utils/snackbar-alert'
-import { useSessionStorage } from '@uidotdev/usehooks'
+import {SnackbarAlert} from '../../utils/snackbar-alert'
+import {useSessionStorage} from '@uidotdev/usehooks'
 import SearchIcon from '@mui/icons-material/Search'
 import AddIcon from '@mui/icons-material/Add'
 import TuneIcon from '@mui/icons-material/Tune'
 import SaveIcon from '@mui/icons-material/Save'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import {AccessLevel, AuthContext} from "../../utils/auth";
+import Asset = main.Asset;
 
 interface Props {
     onResult: (results: Array<Asset>) => void
@@ -40,6 +53,7 @@ type SearchMode = 'regular' | 'full_text' | 'full_text_query_expansion' | 'boole
 
 export default function SearchBox(props: Props) {
     const navigate = useNavigate()
+    const authContext = useContext(AuthContext)
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -49,6 +63,8 @@ export default function SearchBox(props: Props) {
     const [searchMode, setSearchMode] = useSessionStorage<SearchMode>('search_mode', 'regular')
     const [searchType, setSearchType] = useSessionStorage<SearchType>('search_type', 'keywords')
     const [showAdvancedOptionsDialog, setShowAdvancedOptionsDialog] = useState<boolean>(false)
+
+    const canAddAsset = authContext.accessLevel >= AccessLevel.Maintainer
 
     useEffect(() => {
         // Load initial list of assets
@@ -258,7 +274,7 @@ export default function SearchBox(props: Props) {
                             </Button>
                         </Tooltip>
 
-                        <Tooltip title="Add new asset">
+                        {canAddAsset && <Tooltip title="Add new asset">
                             <Button
                                 variant="contained"
                                 startIcon={<AddIcon />}
@@ -272,7 +288,7 @@ export default function SearchBox(props: Props) {
                             >
                                 New
                             </Button>
-                        </Tooltip>
+                        </Tooltip>}
                     </Box>
                 </Box>
 
