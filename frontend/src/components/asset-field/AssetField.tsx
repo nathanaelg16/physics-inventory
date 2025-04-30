@@ -5,6 +5,7 @@ interface Props {
     fieldName: string,
     value: string,
     onSave: (field: string, value: string) => void,
+    allowEdits: boolean,
     multiline?: boolean,
     placeholder?: string,
     inputType?: string,
@@ -20,6 +21,7 @@ export default function AssetField({
                                        fieldName,
                                        value,
                                        onSave,
+                                       allowEdits,
                                        multiline = false,
                                        placeholder = 'N/A',
                                        inputType = 'text',
@@ -43,6 +45,7 @@ export default function AssetField({
                 slotProps={slotProps}
                 isEdited={isEdited}
                 className={className}
+                allowEdits={allowEdits}
             />
         </div>
     )

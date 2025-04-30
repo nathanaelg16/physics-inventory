@@ -1,22 +1,16 @@
-import { useState } from 'react'
+import {useState} from 'react'
 import {
     Button,
     CircularProgress,
     Dialog,
-    DialogContent,
     DialogActions,
+    DialogContent,
     DialogTitle,
-    Typography,
+    IconButton,
     Paper,
-    IconButton
+    Typography
 } from '@mui/material'
-import {
-    CameraAlt,
-    Close,
-    ZoomIn,
-    DeleteOutline,
-    Warning
-} from '@mui/icons-material'
+import {CameraAlt, Close, DeleteOutline, Warning, ZoomIn} from '@mui/icons-material'
 import defaultImage from '../../assets/image_not_available.png'
 import './assetImageManager.css'
 
@@ -25,7 +19,8 @@ interface Props {
     assetName: string
     onChangeImage: () => Promise<void>
     onDeleteImage: () => Promise<void>
-    disabled: boolean
+    disabled: boolean,
+    allowEdits: boolean
 }
 
 export default function AssetImageManager({
@@ -33,7 +28,8 @@ export default function AssetImageManager({
                                               assetName,
                                               onChangeImage,
                                               onDeleteImage,
-                                              disabled
+                                              disabled,
+                                              allowEdits
                                           }: Props) {
     const [processing, setProcessing] = useState<boolean>(false)
     const [zoomDialogOpen, setZoomDialogOpen] = useState<boolean>(false)
@@ -102,7 +98,7 @@ export default function AssetImageManager({
                                     </>
                                 )}
 
-                                <Button
+                                {allowEdits && <Button
                                     variant="contained"
                                     onClick={handleChangeImage}
                                     startIcon={<CameraAlt />}
@@ -110,10 +106,9 @@ export default function AssetImageManager({
                                     size="small"
                                 >
                                     Change Image
-                                </Button>
+                                </Button>}
 
-                                {imageData !== null && (
-                                    <>
+                                {imageData !== null && allowEdits && (
                                         <Button
                                             variant="contained"
                                             onClick={openDeleteDialog}
@@ -123,7 +118,6 @@ export default function AssetImageManager({
                                         >
                                             Remove
                                         </Button>
-                                    </>
                                 )}
                             </div>
                         </div>

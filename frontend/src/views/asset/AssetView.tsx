@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 import {ArrowBack, Close, ErrorOutline, Save} from '@mui/icons-material'
 import {main} from '../../../wailsjs/go/models'
-import {useEffect, useRef, useState} from 'react'
+import {useContext, useEffect, useRef, useState} from 'react'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
     AssignRecordLocator,
@@ -47,6 +47,7 @@ import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMis
 import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
 import './assetView.css'
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
+import {AccessLevel, AuthContext} from "../../utils/auth";
 import Asset = main.Asset;
 
 // todo add duplicate and delete buttons
@@ -54,6 +55,7 @@ import Asset = main.Asset;
 export default function AssetView() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const authContext = useContext(AuthContext)
 
     const [asset, setAsset] = useState<Asset>()
     const [loading, setLoading] = useState<boolean>(true)
@@ -79,6 +81,7 @@ export default function AssetView() {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
     const containerRef = useRef<HTMLDivElement>(null)
 
+    const canEdit = authContext.accessLevel >= AccessLevel.Maintainer
     const hasEdits = Object.keys(edits).length > 0
 
     // Set up intersection observer for sticky container effect
@@ -548,6 +551,7 @@ export default function AssetView() {
                         onChangeImage={uploadAssetImage}
                         onDeleteImage={deleteAssetImage}
                         disabled={loading}
+                        allowEdits={canEdit}
                     />
                 </div>
                 <div className="asset--details">
@@ -559,6 +563,7 @@ export default function AssetView() {
                             isEdited={isFieldEdited('name')}
                             validator={nonEmptyFieldValidator}
                             helperText='Asset name must not be empty'
+                            allowEdits={canEdit}
                         />
                         <Chip
                             label={`ID: ${asset.id}`}
@@ -582,6 +587,7 @@ export default function AssetView() {
                                 value={asset.brand.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('brand')}
+                                allowEdits={canEdit}
                             />
                             <AssetField
                                 label="Model:"
@@ -589,6 +595,7 @@ export default function AssetView() {
                                 value={asset.model.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('model')}
+                                allowEdits={canEdit}
                             />
                             <AssetField
                                 label="Part:"
@@ -596,6 +603,7 @@ export default function AssetView() {
                                 value={asset.part.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('part')}
+                                allowEdits={canEdit}
                             />
                             <AssetField
                                 label="S/N:"
@@ -603,6 +611,7 @@ export default function AssetView() {
                                 value={asset.serial.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('serial')}
+                                allowEdits={canEdit}
                             />
                         </div>
                         <div className="asset--details-sub-group">
@@ -615,6 +624,7 @@ export default function AssetView() {
                                 validator={nonEmptyFieldValidator}
                                 helperText='Location must not be empty'
                                 className='uppercase-text'
+                                allowEdits={canEdit}
                             />
                             <AssetField
                                 label="Keywords:"
@@ -622,6 +632,7 @@ export default function AssetView() {
                                 value={asset.keywords.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('keywords')}
+                                allowEdits={canEdit}
                             />
                             <AssetField
                                 label="AU Inventory:"
@@ -629,6 +640,7 @@ export default function AssetView() {
                                 value={asset.auInventory.String}
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('auInventory')}
+                                allowEdits={canEdit}
                             />
                             <AssetField
                                 label="Quantity:"
@@ -637,17 +649,18 @@ export default function AssetView() {
                                 onSave={saveChangesToField}
                                 isEdited={isFieldEdited('quantity')}
                                 validator={nonEmptyFieldValidator}
+                                allowEdits={canEdit}
                             />
                             {asset.missing && <AssetInfoField label='Missing:' value={asset.quantityMissing.String} className='asset--missing-text' />}
                         </div>
                     </div>
                     <div className="asset--status-actions" style={{ marginTop: '16px' }}>
-                        <AssetMissingUpdater isMissing={asset.missing}
+                        {canEdit && <AssetMissingUpdater isMissing={asset.missing}
                                              quantity={asset.quantity.String}
                                              missingQuantity={asset.quantityMissing.String}
                                              disabled={hasEdits}
                                              onUpdate={toggleMissing}
-                        />
+                        />}
                     </div>
                 </div>
             </div>
@@ -661,6 +674,7 @@ export default function AssetView() {
                         value={asset.vendor}
                         onSave={saveChangesToField}
                         isEdited={isFieldEdited('vendor')}
+                        allowEdits={canEdit}
                     />
                     <AssetField
                         label="Purchase Date:"
@@ -669,6 +683,7 @@ export default function AssetView() {
                         onSave={saveChangesToField}
                         inputType='date'
                         isEdited={isFieldEdited('purchaseDate')}
+                        allowEdits={canEdit}
                     />
                     <AssetField
                         label="Purchase Amount:"
@@ -678,6 +693,7 @@ export default function AssetView() {
                         validator={currencyValidator}
                         helperText='Value must be formatted as currency'
                         isEdited={isFieldEdited('purchaseAmount')}
+                        allowEdits={canEdit}
                     />
                     <AssetField
                         label="Unit Price:"
@@ -687,6 +703,7 @@ export default function AssetView() {
                         validator={currencyValidator}
                         helperText='Value must be formatted as currency'
                         isEdited={isFieldEdited('unitPrice')}
+                        allowEdits={canEdit}
                     />
                     <AssetDocumentField
                         label='Receipt:'
@@ -694,6 +711,7 @@ export default function AssetView() {
                         onDownload={() => downloadDocument('receipt')}
                         onRemove={() => removeDocument('receipt')}
                         onUpload={() => uploadDocument('receipt')}
+                        allowEdits={canEdit}
                     />
                 </div>
             </div>
@@ -727,6 +745,7 @@ export default function AssetView() {
                         validator={recordLocatorValidator}
                         helperText='Only numbers allowed'
                         isEdited={isFieldEdited('recordLocator')}
+                        allowEdits={canEdit}
                     />
                     <AssetSelectField
                         label='Physical Manual:'
@@ -737,6 +756,7 @@ export default function AssetView() {
                         placeholder=''
                         isEdited={isFieldEdited('hardCopyAvailable')}
                         disabled={noRecordLocator}
+                        allowEdits={canEdit}
                     />
                     <AssetDocumentField
                         label='Digital Manual:'
@@ -745,6 +765,7 @@ export default function AssetView() {
                         onRemove={() => removeDocument('manual')}
                         onUpload={() => uploadDocument('manual')}
                         disabled={noRecordLocator}
+                        allowEdits={canEdit}
                     />
                 </div>
             </div>
@@ -765,6 +786,7 @@ export default function AssetView() {
                         ]}
                         onSave={saveChangesToField}
                         isEdited={isFieldEdited('repairStatus')}
+                        allowEdits={canEdit}
                     />
                     <AssetInfoField
                         label='Status Changed:'
@@ -786,6 +808,7 @@ export default function AssetView() {
                         onSave={saveChangesToField}
                         inputType='date'
                         isEdited={isFieldEdited('nextCalibrationDate')}
+                        allowEdits={canEdit}
                     />
 
                     <div style={{margin: '16px 0'}}>
@@ -798,8 +821,9 @@ export default function AssetView() {
                         value={asset.maintenanceNotes.String}
                         onSave={saveChangesToField}
                         multiline
-                        placeholder='Click to add notes...'
+                        placeholder={canEdit ? "Click to add notes..." : 'N/A'}
                         isEdited={isFieldEdited('maintenanceNotes')}
+                        allowEdits={canEdit}
                     />
                 </div>
             </div>
@@ -812,8 +836,9 @@ export default function AssetView() {
                             text={asset.notes.String}
                             onSave={(newText) => saveChangesToField('notes', newText)}
                             multiline
-                            placeholder="Click to add notes..."
+                            placeholder={canEdit ? "Click to add notes..." : 'N/A'}
                             isEdited={isFieldEdited('notes')}
+                            allowEdits={canEdit}
                         />
                     </div>
                 </div>

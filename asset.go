@@ -114,6 +114,10 @@ func (a *App) GetAsset(id int64) (Asset, error) {
 //
 // The function also assumes that the added asset is not missing.
 func (a *App) AddAsset(fields map[string]string) (int64, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return -1, fmt.Errorf("insufficient privileges")
+	}
+
 	asset := Asset{}
 
 	for key, value := range fields {
@@ -306,6 +310,10 @@ func (a *App) AddAsset(fields map[string]string) (int64, error) {
 }
 
 func (a *App) UpdateAsset(id int64, updates map[string]string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	// Define field mappings
 	equipmentTableFieldNames := map[string]string{
 		"name":           "item_name",
@@ -556,6 +564,10 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 
 // AssignRecordLocator checks if the specified asset has a record locator assigned, and if not, assigns it
 func (a *App) AssignRecordLocator(assetID int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	db := a.db
 
 	// Start a transaction to ensure consistency
@@ -653,6 +665,10 @@ func assignRecordLocator(ctx *context.Context, tx *sql.Tx, assetID int64) (int64
 }
 
 func (a *App) ToggleMissing(id int64, isMissing bool, quantityMissing string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	var missing string
 	var reportedBy sql.NullString
 	var reportDate sql.NullTime
@@ -687,6 +703,10 @@ func (a *App) ToggleMissing(id int64, isMissing bool, quantityMissing string) er
 }
 
 func (a *App) ChangeImage(id int64) (bool, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return false, fmt.Errorf("insufficient privileges")
+	}
+
 	options := runtime.OpenDialogOptions{
 		Filters: []runtime.FileFilter{{
 			DisplayName: "Images (*.png, *.jpg, *.tiff)",
@@ -720,6 +740,10 @@ func (a *App) ChangeImage(id int64) (bool, error) {
 }
 
 func (a *App) RemoveImage(id int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	query := `update images_and_receipts set image_one = null where id = ?;`
 
 	_, err := a.db.Exec(query, id)
@@ -732,6 +756,10 @@ func (a *App) RemoveImage(id int64) error {
 }
 
 func (a *App) UploadManual(recordLocator int64) (bool, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return false, fmt.Errorf("insufficient privileges")
+	}
+
 	if recordLocator <= 0 {
 		return false, fmt.Errorf("asset must have a valid record number")
 	}
@@ -758,6 +786,10 @@ func (a *App) UploadManual(recordLocator int64) (bool, error) {
 }
 
 func (a *App) UploadReceipt(id int64) (bool, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return false, fmt.Errorf("insufficient privileges")
+	}
+
 	filePath, err := chooseUploadFile(&a.ctx)
 	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error selecting receipt: %v", err)
@@ -849,6 +881,10 @@ func (a *App) DownloadReceipt(id int64) (bool, error) {
 }
 
 func (a *App) RemoveManual(recordLocator int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	query := "update manuals set soft_copy_manual = null where record_locator = ?;"
 
 	_, err := a.db.Exec(query, recordLocator)
@@ -861,6 +897,10 @@ func (a *App) RemoveManual(recordLocator int64) error {
 }
 
 func (a *App) RemoveReceipt(id int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	query := "update images_and_receipts set receipt = null where id = ?;"
 
 	_, err := a.db.Exec(query, id)

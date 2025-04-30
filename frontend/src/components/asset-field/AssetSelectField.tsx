@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Select, MenuItem, FormControl, InputLabel, SelectChangeEvent } from '@mui/material'
-import { Edit } from '@mui/icons-material'
+import {useState} from 'react'
+import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from '@mui/material'
+import {Edit} from '@mui/icons-material'
 
 interface Props {
     label: string
@@ -8,6 +8,7 @@ interface Props {
     value: string | number
     options: Array<{ value: string | number, label: string }>
     onSave: (field: string, value: any) => void
+    allowEdits: boolean
     placeholder?: string
     isEdited?: boolean
     disabled?: boolean
@@ -19,6 +20,7 @@ export default function AssetSelectField({
                                              value,
                                              options,
                                              onSave,
+                                             allowEdits,
                                              placeholder = 'Select an option',
                                              isEdited = false,
                                              disabled = false
@@ -27,7 +29,7 @@ export default function AssetSelectField({
     const [currentValue, setCurrentValue] = useState<string | number>(value)
 
     const handleClick = () => {
-        if (disabled) return
+        if (disabled || !allowEdits) return
         setEditing(true)
     }
 

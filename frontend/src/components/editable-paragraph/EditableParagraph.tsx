@@ -6,6 +6,7 @@ import {formatDate} from '../../utils/utils'
 interface Props {
     text: string,
     onSave: (newText: string) => void,
+    allowEdits: boolean,
     className?: string,
     multiline?: boolean,
     placeholder?: string,
@@ -19,6 +20,7 @@ interface Props {
 export default function EditableParagraph({
                                               text,
                                               onSave,
+                                              allowEdits,
                                               className = '',
                                               multiline = false,
                                               placeholder = 'N/A',
@@ -43,6 +45,7 @@ export default function EditableParagraph({
     }, [isEditing])
 
     const handleClick = () => {
+        if (!allowEdits) return
         setEditing(true)
     }
 

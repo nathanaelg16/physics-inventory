@@ -1,5 +1,5 @@
-import { Button, Tooltip, useMediaQuery, useTheme } from '@mui/material'
-import { Download, Delete, Upload } from '@mui/icons-material'
+import {Button, Tooltip, useMediaQuery, useTheme} from '@mui/material'
+import {Delete, Download, Upload} from '@mui/icons-material'
 
 interface Props {
     label: string
@@ -7,6 +7,7 @@ interface Props {
     onDownload: () => void
     onRemove: () => void
     onUpload: () => void
+    allowEdits: boolean,
     disabled?: boolean
 }
 
@@ -16,6 +17,7 @@ export default function AssetDocumentField({
                                                onDownload,
                                                onRemove,
                                                onUpload,
+                                               allowEdits,
                                                disabled = false
                                            }: Props) {
     const theme = useTheme()
@@ -39,7 +41,7 @@ export default function AssetDocumentField({
                     </span>
                 </Tooltip>
 
-                {documentAvailable ? (
+                {allowEdits && (documentAvailable ? (
                     <Tooltip title="Remove document">
                         <Button
                             variant="outlined"
@@ -65,7 +67,7 @@ export default function AssetDocumentField({
                             Upload
                         </Button>
                     </Tooltip>
-                )}
+                ))}
             </div>
         </div>
     )

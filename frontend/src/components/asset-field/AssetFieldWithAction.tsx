@@ -7,17 +7,18 @@ interface Props {
     fieldName: string
     value: string
     onSave: (field: string, value: string) => void
+    allowEdits: boolean
     showAction?: boolean
     actionLabel?: string
     onAction?: () => void
     multiline?: boolean
     placeholder?: string
-    inputType?: string,
-    validator?: (value: string) => boolean,
-    helperText?: string,
-    slotProps?: any,
-    isEdited?: boolean,
-    className?: string,
+    inputType?: string
+    validator?: (value: string) => boolean
+    helperText?: string
+    slotProps?: any
+    isEdited?: boolean
+    className?: string
 }
 
 export default function AssetFieldWithAction({
@@ -25,6 +26,7 @@ export default function AssetFieldWithAction({
                                                  fieldName,
                                                  value,
                                                  onSave,
+                                                 allowEdits,
                                                  showAction = false,
                                                  actionLabel = 'Action',
                                                  onAction = () => {},
@@ -51,8 +53,9 @@ export default function AssetFieldWithAction({
                 helperText={helperText}
                 slotProps={slotProps}
                 isEdited={isEdited}
+                allowEdits={allowEdits}
             />
-            {showAction && (<Button
+            {allowEdits && showAction && (<Button
                 onClick={onAction}
                 size="small"
                 variant="outlined"
