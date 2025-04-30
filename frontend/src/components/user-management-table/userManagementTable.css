@@ -164,21 +164,6 @@
     font-size: 14px;
 }
 
-.um-save-button {
-    background-color: #3f51b5;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.um-save-button:hover {
-    background-color: #303f9f;
-    box-shadow: none;
-}
-
-.um-save-button:disabled {
-    background-color: #e0e0e0;
-}
-
 .MuiTablePagination-select {
     border: 1px solid #e0e0e0;
     border-radius: 4px;

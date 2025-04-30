@@ -1,3 +1,4 @@
+import './userManagementTable.css'
 import {ChangeEvent, useEffect, useMemo, useState} from 'react'
 import {AccessLevel} from '../../utils/auth'
 import {
@@ -21,13 +22,11 @@ import {
     Build as BuildIcon,
     Delete as DeleteIcon,
     PersonOutline as PersonOutlineIcon,
-    Save as SaveIcon,
     Search as SearchIcon
 } from '@mui/icons-material'
-import './userManagementTable.css'
-import {DeleteUser, GetUsers, UpdateUserAccessLevel} from "../../../wailsjs/go/main/App";
-import {main} from "../../../wailsjs/go/models";
-import {SnackbarAlert} from "../../utils/snackbar-alert";
+import {DeleteUser, GetUsers, UpdateUserAccessLevel} from "../../../wailsjs/go/main/App"
+import {main} from "../../../wailsjs/go/models"
+import {SnackbarAlert} from "../../utils/snackbar-alert"
 import User = main.User;
 
 interface Props {
@@ -50,22 +49,12 @@ const getAccessLevelIcon = (level: AccessLevel) => {
 export default function UserManagementTable({onAlert}: Props) {
     const [users, setUsers] = useState<User[]>([])
     const [searchQuery, setSearchQuery] = useState('')
+    const [isUpdating, setIsUpdating] = useState(false)
 
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(5)
 
     useEffect(() => {
-        // const dummyUsers = [
-        //     { username: 'admin', accessLevel: AccessLevel.Administrator },
-        //     { username: 'lab_tech', accessLevel: AccessLevel.Maintainer },
-        //     { username: 'student', accessLevel: AccessLevel.Viewer },
-        //     { username: 'professor', accessLevel: AccessLevel.Administrator },
-        //     { username: 'assistant', accessLevel: AccessLevel.Maintainer },
-        //     { username: 'intern', accessLevel: AccessLevel.Viewer },
-        //     { username: 'researcher', accessLevel: AccessLevel.Maintainer },
-        //     { username: 'guest', accessLevel: AccessLevel.Viewer }
-        // ]
-        // setUsers(dummyUsers)
         getUsers()
     }, [])
 
@@ -82,14 +71,35 @@ export default function UserManagementTable({onAlert}: Props) {
         }
     }
 
-    const handleAccessLevelChange = (username: string, newLevel: AccessLevel) => {
-        setUsers(prevUsers =>
-            prevUsers.map(user =>
-                user.username === username
-                    ? { ...user, accessLevel: newLevel }
-                    : user
-            )
+    const handleAccessLevelChange = async (username: string, newLevel: AccessLevel) => {
+        // First update the local state
+        const updatedUsers = users.map(user =>
+            user.username === username
+                ? { ...user, accessLevel: newLevel }
+                : user
         )
+        setUsers(updatedUsers)
+
+        // Then update in the backend
+        const userToUpdate = updatedUsers.find(user => user.username === username)
+        if (userToUpdate) {
+            setIsUpdating(true)
+            try {
+                await UpdateUserAccessLevel(userToUpdate)
+                onAlert({
+                    severity: 'success',
+                    msg: `Access level for ${username} updated successfully`
+                })
+            } catch (e) {
+                onAlert({
+                    severity: 'error',
+                    msg: `${e}`
+                })
+                getUsers()
+            } finally {
+                setIsUpdating(false)
+            }
+        }
     }
 
     const handleDeleteUser = (username: string) => {
@@ -100,19 +110,6 @@ export default function UserManagementTable({onAlert}: Props) {
                     msg: e
                 })
             }).finally(() => getUsers())
-    }
-
-    const handleSaveChanges = (username: string) => {
-        const user = users.find(user => user.username === username)
-        if (user) {
-            UpdateUserAccessLevel(user)
-                .catch((e) => {
-                    onAlert({
-                        severity: 'error',
-                        msg: e
-                    })
-                }).finally(() => getUsers())
-        }
     }
 
     const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -189,6 +186,7 @@ export default function UserManagementTable({onAlert}: Props) {
                                                     user.username,
                                                     e.target.value as AccessLevel
                                                 )}
+                                                disabled={isUpdating}
                                                 className={`um-access-level-select um-access-level-${AccessLevel[user.accessLevel].toLowerCase()}`}
                                                 renderValue={(selected) => (
                                                     <div className={`um-access-level-chip um-access-level-${AccessLevel[selected].toLowerCase()}`}>
@@ -219,15 +217,6 @@ export default function UserManagementTable({onAlert}: Props) {
                                         </FormControl>
                                     </TableCell>
                                     <TableCell align='right'>
-                                        <Tooltip title='Save changes'>
-                                            <IconButton
-                                                onClick={() => handleSaveChanges(user.username)}
-                                                size='small'
-                                                className='um-save-button'
-                                            >
-                                                <SaveIcon fontSize='small' />
-                                            </IconButton>
-                                        </Tooltip>
                                         <Tooltip title='Delete user'>
                                             <IconButton
                                                 onClick={() => handleDeleteUser(user.username)}

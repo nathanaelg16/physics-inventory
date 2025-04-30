@@ -17,7 +17,7 @@ type User struct {
 
 func (a *App) GetUsers() ([]User, error) {
 	if ok := a.verifyAdminAccess(); ok {
-		rows, err := a.db.Query("select username, access_level from users;")
+		rows, err := a.db.Query("select username, access_level from users where username <> ? order by username;", a.username)
 		if err != nil {
 			return nil, err
 		}
