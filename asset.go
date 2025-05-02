@@ -655,25 +655,7 @@ func (a *App) DuplicateAsset(id int64) (int64, error) {
 		return -1, fmt.Errorf("asset does not exist")
 	}
 
-	_, err = tx.Exec("drop temporary table if exists tmp;")
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("create temporary table tmp select location, item_name, keywords, brand, model, part, serial_number, au_inventory, quantity, purchase_date, purchase_amount, missing, quantity_missing, record_locator, date_reported_missing, reported_missing_by, notes, unit_price, vendor from equipment where id = ?;", id)
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to create temporary table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("update tmp set item_name = concat(item_name, ' (copy)');")
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to update item_name: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	res, err := tx.Exec("insert into equipment (location, item_name, keywords, brand, model, part, serial_number, au_inventory, quantity, purchase_date, purchase_amount, missing, quantity_missing, record_locator, date_reported_missing, reported_missing_by, notes, unit_price, vendor) select * from tmp;")
+	res, err := tx.Exec("insert into equipment (location, item_name, keywords, brand, model, part, serial_number, au_inventory, quantity, purchase_date, purchase_amount, missing, quantity_missing, record_locator, date_reported_missing, reported_missing_by, notes, unit_price, vendor) select location, concat(item_name, ' (copy)'), keywords, brand, model, part, serial_number, au_inventory, quantity, purchase_date, purchase_amount, missing, quantity_missing, record_locator, date_reported_missing, reported_missing_by, notes, unit_price, vendor from equipment where id = ?;", id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to insert into equipment table: %v", err)
 		return -1, fmt.Errorf("database error")
@@ -685,57 +667,16 @@ func (a *App) DuplicateAsset(id int64) (int64, error) {
 		return -1, fmt.Errorf("database error")
 	}
 
-	_, err = tx.Exec("drop temporary table if exists tmp;")
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("create temporary table tmp select * from images_and_receipts where id = ?;", id)
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to create temporary table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("update tmp set id = ?;", duplicateAssetID)
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to update id: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("insert into images_and_receipts select * from tmp;")
+	_, err = tx.Exec("insert into images_and_receipts (id, receipt, image_one) select ?, receipt, image_one from images_and_receipts where id = ?;", duplicateAssetID, id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to insert into images_and_receipts table: %v", err)
 		return -1, fmt.Errorf("database error")
 	}
 
-	_, err = tx.Exec("drop temporary table if exists tmp;")
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("create temporary table tmp select id, repair_status, status_change_date, notes from maintenance where id = ?;", id)
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to create temporary table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("update tmp set id = ?, repair_status = 'W', status_change_date = curdate();", duplicateAssetID)
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to update id: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("insert into maintenance (id, repair_status, status_change_date, notes) select * from tmp;")
+	currDate := time.Now().Format("2006-01-02")
+	_, err = tx.Exec("insert into maintenance (id, repair_status, status_change_date, notes) select ?, 'W', ?, notes from maintenance where id = ?;", duplicateAssetID, currDate, id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to insert into maintenance table: %v", err)
-		return -1, fmt.Errorf("database error")
-	}
-
-	_, err = tx.Exec("drop temporary table if exists tmp;")
-	if err != nil {
-		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
 		return -1, fmt.Errorf("database error")
 	}
 
