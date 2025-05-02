@@ -8,11 +8,15 @@ export function AssignRecordLocator(arg1:number):Promise<void>;
 
 export function ChangeImage(arg1:number):Promise<boolean>;
 
+export function DeleteAsset(arg1:number):Promise<void>;
+
 export function DeleteUser(arg1:string):Promise<void>;
 
 export function DownloadManual(arg1:number,arg2:number):Promise<boolean>;
 
 export function DownloadReceipt(arg1:number):Promise<boolean>;
+
+export function DuplicateAsset(arg1:number):Promise<number>;
 
 export function GetAsset(arg1:number):Promise<main.Asset>;
 

@@ -23,8 +23,10 @@ import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
     AssignRecordLocator,
     ChangeImage,
+    DeleteAsset,
     DownloadManual,
     DownloadReceipt,
+    DuplicateAsset,
     GetAsset,
     RemoveImage,
     RemoveManual,
@@ -49,8 +51,6 @@ import './assetView.css'
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import Asset = main.Asset;
-
-// todo add duplicate and delete buttons
 
 export default function AssetView() {
     const { id } = useParams()
@@ -431,6 +431,50 @@ export default function AssetView() {
         }))
     }
 
+    const handleDuplicateAsset = () => {
+        if (!asset) return
+
+        DuplicateAsset(asset.id)
+            .then(id => {
+                showAlert({
+                    severity: 'success',
+                    msg: 'Asset duplicated successfully!'
+                })
+                navigate(`/asset/${id}`)
+            })
+            .catch(e => showAlert({
+                severity: 'error',
+                msg: `Error duplicating asset: ${e}`
+            }))
+    }
+
+    const handleDeleteConfirmation = () => {
+        // Show confirmation dialog before deletion
+        setConfirmDialog({
+            open: true,
+            title: 'Delete Asset',
+            message: 'Are you sure you want to delete this asset? This action cannot be undone.',
+            onConfirm: handleDeleteAsset,
+            onConfirmButtonText: 'Delete'
+        })
+    }
+
+    const handleDeleteAsset = () => {
+        if (!asset) return
+
+        DeleteAsset(asset.id)
+            .then(() => {
+                showAlert({
+                    severity: 'success',
+                    msg: 'Asset deleted successfully!'
+                })
+                navigate('/search')
+            }).catch(e => showAlert({
+                severity: 'error',
+                msg: `Error deleting asset: ${e}`
+            }))
+    }
+
     // Helper function to check if a field has been edited
     const isFieldEdited = (fieldName: string): boolean => {
         return edits.hasOwnProperty(fieldName)
@@ -487,6 +531,30 @@ export default function AssetView() {
                 >
                     Back
                 </Button>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    {canEdit && (
+                        <>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={handleDuplicateAsset}
+                                disabled={loading || hasEdits}
+                                size={isSmallScreen ? 'small' : 'medium'}
+                            >
+                                Duplicate
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={handleDeleteConfirmation}
+                                disabled={loading || hasEdits}
+                                size={isSmallScreen ? 'small' : 'medium'}
+                            >
+                                Delete
+                            </Button>
+                        </>)}
+                </div>
             </div>
 
             {/* Floating unsaved changes container */}

@@ -14,6 +14,10 @@ export function ChangeImage(arg1) {
   return window['go']['main']['App']['ChangeImage'](arg1);
 }
 
+export function DeleteAsset(arg1) {
+  return window['go']['main']['App']['DeleteAsset'](arg1);
+}
+
 export function DeleteUser(arg1) {
   return window['go']['main']['App']['DeleteUser'](arg1);
 }
@@ -24,6 +28,10 @@ export function DownloadManual(arg1, arg2) {
 
 export function DownloadReceipt(arg1) {
   return window['go']['main']['App']['DownloadReceipt'](arg1);
+}
+
+export function DuplicateAsset(arg1) {
+  return window['go']['main']['App']['DuplicateAsset'](arg1);
 }
 
 export function GetAsset(arg1) {
