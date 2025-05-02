@@ -945,7 +945,7 @@ func (a *App) DownloadManual(id, recordLocator int64) (bool, error) {
 	}
 
 	defaultFileName := assetName + " - Manual.pdf"
-	filePath, err := chooseSaveFile(&a.ctx, defaultFileName)
+	filePath, err := chooseSaveFile(&a.ctx, PDF, defaultFileName)
 	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error save file dialog: %v", err)
 		return false, nil
@@ -979,7 +979,7 @@ func (a *App) DownloadReceipt(id int64) (bool, error) {
 	}
 
 	defaultFileName := assetName + " - Receipt.pdf"
-	filePath, err := chooseSaveFile(&a.ctx, defaultFileName)
+	filePath, err := chooseSaveFile(&a.ctx, PDF, defaultFileName)
 	if err != nil || len(filePath) == 0 {
 		runtime.LogErrorf(a.ctx, "Error save file dialog: %v", err)
 		return false, nil
@@ -1055,18 +1055,6 @@ func retrieveAssetName(a *App, id int64) (string, error) {
 	}
 
 	return assetName.String, nil
-}
-
-func chooseSaveFile(ctx *context.Context, defaultFileName string) (string, error) {
-	saveDialogOptions := runtime.SaveDialogOptions{
-		DefaultFilename: defaultFileName,
-		Filters: []runtime.FileFilter{{
-			DisplayName: "PDF (*.pdf)",
-			Pattern:     "*.pdf",
-		}},
-	}
-
-	return runtime.SaveFileDialog(*ctx, saveDialogOptions)
 }
 
 func saveDocument(filePath string, data []byte) error {

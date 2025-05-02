@@ -18,6 +18,8 @@ export function DownloadReceipt(arg1:number):Promise<boolean>;
 
 export function DuplicateAsset(arg1:number):Promise<number>;
 
+export function ExportAssetsCSV(arg1:Array<number>):Promise<void>;
+
 export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;

@@ -1,26 +1,43 @@
 import SearchBox from '../../components/search-box/SearchBox'
-import { useState } from 'react'
-import { main } from '../../../wailsjs/go/models'
-import Asset = main.Asset
-import {
-    Alert,
-    Skeleton,
-    Snackbar,
-    Typography,
-    Box,
-    Paper,
-    useTheme,
-} from '@mui/material'
+import {MouseEvent, useState} from 'react'
+import {main} from '../../../wailsjs/go/models'
+import {Alert, Box, Button, Menu, MenuItem, Paper, Skeleton, Snackbar, Typography, useTheme,} from '@mui/material'
 import AssetCard from '../../components/asset-card/AssetCard'
-import { SnackbarAlert } from '../../utils/snackbar-alert'
+import {SnackbarAlert} from '../../utils/snackbar-alert'
 import './searchView.css'
+import {ExportAssetsCSV} from "../../../wailsjs/go/main/App";
+import Asset = main.Asset;
+
+// todo implement results export to PDF
 
 export default function SearchView() {
+    const theme = useTheme()
     const [results, setResults] = useState<Array<Asset>>([])
     const [alert, setAlert] = useState<SnackbarAlert | null>(null)
     const [isSearching, setSearching] = useState<boolean>(false)
 
-    const theme = useTheme()
+    const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(null)
+    const openExportMenu = Boolean(exportMenuAnchor)
+
+    const handleExportMenuOpen = (event: MouseEvent<HTMLElement>) => {
+        setExportMenuAnchor(event.currentTarget)
+    }
+
+    const handleExportMenuClose = () => {
+        setExportMenuAnchor(null)
+    }
+
+    const handleExportToCSV = () => {
+        handleExportMenuClose()
+        ExportAssetsCSV(results.map(asset => asset.id))
+            .then(() => setAlert({
+                severity: 'success',
+                msg: 'Export finished successfully!'
+            })).catch(err => setAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            }))
+    }
 
     return (
         <Box sx={{
@@ -58,6 +75,13 @@ export default function SearchView() {
                                 ? `Found ${results.length} asset${results.length !== 1 ? 's' : ''}`
                                 : 'No assets found')}
                     </Typography>
+                    <div>
+                        <Button size='small' onClick={handleExportMenuOpen}>Export</Button>
+                        <Menu open={openExportMenu} anchorEl={exportMenuAnchor} onClose={handleExportMenuClose}>
+                            <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
+                            <MenuItem>Export to PDF</MenuItem>
+                        </Menu>
+                    </div>
                 </Box>
 
                 <Box className="results-container" sx={{
