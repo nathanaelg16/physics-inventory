@@ -562,6 +562,75 @@ func (a *App) UpdateAsset(id int64, updates map[string]string) error {
 	return nil
 }
 
+func (a *App) DeleteAsset(id int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to begin transaction: %v", err)
+		return fmt.Errorf("database error")
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("delete from maintenance where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to delete from maintenance table: %v", err)
+		return fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("delete from images_and_receipts where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to delete from images_and_receipts table: %v", err)
+		return fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("delete from group_records where asset_id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to delete from group_records table: %v", err)
+		return fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("delete from lab_data where type = 0 and type_id = ?;", id)
+
+	// get the count of how many assets have the same record number, as long as the record number is not -1 of course
+	var countRecords uint
+	err = tx.QueryRow("select count(*) from equipment where record_locator in (select record_locator from equipment where id = ? and record_locator <> -1);", id).Scan(&countRecords)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to count records: %v", err)
+		return fmt.Errorf("database error")
+	}
+
+	// if this is the only asset left with that record number, delete from manuals and group_records
+	if countRecords == 1 {
+		_, err = tx.Exec("delete from manuals where record_locator in (select record_locator from equipment where id = ?);", id)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "DeleteAsset: failed to delete from manuals table: %v", err)
+			return fmt.Errorf("database error")
+		}
+
+		_, err = tx.Exec("delete from group_records where asset_record_number in (select record_locator from equipment where id = ?);", id)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "DeleteAsset: failed to delete from group_records table: %v", err)
+			return fmt.Errorf("database error")
+		}
+	}
+
+	_, err = tx.Exec("delete from equipment where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to delete asset from equipment table: %v", err)
+		return fmt.Errorf("database error")
+	}
+
+	if err = tx.Commit(); err != nil {
+		runtime.LogErrorf(a.ctx, "DeleteAsset: failed to commit transaction: %v", err)
+		return fmt.Errorf("database error")
+	}
+
+	return nil
+}
+
 // AssignRecordLocator checks if the specified asset has a record locator assigned, and if not, assigns it
 func (a *App) AssignRecordLocator(assetID int64) error {
 	if ok := a.verifyMaintainerAccess(); !ok {
