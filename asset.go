@@ -631,6 +631,122 @@ func (a *App) DeleteAsset(id int64) error {
 	return nil
 }
 
+func (a *App) DuplicateAsset(id int64) (int64, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return -1, fmt.Errorf("insufficient privileges")
+	}
+
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to begin transaction: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+	defer tx.Rollback()
+
+	var assetExists bool
+	err = tx.QueryRow("select exists(select 1 from equipment where id = ? for update);", id).Scan(&assetExists)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to check if asset exists: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	if !assetExists {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: asset does not exist")
+		return -1, fmt.Errorf("asset does not exist")
+	}
+
+	_, err = tx.Exec("drop temporary table if exists tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("create temporary table tmp select location, item_name, keywords, brand, model, part, serial_number, au_inventory, quantity, purchase_date, purchase_amount, missing, quantity_missing, record_locator, date_reported_missing, reported_missing_by, notes, unit_price, vendor from equipment where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to create temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("update tmp set item_name = concat(item_name, ' (copy)');")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to update item_name: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	res, err := tx.Exec("insert into equipment (location, item_name, keywords, brand, model, part, serial_number, au_inventory, quantity, purchase_date, purchase_amount, missing, quantity_missing, record_locator, date_reported_missing, reported_missing_by, notes, unit_price, vendor) select * from tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to insert into equipment table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	duplicateAssetID, err := res.LastInsertId()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to get last insert id: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("drop temporary table if exists tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("create temporary table tmp select * from images_and_receipts where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to create temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("update tmp set id = ?;", duplicateAssetID)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to update id: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("insert into images_and_receipts select * from tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to insert into images_and_receipts table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("drop temporary table if exists tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("create temporary table tmp select id, repair_status, status_change_date, notes from maintenance where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to create temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("update tmp set id = ?, repair_status = 'W', status_change_date = curdate();", duplicateAssetID)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to update id: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("insert into maintenance (id, repair_status, status_change_date, notes) select * from tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to insert into maintenance table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	_, err = tx.Exec("drop temporary table if exists tmp;")
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to drop temporary table: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	if err = tx.Commit(); err != nil {
+		runtime.LogErrorf(a.ctx, "DuplicateAsset: failed to commit transaction: %v", err)
+		return -1, fmt.Errorf("database error")
+	}
+
+	return duplicateAssetID, nil
+}
+
 // AssignRecordLocator checks if the specified asset has a record locator assigned, and if not, assigns it
 func (a *App) AssignRecordLocator(assetID int64) error {
 	if ok := a.verifyMaintainerAccess(); !ok {
