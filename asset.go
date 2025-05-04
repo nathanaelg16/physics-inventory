@@ -939,7 +939,7 @@ func (a *App) UploadReceipt(id int64) (bool, error) {
 }
 
 func (a *App) DownloadManual(id, recordLocator int64) (bool, error) {
-	assetName, err := retrieveAssetName(a, id)
+	assetName, err := getAssetName(a, id)
 	if err != nil {
 		return false, err
 	}
@@ -973,7 +973,7 @@ func (a *App) DownloadManual(id, recordLocator int64) (bool, error) {
 }
 
 func (a *App) DownloadReceipt(id int64) (bool, error) {
-	assetName, err := retrieveAssetName(a, id)
+	assetName, err := getAssetName(a, id)
 	if err != nil {
 		return false, err
 	}
@@ -1038,7 +1038,7 @@ func (a *App) RemoveReceipt(id int64) error {
 	return nil
 }
 
-func retrieveAssetName(a *App, id int64) (string, error) {
+func getAssetName(a *App, id int64) (string, error) {
 	runtime.LogInfof(a.ctx, "Retrieving asset name for asset id #%d", id)
 
 	var assetName sql.NullString

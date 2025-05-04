@@ -38,6 +38,10 @@ export function ExportAssetsCSV(arg1) {
   return window['go']['main']['App']['ExportAssetsCSV'](arg1);
 }
 
+export function ExportAssetsPDF(arg1) {
+  return window['go']['main']['App']['ExportAssetsPDF'](arg1);
+}
+
 export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }

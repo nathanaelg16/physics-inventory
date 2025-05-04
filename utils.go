@@ -1,15 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"embed"
 	"encoding/csv"
+	"encoding/hex"
 	"fmt"
+	"github.com/jung-kurt/gofpdf"
+	"github.com/jung-kurt/gofpdf/contrib/tiff"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"os"
 	"strconv"
 	"time"
 )
+
+//go:embed all:resources
+var resources embed.FS
 
 type FileType struct {
 	displayName string
@@ -170,6 +178,141 @@ func (a *App) ExportAssetsCSV(assetIDs []int64) error {
 	return nil
 }
 
+func (a *App) ExportAssetsPDF(assetIDs []int64) error {
+	if len(assetIDs) == 0 {
+		return fmt.Errorf("no asset(s) found to export")
+	}
+
+	currDate := time.Now()
+	defaultFileName := fmt.Sprintf("assets-%s.pdf", currDate.Format("0601020304"))
+
+	if len(assetIDs) == 1 {
+		assetName, err := getAssetName(a, assetIDs[0])
+		if err != nil {
+			return err
+		}
+		defaultFileName = fmt.Sprintf("%s-%s.pdf", assetName, currDate.Format("0601020304"))
+	}
+
+	fileName, err := chooseSaveFile(&a.ctx, PDF, defaultFileName)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+
+	// this can happen when the user cancels the save dialog, according to the Wails docs
+	if len(fileName) == 0 {
+		runtime.LogInfo(a.ctx, "user canceled save dialog")
+		return nil
+	}
+
+	pdf := gofpdf.New("P", "mm", "Letter", "")
+	pdf.SetFont("Helvetica", "", 12)
+
+	logo, err := resources.ReadFile("resources/logo-no-text.png")
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return fmt.Errorf("unexpected error")
+	}
+
+	logoImgOptions := gofpdf.ImageOptions{
+		ImageType: "png",
+		ReadDpi:   true,
+	}
+
+	_ = pdf.RegisterImageOptionsReader("logo.png", logoImgOptions, bytes.NewReader(logo))
+
+	hasErrors := false
+	totalAssets := len(assetIDs)
+
+	lineHeight := 7.0
+
+	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
+
+	for i, id := range assetIDs {
+		asset, err := a.GetAsset(id)
+		if err != nil {
+			hasErrors = true
+			runtime.LogError(a.ctx, err.Error())
+			runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalAssets))
+			continue
+		}
+
+		pdf.AddPage()
+
+		pdf.ImageOptions("logo.png", 10, 10, 20, 20, true, logoImgOptions, 0, "")
+
+		pdf.Ln(lineHeight)
+
+		pdf.SetFont("Helvetica", "B", 14)
+		pdf.Write(lineHeight, asset.Name.String)
+
+		pdf.Ln(lineHeight)
+		pdf.Ln(lineHeight)
+
+		writeField(pdf, lineHeight, "Location", asset.Location.String)
+		writeField(pdf, lineHeight, "Keywords", asset.Keywords.String)
+		writeField(pdf, lineHeight, "Brand", asset.Brand.String)
+		writeField(pdf, lineHeight, "Model", asset.Model.String)
+		writeField(pdf, lineHeight, "Part #", asset.Part.String)
+		writeField(pdf, lineHeight, "Serial Number", asset.Serial.String)
+		writeField(pdf, lineHeight, "AU Inventory #", asset.AUInventory.String)
+		writeField(pdf, lineHeight, "Quantity", asset.Quantity.String)
+		writeField(pdf, lineHeight, "Notes", asset.Notes.String)
+
+		pdf.Ln(lineHeight)
+
+		writeField(pdf, lineHeight, "Repair Status", asset.RepairStatus.Expanded())
+		writeField(pdf, lineHeight, "Status Change Date", formatDate(asset.StatusChangeDate, "N/A"))
+		writeField(pdf, lineHeight, "Last Calibration Date", formatDate(asset.LastCalibrationDate, "N/A"))
+		writeField(pdf, lineHeight, "Next Calibration Date", formatDate(asset.NextCalibrationDate, "N/A"))
+		writeField(pdf, lineHeight, "Maintenance Notes", asset.MaintenanceNotes.String)
+
+		imageType, err := determineMimeType(asset.Image)
+		if err == nil {
+			imgOptions := gofpdf.ImageOptions{
+				ImageType: imageType,
+				ReadDpi:   true,
+			}
+			if imageType == "tiff" {
+				_ = tiff.RegisterReader(pdf, fmt.Sprintf("image-%d.%s", id, imageType), imgOptions, bytes.NewReader(asset.Image))
+			} else {
+				_ = pdf.RegisterImageOptionsReader(fmt.Sprintf("image-%d.%s", id, imageType), imgOptions, bytes.NewReader(asset.Image))
+			}
+			pdf.ImageOptions(fmt.Sprintf("image-%d.%s", id, imageType), 10, 100, 200, 200, false, imgOptions, 0, "")
+		}
+
+		runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalAssets))
+	}
+
+	err = pdf.OutputFileAndClose(fileName)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+
+	if hasErrors {
+		return fmt.Errorf("operation completed with errors")
+	}
+
+	return nil
+}
+
+func writeField(pdf *gofpdf.Fpdf, lineHeight float64, fieldName string, value string) {
+	pdf.SetFont("Helvetica", "B", 12)
+	pdf.Writef(lineHeight, "%s: ", fieldName)
+
+	pdf.SetFont("Helvetica", "", 12)
+
+	if len(value) == 0 {
+		pdf.Write(lineHeight, "N/A")
+	} else {
+		pdf.Write(lineHeight, value)
+	}
+
+	pdf.Ln(lineHeight)
+}
+
 func formatDate(date sql.NullTime, defaultValue string) string {
 	if date.Valid {
 		return date.Time.Format("2006-01-02")
@@ -192,4 +335,26 @@ func formatRecordLocator(recordLocator int64) string {
 	}
 
 	return strconv.FormatInt(recordLocator, 10)
+}
+
+// determineMimeType determines the MIME type of a file based on its byte signature
+func determineMimeType(byteArray []byte) (string, error) {
+	// Ensure we have at least 4 bytes to check
+	if len(byteArray) < 4 {
+		return "", fmt.Errorf("byte array too short to determine MIME type: got %d bytes, need at least 4", len(byteArray))
+	}
+
+	// Convert the first 4 bytes to a hex string
+	header := hex.EncodeToString(byteArray[:4])
+
+	switch header {
+	case "89504e47":
+		return "png", nil // PNG signature
+	case "ffd8ffe0", "ffd8ffe1", "ffd8ffe2":
+		return "jpg", nil // JPEG signature
+	case "49492a00", "4d4d002a":
+		return "tiff", nil // TIFF signatures (little-endian and big-endian)
+	default:
+		return "", fmt.Errorf("unsupported image format with signature: %s", header)
+	}
 }

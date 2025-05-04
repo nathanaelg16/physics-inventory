@@ -17,7 +17,7 @@ import {
 import AssetCard from '../../components/asset-card/AssetCard'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import './searchView.css'
-import {ExportAssetsCSV} from "../../../wailsjs/go/main/App"
+import {ExportAssetsCSV, ExportAssetsPDF} from "../../../wailsjs/go/main/App"
 import {EventsOff, EventsOn} from '../../../wailsjs/runtime'
 import Asset = main.Asset;
 
@@ -78,6 +78,21 @@ export default function SearchView() {
             }))
     }
 
+    const handleExportToPDF = () => {
+        handleExportMenuClose()
+        setIsExporting(true)
+        setExportProgress(0)
+
+        ExportAssetsPDF(results.map(asset => asset.id))
+        .then(() => setAlert({
+            severity: 'success',
+            msg: 'Export finished successfully!'
+        })).catch(err => setAlert({
+            severity: 'error',
+            msg: `Error: ${err}`
+        }))
+    }
+
     return (
         <Box sx={{
             maxWidth: '1200px',
@@ -120,7 +135,7 @@ export default function SearchView() {
                         </Button>
                         <Menu open={openExportMenu} anchorEl={exportMenuAnchor} onClose={handleExportMenuClose}>
                             <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
-                            <MenuItem>Export to PDF</MenuItem>
+                            <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
                         </Menu>
                     </div>
                 </Box>

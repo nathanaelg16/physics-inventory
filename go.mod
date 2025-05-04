@@ -6,6 +6,7 @@ toolchain go1.24.2
 
 require (
 	github.com/go-sql-driver/mysql v1.9.2
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/tidwall/gjson v1.18.0
 	github.com/wailsapp/wails/v2 v2.10.1
 )
