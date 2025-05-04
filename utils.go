@@ -431,14 +431,42 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 			maintenanceCurrentY = pdf.GetY()
 		}
 
-		pdf.SetY(maintenanceCurrentY + sectionSpacing)
-
 		// Image section
 		imageType, err := determineMimeType(asset.Image)
 		if err == nil && len(asset.Image) > 0 {
+			// Calculate how much space we need for the image and header
+			imgWidth := 140.0
+			imgHeight := 100.0
+			imgHeaderHeight := baseLineHeight + (baseLineHeight * 1.2) + 5 // Section title + line break + some padding
+			totalImageSectionHeight := imgHeaderHeight + imgHeight + 15    // Image + footer space
+
+			// Check if we have enough space on the current page
+			// Letter size is 279.4 mm height, but we need to account for margins
+			currentY := pdf.GetY()
+			pageHeight := 279.4  // Letter height in mm
+			bottomMargin := 15.0 // Bottom margin in mm
+			remainingSpace := pageHeight - currentY - bottomMargin
+
+			// If we don't have enough space, add a new page
+			if remainingSpace < totalImageSectionHeight {
+				pdf.AddPage()
+				// Reset Y position after adding a new page
+				maintenanceCurrentY = pdf.GetY()
+			} else {
+				// Otherwise, add some spacing after the maintenance section
+				pdf.SetY(maintenanceCurrentY + sectionSpacing)
+				maintenanceCurrentY = pdf.GetY()
+			}
+
+			// Add image section header
 			pdf.SetFont("Helvetica", "B", 12)
 			pdf.Cell(45, baseLineHeight, "Asset Image")
 			pdf.Ln(baseLineHeight * 1.2)
+
+			// Draw border for Asset Image section
+			imageStartY := pdf.GetY() - (baseLineHeight * 0.2)
+			pdf.SetDrawColor(200, 200, 200)             // Light gray for borders
+			pdf.Line(15, imageStartY, 195, imageStartY) // Top border
 
 			imgOptions := gofpdf.ImageOptions{
 				ImageType: imageType,
@@ -451,10 +479,6 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 			} else {
 				_ = pdf.RegisterImageOptionsReader(fmt.Sprintf("image-%d.%s", id, imageType), imgOptions, bytes.NewReader(asset.Image))
 			}
-
-			// Calculate image dimensions to fit within page while maintaining aspect ratio
-			imgWidth := 140.0
-			imgHeight := 100.0
 
 			// Center the image horizontally
 			xPos := (210 - imgWidth) / 2
