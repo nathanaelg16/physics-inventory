@@ -120,6 +120,7 @@ func (a *App) ExportAssetsCSV(assetIDs []int64) error {
 	totalAssets := len(assetIDs)
 
 	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
+	defer runtime.EventsEmit(a.ctx, "export-progress", 1.0)
 
 	for i, id := range assetIDs {
 		asset, err := a.GetAsset(id)
@@ -265,6 +266,7 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 	sectionSpacing := 8.0
 
 	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
+	defer runtime.EventsEmit(a.ctx, "export-progress", 1.0)
 
 	for i, id := range assetIDs {
 		asset, err := a.GetAsset(id)
