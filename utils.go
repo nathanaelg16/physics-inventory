@@ -206,9 +206,16 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 		return nil
 	}
 
+	// Create PDF with letter size in portrait orientation
 	pdf := gofpdf.New("P", "mm", "Letter", "")
-	pdf.SetFont("Helvetica", "", 12)
 
+	// Set up default margins (left, top, right)
+	pdf.SetMargins(15, 15, 15)
+
+	// Enable auto page breaks
+	pdf.SetAutoPageBreak(true, 15)
+
+	// Register logo
 	logo, err := resources.ReadFile("resources/logo-no-text.png")
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
@@ -222,10 +229,40 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 
 	_ = pdf.RegisterImageOptionsReader("logo.png", logoImgOptions, bytes.NewReader(logo))
 
+	// Add a header to each page
+	pdf.SetHeaderFunc(func() {
+		// Add logo
+		pdf.ImageOptions("logo.png", 15, 10, 20, 0, false, gofpdf.ImageOptions{}, 0, "")
+
+		// Add title
+		pdf.SetFont("Helvetica", "B", 14)
+		pdf.SetTextColor(203, 182, 119)
+		pdf.SetXY(40, 15)
+		pdf.Cell(0, 10, "Physics Inventory")
+
+		// Add date
+		pdf.SetFont("Helvetica", "I", 10)
+		pdf.SetTextColor(0, 0, 0)
+		pdf.SetXY(150, 15)
+		pdf.Cell(45, 10, "Generated: "+time.Now().Format("Jan 2, 2006"))
+
+		// Add a line separator
+		pdf.Ln(15)
+	})
+
+	// Add a footer with page numbers
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-15)
+		pdf.SetFont("Helvetica", "I", 8)
+		pdf.Cell(0, 10, fmt.Sprintf("Page %d", pdf.PageNo()))
+	})
+
 	hasErrors := false
 	totalAssets := len(assetIDs)
 
-	lineHeight := 7.0
+	// Standard line height calculations
+	baseLineHeight := 6.0
+	sectionSpacing := 8.0
 
 	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
 
@@ -240,46 +277,188 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 
 		pdf.AddPage()
 
-		pdf.ImageOptions("logo.png", 10, 10, 20, 20, true, logoImgOptions, 0, "")
+		// Asset Title
+		pdf.SetFont("Helvetica", "B", 16)
+		pdf.SetTextColor(0, 51, 102) // Dark blue for titles
+		pdf.CellFormat(0, 10, asset.Name.String, "", 1, "C", false, 0, "")
+		pdf.Ln(sectionSpacing)
 
-		pdf.Ln(lineHeight)
+		// Reset text color to black
+		pdf.SetTextColor(0, 0, 0)
 
-		pdf.SetFont("Helvetica", "B", 14)
-		pdf.Write(lineHeight, asset.Name.String)
+		// Create a main details section
+		pdf.SetFont("Helvetica", "B", 12)
+		pdf.Cell(45, baseLineHeight, "Main Details")
+		pdf.Ln(baseLineHeight * 1.2)
 
-		pdf.Ln(lineHeight)
-		pdf.Ln(lineHeight)
+		startY := pdf.GetY()
 
-		writeField(pdf, lineHeight, "Location", asset.Location.String)
-		writeField(pdf, lineHeight, "Keywords", asset.Keywords.String)
-		writeField(pdf, lineHeight, "Brand", asset.Brand.String)
-		writeField(pdf, lineHeight, "Model", asset.Model.String)
-		writeField(pdf, lineHeight, "Part #", asset.Part.String)
-		writeField(pdf, lineHeight, "Serial Number", asset.Serial.String)
-		writeField(pdf, lineHeight, "AU Inventory #", asset.AUInventory.String)
-		writeField(pdf, lineHeight, "Quantity", asset.Quantity.String)
-		writeField(pdf, lineHeight, "Notes", asset.Notes.String)
+		// First column
+		col1Width := 85.0
+		currentY := startY + 2
 
-		pdf.Ln(lineHeight)
+		// Function to write a field in the info box
+		writeInfoField := func(label, value string, col int) {
+			startX := 15 + float64(col)*(col1Width+10)
 
-		writeField(pdf, lineHeight, "Repair Status", asset.RepairStatus.Expanded())
-		writeField(pdf, lineHeight, "Status Change Date", formatDate(asset.StatusChangeDate, "N/A"))
-		writeField(pdf, lineHeight, "Last Calibration Date", formatDate(asset.LastCalibrationDate, "N/A"))
-		writeField(pdf, lineHeight, "Next Calibration Date", formatDate(asset.NextCalibrationDate, "N/A"))
-		writeField(pdf, lineHeight, "Maintenance Notes", asset.MaintenanceNotes.String)
+			pdf.SetFont("Helvetica", "B", 10)
+			pdf.SetXY(startX, currentY)
+			pdf.Cell(30, baseLineHeight, label+":")
 
+			pdf.SetFont("Helvetica", "", 10)
+			pdf.SetXY(startX+30, currentY)
+			if len(value) == 0 {
+				pdf.Cell(col1Width-30, baseLineHeight, "N/A")
+			} else {
+				pdf.Cell(col1Width-30, baseLineHeight, value)
+			}
+
+			if col == 1 {
+				currentY += baseLineHeight * 1.2
+			}
+		}
+
+		// Draw border for Main Details section
+		pdf.SetDrawColor(200, 200, 200)   // Light gray for borders
+		pdf.Line(15, startY, 195, startY) // Top border
+
+		// Write fields
+		writeInfoField("Location", asset.Location.String, 0)
+		writeInfoField("Brand", asset.Brand.String, 1)
+		writeInfoField("Model", asset.Model.String, 0)
+		writeInfoField("Part #", asset.Part.String, 1)
+		writeInfoField("Serial #", asset.Serial.String, 0)
+		writeInfoField("AU Inventory #", asset.AUInventory.String, 1)
+
+		// Add Keywords field
+		pdf.SetFont("Helvetica", "B", 10)
+		pdf.SetXY(15, currentY)
+		pdf.Cell(30, baseLineHeight, "Keywords:")
+
+		// Handle multiline text for keywords
+		if len(asset.Keywords.String) > 0 {
+			// Save current position
+			keywordsStartY := currentY
+			pdf.SetXY(45, currentY)
+
+			// Add the keywords text
+			pdf.SetFont("Helvetica", "", 10)
+			pdf.MultiCell(145, baseLineHeight, asset.Keywords.String, "", "", false)
+
+			// Update the current Y position
+			width := 145.0
+			lines := pdf.SplitLines([]byte(asset.Keywords.String), width)
+			keywordsTextHeight := float64(len(lines)) * baseLineHeight
+			currentY = keywordsStartY + keywordsTextHeight + (baseLineHeight * 0.5)
+		} else {
+			pdf.SetXY(45, currentY)
+			pdf.SetFont("Helvetica", "", 10)
+			pdf.Cell(145, baseLineHeight, "N/A")
+			currentY += baseLineHeight * 1.2
+		}
+
+		// Add Notes field
+		pdf.SetFont("Helvetica", "B", 10)
+		pdf.SetXY(15, currentY)
+		pdf.Cell(30, baseLineHeight, "Notes:")
+
+		// Handle multiline text for notes
+		if len(asset.Notes.String) > 0 {
+			// Save current position
+			notesStartY := currentY
+			pdf.SetXY(45, currentY)
+
+			// Add the notes text
+			pdf.SetFont("Helvetica", "", 10)
+			pdf.MultiCell(145, baseLineHeight, asset.Notes.String, "", "", false)
+
+			// Update the currentY position
+			width := 145.0
+			lines := pdf.SplitLines([]byte(asset.Notes.String), width)
+			notesTextHeight := float64(len(lines)) * baseLineHeight
+			currentY = notesStartY + notesTextHeight + (baseLineHeight * 1.2)
+		} else {
+			pdf.SetXY(45, currentY)
+			pdf.SetFont("Helvetica", "", 10)
+			pdf.Cell(145, baseLineHeight, "N/A")
+			currentY += baseLineHeight * 1.2
+		}
+
+		pdf.SetY(currentY + 5)
+
+		// Maintenance section with table
+		pdf.SetFont("Helvetica", "B", 12)
+		pdf.Cell(45, baseLineHeight, "Maintenance Information")
+		pdf.Ln(baseLineHeight * 1.2)
+
+		// Draw border for Maintenance Information section
+		maintenanceStartY := pdf.GetY()
+		pdf.SetDrawColor(200, 200, 200)                         // Light gray for borders
+		pdf.Line(15, maintenanceStartY, 195, maintenanceStartY) // Top border
+		pdf.Ln(baseLineHeight / 2)
+
+		pdf.SetFillColor(220, 220, 220)
+		pdf.SetFont("Helvetica", "B", 10)
+
+		// Table header
+		pdf.Cell(45, baseLineHeight, "Status")
+		pdf.Cell(45, baseLineHeight, "Changed On")
+		pdf.Cell(45, baseLineHeight, "Last Calibration")
+		pdf.Cell(45, baseLineHeight, "Next Calibration")
+		pdf.Ln(baseLineHeight)
+
+		// Table data
+		pdf.SetFont("Helvetica", "", 10)
+		pdf.Cell(45, baseLineHeight, asset.RepairStatus.Expanded())
+		pdf.Cell(45, baseLineHeight, formatDate(asset.StatusChangeDate, "N/A"))
+		pdf.Cell(45, baseLineHeight, formatDate(asset.LastCalibrationDate, "N/A"))
+		pdf.Cell(45, baseLineHeight, formatDate(asset.NextCalibrationDate, "N/A"))
+		pdf.Ln(baseLineHeight)
+
+		maintenanceCurrentY := pdf.GetY()
+
+		// Maintenance notes
+		if len(asset.MaintenanceNotes.String) > 0 {
+			pdf.SetFont("Helvetica", "B", 10)
+			pdf.Cell(45, baseLineHeight, "Maintenance Notes:")
+			pdf.Ln(baseLineHeight)
+			pdf.SetFont("Helvetica", "", 10)
+
+			// Save current position for height calculation
+			pdf.MultiCell(180, baseLineHeight, asset.MaintenanceNotes.String, "", "", false)
+
+			// Update current Y position after maintenance notes
+			maintenanceCurrentY = pdf.GetY()
+		}
+
+		pdf.SetY(maintenanceCurrentY + sectionSpacing)
+
+		// Image section
 		imageType, err := determineMimeType(asset.Image)
-		if err == nil {
+		if err == nil && len(asset.Image) > 0 {
+			pdf.SetFont("Helvetica", "B", 12)
+			pdf.Cell(45, baseLineHeight, "Asset Image")
+			pdf.Ln(baseLineHeight * 1.2)
+
 			imgOptions := gofpdf.ImageOptions{
 				ImageType: imageType,
 				ReadDpi:   true,
 			}
+
+			// Handle TIFF images differently
 			if imageType == "tiff" {
 				_ = tiff.RegisterReader(pdf, fmt.Sprintf("image-%d.%s", id, imageType), imgOptions, bytes.NewReader(asset.Image))
 			} else {
 				_ = pdf.RegisterImageOptionsReader(fmt.Sprintf("image-%d.%s", id, imageType), imgOptions, bytes.NewReader(asset.Image))
 			}
-			pdf.ImageOptions(fmt.Sprintf("image-%d.%s", id, imageType), 10, 100, 200, 200, false, imgOptions, 0, "")
+
+			// Calculate image dimensions to fit within page while maintaining aspect ratio
+			imgWidth := 140.0
+			imgHeight := 100.0
+
+			// Center the image horizontally
+			xPos := (210 - imgWidth) / 2
+			pdf.ImageOptions(fmt.Sprintf("image-%d.%s", id, imageType), xPos, pdf.GetY(), imgWidth, imgHeight, false, imgOptions, 0, "")
 		}
 
 		runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalAssets))
@@ -296,21 +475,6 @@ func (a *App) ExportAssetsPDF(assetIDs []int64) error {
 	}
 
 	return nil
-}
-
-func writeField(pdf *gofpdf.Fpdf, lineHeight float64, fieldName string, value string) {
-	pdf.SetFont("Helvetica", "B", 12)
-	pdf.Writef(lineHeight, "%s: ", fieldName)
-
-	pdf.SetFont("Helvetica", "", 12)
-
-	if len(value) == 0 {
-		pdf.Write(lineHeight, "N/A")
-	} else {
-		pdf.Write(lineHeight, value)
-	}
-
-	pdf.Ln(lineHeight)
 }
 
 func formatDate(date sql.NullTime, defaultValue string) string {
