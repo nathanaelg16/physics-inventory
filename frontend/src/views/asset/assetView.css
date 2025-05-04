@@ -152,6 +152,7 @@
     padding: 4px 8px;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    white-space: pre-wrap;
 }
 
 .editable-paragraph:hover {

@@ -1,3 +1,4 @@
+import './assetView.css'
 import {useNavigate, useParams} from 'react-router'
 import {
     Alert,
@@ -47,7 +48,6 @@ import AssetCalibrationHistory from '../../components/asset-calibration-history/
 import {formatDate} from '../../utils/utils'
 import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMissingUpdater";
 import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
-import './assetView.css'
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import Asset = main.Asset;
