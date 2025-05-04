@@ -21,8 +21,6 @@ import {ExportAssetsCSV, ExportAssetsPDF} from "../../../wailsjs/go/main/App"
 import {EventsOff, EventsOn} from '../../../wailsjs/runtime'
 import Asset = main.Asset;
 
-// todo implement results export to PDF
-
 export default function SearchView() {
     const theme = useTheme()
     const [results, setResults] = useState<Array<Asset>>([])

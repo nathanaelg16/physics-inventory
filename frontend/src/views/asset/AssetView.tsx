@@ -10,6 +10,8 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    Menu,
+    MenuItem,
     Skeleton,
     Snackbar,
     Tooltip,
@@ -19,7 +21,7 @@ import {
 } from '@mui/material'
 import {ArrowBack, Close, ErrorOutline, Save} from '@mui/icons-material'
 import {main} from '../../../wailsjs/go/models'
-import {useContext, useEffect, useRef, useState} from 'react'
+import {MouseEvent, useContext, useEffect, useRef, useState} from 'react'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
     AssignRecordLocator,
@@ -28,6 +30,8 @@ import {
     DownloadManual,
     DownloadReceipt,
     DuplicateAsset,
+    ExportAssetsCSV,
+    ExportAssetsPDF,
     GetAsset,
     RemoveImage,
     RemoveManual,
@@ -76,6 +80,9 @@ export default function AssetView() {
         onConfirm: () => {},
         onConfirmButtonText: 'OK'
     })
+
+    const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(null)
+    const openExportMenu = Boolean(exportMenuAnchor)
 
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -475,6 +482,44 @@ export default function AssetView() {
             }))
     }
 
+    const handleExportMenuOpen = (event: MouseEvent<HTMLButtonElement>) => {
+        setExportMenuAnchor(event.currentTarget)
+    }
+
+    const handleExportMenuClose = () => {
+        setExportMenuAnchor(null)
+    }
+
+    const handleExportToCSV = () => {
+        handleExportMenuClose()
+
+        if (!asset) return
+
+        ExportAssetsCSV([asset.id])
+            .then(() => showAlert({
+                severity: 'success',
+                msg: 'Export finished successfully!'
+            })).catch(err => showAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            }))
+    }
+
+    const handleExportToPDF = () => {
+        handleExportMenuClose()
+
+        if (!asset) return
+
+        ExportAssetsPDF([asset.id])
+            .then(() => showAlert({
+                severity: 'success',
+                msg: 'Export finished successfully!'
+            })).catch(err => showAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            }))
+    }
+
     // Helper function to check if a field has been edited
     const isFieldEdited = (fieldName: string): boolean => {
         return edits.hasOwnProperty(fieldName)
@@ -533,6 +578,18 @@ export default function AssetView() {
                 </Button>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
+                    <Button variant='outlined'
+                            color='secondary'
+                            disabled={loading || hasEdits}
+                            size={isSmallScreen ? 'small' : 'medium'}
+                            onClick={handleExportMenuOpen}
+                    >
+                        Export
+                    </Button>
+                    <Menu open={openExportMenu} anchorEl={exportMenuAnchor} onClose={handleExportMenuClose}>
+                        <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
+                        <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
+                    </Menu>
                     {canEdit && (
                         <>
                             <Button
