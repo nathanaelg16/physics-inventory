@@ -50,6 +50,14 @@ export function GetDefaultSearchMode() {
   return window['go']['main']['App']['GetDefaultSearchMode']();
 }
 
+export function GetGroupAssets(arg1) {
+  return window['go']['main']['App']['GetGroupAssets'](arg1);
+}
+
+export function GetGroups() {
+  return window['go']['main']['App']['GetGroups']();
+}
+
 export function GetProductVersion() {
   return window['go']['main']['App']['GetProductVersion']();
 }

@@ -26,6 +26,10 @@ export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;
 
+export function GetGroupAssets(arg1:number):Promise<Array<main.GroupAsset>>;
+
+export function GetGroups():Promise<Array<main.Group>>;
+
 export function GetProductVersion():Promise<string>;
 
 export function GetUsers():Promise<Array<main.User>>;

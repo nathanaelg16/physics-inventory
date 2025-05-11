@@ -14,7 +14,6 @@ import {
     TableHead,
     TablePagination,
     TableRow,
-    TextField,
     Tooltip
 } from '@mui/material'
 import {
@@ -27,6 +26,7 @@ import {
 import {DeleteUser, GetUsers, UpdateUserAccessLevel} from "../../../wailsjs/go/main/App"
 import {main} from "../../../wailsjs/go/models"
 import {SnackbarAlert} from "../../utils/snackbar-alert"
+import SearchInput from "../search-input/SearchInput";
 import User = main.User;
 
 interface Props {
@@ -142,22 +142,7 @@ export default function UserManagementTable({onAlert}: Props) {
     return (
         <div className='user-management'>
             <div className='um-search-bar-container'>
-                <div className='um-search-input-wrapper'>
-                    <SearchIcon className='um-search-icon' />
-                    <TextField
-                        placeholder='Search by username...'
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        variant='standard'
-                        fullWidth
-                        slotProps={{
-                            input: {
-                                disableUnderline: true,
-                                className: 'um-search-input'
-                            }
-                        }}
-                    />
-                </div>
+                <SearchInput placeholder='Search by username...' value={searchQuery} onChange={handleSearchChange} />
             </div>
 
             <TableContainer component={Paper} className='um-table-container'>

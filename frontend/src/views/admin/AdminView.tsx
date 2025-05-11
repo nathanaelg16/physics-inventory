@@ -3,15 +3,14 @@ import {useState} from 'react'
 import UserManagementTable from "../../components/user-management-table/UserManagementTable";
 import {Alert, Snackbar} from "@mui/material";
 import {SnackbarAlert} from "../../utils/snackbar-alert";
+import Header from "../../components/header/Header";
 
 export default function AdminView() {
     const [alert, showAlert] = useState<SnackbarAlert | null>(null)
 
     return (
         <div className='admin-view'>
-            <div className='admin--header-card'>
-                <h1 className='admin-title'>Admin Portal</h1>
-            </div>
+            <Header title='Admin Portal' />
 
             <div className='admin--content-card'>
                 <div className='admin--content-card-header'>

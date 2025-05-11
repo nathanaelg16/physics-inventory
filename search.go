@@ -265,6 +265,7 @@ func (a *App) processResults(rows *sql.Rows) []Asset {
 		err := rows.Scan(&asset.Id, &asset.Image, &asset.Location, &asset.Name, &asset.Brand, &asset.Model, &asset.Part, &asset.Serial, &asset.AUInventory, &asset.Quantity, &missing)
 		if err != nil {
 			runtime.LogError(a.ctx, err.Error())
+			continue
 		}
 
 		if missing.Valid {

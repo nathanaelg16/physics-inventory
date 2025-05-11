@@ -13,30 +13,6 @@
     padding: 16px;
 }
 
-.um-search-input-wrapper {
-    display: flex;
-    align-items: center;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 4px 12px;
-    transition: border-color 0.2s ease-in-out;
-}
-
-.um-search-input-wrapper:hover,
-.um-search-input-wrapper:focus-within {
-    border-color: #3f51b5;
-}
-
-.um-search-icon {
-    color: #757575;
-    margin-right: 8px;
-}
-
-.um-search-input {
-    padding: 8px 4px;
-    font-size: 14px;
-}
-
 .um-table-container {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
