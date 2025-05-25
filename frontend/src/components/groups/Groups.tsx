@@ -70,6 +70,13 @@ export default function Groups() {
 
     })
 
+    const autocompleteOptions = useMemo(() => {
+        return groups.map(group => ({
+            id: group.id,
+            label: group.name,
+        }))
+    }, [groups])
+
     const authContext = useContext(AuthContext)
     const canEdit = authContext.accessLevel >= AccessLevel.Maintainer
 
@@ -112,11 +119,6 @@ export default function Groups() {
             setGroupAssets([])
         }
     }, [selectedGroupId])
-
-    const autocompleteOptions = groups.map(group => ({
-        id: group.id,
-        label: group.name,
-    }))
 
     const selectedGroup = groups.find(g => g.id === selectedGroupId)
 
