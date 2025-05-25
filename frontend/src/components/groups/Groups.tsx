@@ -6,6 +6,7 @@ import {
     CreateGroup,
     DeleteGroup,
     ExportGroupCSV,
+    ExportGroupPDF,
     GetGroupAssets,
     GetGroups,
     RenameGroup
@@ -210,6 +211,22 @@ export default function Groups() {
             })
     }
 
+    const exportToPDF = () => {
+        handleExportMenuClose()
+        if (!Boolean(selectedGroupId)) return;
+        setIsExporting(true)
+        ExportGroupPDF(selectedGroupId!)
+        .then(() => setSnackbarAlert({
+            severity: 'success',
+            msg: 'Export finished successfully!'
+        })).catch(err => {
+            setSnackbarAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            })
+        })
+    }
+
     return (
         <Box>
             <Snackbar
@@ -276,7 +293,7 @@ export default function Groups() {
                                 </Button>
                                 <Menu open={openExportMenu} anchorEl={exportMenuAnchor} onClose={handleExportMenuClose}>
                                     <MenuItem onClick={exportToCSV}>Export to CSV</MenuItem>
-                                    <MenuItem>Export to PDF</MenuItem>
+                                    <MenuItem onClick={exportToPDF}>Export to PDF</MenuItem>
                                 </Menu>
 
                                 {canEdit && (

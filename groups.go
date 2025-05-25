@@ -9,11 +9,12 @@ import (
 )
 
 type GroupAsset struct {
-	Id           int64          `json:"id"`
-	Name         sql.NullString `json:"name"`
-	Location     sql.NullString `json:"location"`
-	Serial       sql.NullString `json:"serial"`
-	AssociatedBy string         `json:"associatedBy"`
+	Id            int64          `json:"id"`
+	Name          sql.NullString `json:"name"`
+	Location      sql.NullString `json:"location"`
+	Serial        sql.NullString `json:"serial"`
+	RecordLocator int64          `json:"recordLocator"`
+	AssociatedBy  string         `json:"associatedBy"`
 }
 
 type Group struct {
@@ -123,7 +124,7 @@ func (a *App) GetGroups() ([]Group, error) {
 func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 	var groupAssets = make([]GroupAsset, 0, 10)
 
-	idRows, err := a.db.Query("select id, item_name, location, serial_number from equipment where id in (select asset_id from group_records where group_id = ? and asset_id is not null);", id)
+	idRows, err := a.db.Query("select id, item_name, location, serial_number, record_locator from equipment where id in (select asset_id from group_records where group_id = ? and asset_id is not null);", id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error getting group assets by id: %v", err)
 		return nil, fmt.Errorf("a database error occurred: %v", err)
@@ -133,7 +134,7 @@ func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 	for idRows.Next() {
 		var groupAsset GroupAsset
 
-		err := idRows.Scan(&groupAsset.Id, &groupAsset.Name, &groupAsset.Location, &groupAsset.Serial)
+		err := idRows.Scan(&groupAsset.Id, &groupAsset.Name, &groupAsset.Location, &groupAsset.Serial, &groupAsset.RecordLocator)
 		if err != nil {
 			runtime.LogError(a.ctx, err.Error())
 			continue
@@ -142,7 +143,7 @@ func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 		groupAssets = append(groupAssets, groupAsset)
 	}
 
-	rnRows, err := a.db.Query("select id, item_name, location, serial_number from equipment where record_locator in (select asset_record_number from group_records where group_id = ? and asset_record_number is not null);", id)
+	rnRows, err := a.db.Query("select id, item_name, location, serial_number, record_locator from equipment where record_locator in (select asset_record_number from group_records where group_id = ? and asset_record_number is not null);", id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error getting group assets by record number: %v", err)
 		return nil, fmt.Errorf("a database error occurred: %v", err)
@@ -152,7 +153,7 @@ func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 	for rnRows.Next() {
 		var groupAsset GroupAsset
 
-		err := rnRows.Scan(&groupAsset.Id, &groupAsset.Name, &groupAsset.Location, &groupAsset.Serial)
+		err := rnRows.Scan(&groupAsset.Id, &groupAsset.Name, &groupAsset.Location, &groupAsset.Serial, &groupAsset.RecordLocator)
 		if err != nil {
 			runtime.LogError(a.ctx, err.Error())
 			continue

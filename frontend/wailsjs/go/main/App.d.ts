@@ -28,6 +28,8 @@ export function ExportAssetsPDF(arg1:Array<number>):Promise<void>;
 
 export function ExportGroupCSV(arg1:number):Promise<void>;
 
+export function ExportGroupPDF(arg1:number):Promise<void>;
+
 export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;

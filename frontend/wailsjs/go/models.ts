@@ -123,6 +123,7 @@ export namespace main {
 	    name: sql.NullString;
 	    location: sql.NullString;
 	    serial: sql.NullString;
+	    recordLocator: number;
 	    associatedBy: string;
 	
 	    static createFrom(source: any = {}) {
@@ -135,6 +136,7 @@ export namespace main {
 	        this.name = this.convertValues(source["name"], sql.NullString);
 	        this.location = this.convertValues(source["location"], sql.NullString);
 	        this.serial = this.convertValues(source["serial"], sql.NullString);
+	        this.recordLocator = source["recordLocator"];
 	        this.associatedBy = source["associatedBy"];
 	    }
 	

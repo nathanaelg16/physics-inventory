@@ -54,6 +54,10 @@ export function ExportGroupCSV(arg1) {
   return window['go']['main']['App']['ExportGroupCSV'](arg1);
 }
 
+export function ExportGroupPDF(arg1) {
+  return window['go']['main']['App']['ExportGroupPDF'](arg1);
+}
+
 export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }
