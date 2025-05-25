@@ -1,5 +1,5 @@
 import './groups.css'
-import {MouseEvent, useContext, useEffect, useState} from 'react'
+import {MouseEvent, useContext, useEffect, useMemo, useState} from 'react'
 import {main} from '../../../wailsjs/go/models'
 import {useSessionStorage} from '@uidotdev/usehooks'
 import {
@@ -45,6 +45,7 @@ import RenameCollectionDialog from "../collection-dialog/RenameCollectionDialog"
 import DeleteCollectionDialog from "../collection-dialog/DeleteCollectionDialog"
 import {SnackbarAlert} from "../../utils/snackbar-alert"
 import ExportProgress from "../export-progress/ExportProgress"
+import useCollectionDialogs from "../../hooks/useCollectionDialogs";
 import Group = main.Group;
 import GroupAsset = main.GroupAsset;
 
@@ -56,9 +57,7 @@ export default function Groups() {
     const [loading, setLoading] = useState(false)
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>(null)
 
-    const [showNewGroupDialog, setShowNewGroupDialog] = useState(false)
-    const [showRenameGroupDialog, setShowRenameGroupDialog] = useState(false)
-    const [showDeleteGroupDialog, setShowDeleteGroupDialog] = useState(false)
+    const {dialogs, openDialog, closeDialog} = useCollectionDialogs()
     const [newGroupName, setNewGroupName] = useState('')
     const [renamedGroupName, setRenamedGroupName] = useState('')
 
@@ -167,7 +166,7 @@ export default function Groups() {
     }
 
     const createGroup = () => {
-        setShowNewGroupDialog(false)
+        closeDialog('new')
         CreateGroup(newGroupName)
             .then(async (id) => {
                 setSnackbarAlert({
@@ -189,7 +188,7 @@ export default function Groups() {
     }
 
     const renameGroup = () => {
-        setShowRenameGroupDialog(false)
+        closeDialog('rename')
         if (!Boolean(selectedGroupId)) return;
         RenameGroup(selectedGroupId!, renamedGroupName)
             .then(async () => {
@@ -209,7 +208,7 @@ export default function Groups() {
     }
 
     const deleteGroup = () => {
-        setShowDeleteGroupDialog(false)
+        closeDialog('delete')
         if (!Boolean(selectedGroupId)) return;
         DeleteGroup(selectedGroupId!)
             .then(async () => {
@@ -228,12 +227,12 @@ export default function Groups() {
     }
 
     const cancelNewGroupDialog = () => {
-        setShowNewGroupDialog(false)
+        closeDialog('new')
         setNewGroupName('')
     }
 
     const cancelRenameGroupDialog = () => {
-        setShowRenameGroupDialog(false)
+        closeDialog('rename')
         setRenamedGroupName('')
     }
 
@@ -310,7 +309,7 @@ export default function Groups() {
                             <Button
                                 variant="outlined"
                                 startIcon={<Add />}
-                                onClick={() => setShowNewGroupDialog(true)}
+                                onClick={() => openDialog('new')}
                                 size="small"
                             >
                                 New Group
@@ -345,7 +344,7 @@ export default function Groups() {
                                             size="small"
                                             variant="outlined"
                                             startIcon={<Edit />}
-                                            onClick={() => setShowRenameGroupDialog(true)}
+                                            onClick={() => openDialog('rename')}
                                         >
                                             Rename
                                         </Button>
@@ -355,7 +354,7 @@ export default function Groups() {
                                             variant="outlined"
                                             color="error"
                                             startIcon={<Delete />}
-                                            onClick={() => setShowDeleteGroupDialog(true)}
+                                            onClick={() => openDialog('delete')}
                                         >
                                             Delete
                                         </Button>
@@ -443,7 +442,7 @@ export default function Groups() {
                                  setCollectionName={setNewGroupName}
                                  onSave={createGroup}
                                  onCancel={cancelNewGroupDialog}
-                                 open={showNewGroupDialog}
+                                 open={dialogs.new}
             />
             {selectedGroup && (
                 <>
@@ -452,15 +451,15 @@ export default function Groups() {
                                             setCollectionName={setRenamedGroupName}
                                             onSave={renameGroup}
                                             onCancel={cancelRenameGroupDialog}
-                                            open={showRenameGroupDialog}
+                                            open={dialogs.rename}
                                             placeholder={selectedGroup.name}
                     />
 
                     <DeleteCollectionDialog collectionType='group'
                                             collectionName={selectedGroup.name}
                                             onDelete={deleteGroup}
-                                            onCancel={() => setShowDeleteGroupDialog(false)}
-                                            open={showDeleteGroupDialog}
+                                            onCancel={() => closeDialog('delete')}
+                                            open={dialogs.delete}
                     />
                 </>
             )}
