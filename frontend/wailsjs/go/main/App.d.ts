@@ -14,6 +14,10 @@ export function DeleteAsset(arg1:number):Promise<void>;
 
 export function DeleteGroup(arg1:number):Promise<void>;
 
+export function DeleteGroupAssetAssociatedById(arg1:number,arg2:number):Promise<void>;
+
+export function DeleteGroupAssetAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
+
 export function DeleteUser(arg1:string):Promise<void>;
 
 export function DownloadManual(arg1:number,arg2:number):Promise<boolean>;

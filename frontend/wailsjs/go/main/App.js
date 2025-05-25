@@ -26,6 +26,14 @@ export function DeleteGroup(arg1) {
   return window['go']['main']['App']['DeleteGroup'](arg1);
 }
 
+export function DeleteGroupAssetAssociatedById(arg1, arg2) {
+  return window['go']['main']['App']['DeleteGroupAssetAssociatedById'](arg1, arg2);
+}
+
+export function DeleteGroupAssetAssociatedByRecordLocator(arg1, arg2) {
+  return window['go']['main']['App']['DeleteGroupAssetAssociatedByRecordLocator'](arg1, arg2);
+}
+
 export function DeleteUser(arg1) {
   return window['go']['main']['App']['DeleteUser'](arg1);
 }

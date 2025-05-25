@@ -5,6 +5,8 @@ import {useSessionStorage} from '@uidotdev/usehooks'
 import {
     CreateGroup,
     DeleteGroup,
+    DeleteGroupAssetAssociatedById,
+    DeleteGroupAssetAssociatedByRecordLocator,
     ExportGroupCSV,
     ExportGroupPDF,
     GetGroupAssets,
@@ -16,6 +18,10 @@ import {
     Autocomplete,
     Box,
     Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     IconButton,
     Menu,
     MenuItem,
@@ -60,6 +66,11 @@ export default function Groups() {
     const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(null)
     const openExportMenu = Boolean(exportMenuAnchor)
 
+    const [showDeleteGroupAssetDialog, setShowDeleteGroupAssetDialog] = useState(false)
+    const [deleteGroupAssetAssociatedByRecordNumber, setDeleteGroupAssetAssociatedByRecordNumber] = useState<() => void>(() => () => {
+
+    })
+
     const authContext = useContext(AuthContext)
     const canEdit = authContext.accessLevel >= AccessLevel.Maintainer
 
@@ -80,24 +91,24 @@ export default function Groups() {
             })
     }
 
+    const fetchGroupAssets = async (groupId: number) => {
+        setLoading(true)
+        GetGroupAssets(groupId)
+            .then((groupAssets) => {
+                setGroupAssets(groupAssets)
+            }).catch(() => setSnackbarAlert({
+                severity: 'error',
+                msg: 'Failed to load group details'
+            })).finally(() => setLoading(false))
+    }
+
     useEffect(() => {
         fetchGroups()
     }, [])
 
     useEffect(() => {
         if (selectedGroupId) {
-            setLoading(true)
-            GetGroupAssets(selectedGroupId)
-                .then((group) => {
-                    setGroupAssets(group)
-                    setLoading(false)
-                }).catch(() => {
-                    setSnackbarAlert({
-                        severity: 'error',
-                        msg: 'Failed to load group details'
-                    })
-                    setLoading(false)
-                })
+            fetchGroupAssets(selectedGroupId)
         } else {
             setGroupAssets([])
         }
@@ -118,9 +129,41 @@ export default function Groups() {
         setExportMenuAnchor(null)
     }
 
-    const handleDeleteAsset = (assetId: number) => {
-        // TODO: Implement delete asset from group functionality
-        console.log('Delete asset', assetId)
+    const handleDeleteAsset = (id: number, recordLocator: number, associatedBy: string) => {
+        if (!Boolean(selectedGroupId)) return;
+        if (associatedBy === 'recordLocator') {
+            setDeleteGroupAssetAssociatedByRecordNumber(() => () => {
+                setShowDeleteGroupAssetDialog(false)
+                DeleteGroupAssetAssociatedByRecordLocator(selectedGroupId!, recordLocator)
+                    .then(() => {
+                        setSnackbarAlert({
+                            severity: 'success',
+                            msg: 'Asset removed from group successfully!'
+                        })
+                        fetchGroupAssets(selectedGroupId!)
+                    }).catch(err => {
+                        setSnackbarAlert({
+                            severity: 'error',
+                            msg: err
+                        })
+                    })
+            })
+            setShowDeleteGroupAssetDialog(true)
+        } else {
+            DeleteGroupAssetAssociatedById(selectedGroupId!, id)
+                .then(() => {
+                    setSnackbarAlert({
+                        severity: 'success',
+                        msg: 'Asset removed from group successfully!'
+                    })
+                    fetchGroupAssets(selectedGroupId!)
+                }).catch(err => {
+                    setSnackbarAlert({
+                        severity: 'error',
+                        msg: err
+                    })
+                })
+        }
     }
 
     const createGroup = () => {
@@ -374,7 +417,7 @@ export default function Groups() {
                                                     <IconButton
                                                         size="small"
                                                         color="error"
-                                                        onClick={() => handleDeleteAsset(groupAsset.id)}
+                                                        onClick={() => handleDeleteAsset(groupAsset.id, groupAsset.recordLocator, groupAsset.associatedBy)}
                                                     >
                                                         <Delete fontSize="small" />
                                                     </IconButton>
@@ -422,6 +465,20 @@ export default function Groups() {
                 </>
             )}
 
+            <Dialog open={showDeleteGroupAssetDialog} onClose={() => setShowDeleteGroupAssetDialog(false)}>
+                <DialogTitle>Asset tied by Record Number</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        This asset is tied to the group by its Record Number.
+                        Removing this asset will remove all assets in this group with the same Record Number.
+                        Are you sure you want to remove this asset from the group?
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowDeleteGroupAssetDialog(false)}>Cancel</Button>
+                    <Button variant='contained' color='error' onClick={deleteGroupAssetAssociatedByRecordNumber}>Remove</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     )
 }
