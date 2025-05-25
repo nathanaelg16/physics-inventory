@@ -14,8 +14,16 @@ export function ChangeImage(arg1) {
   return window['go']['main']['App']['ChangeImage'](arg1);
 }
 
+export function CreateGroup(arg1) {
+  return window['go']['main']['App']['CreateGroup'](arg1);
+}
+
 export function DeleteAsset(arg1) {
   return window['go']['main']['App']['DeleteAsset'](arg1);
+}
+
+export function DeleteGroup(arg1) {
+  return window['go']['main']['App']['DeleteGroup'](arg1);
 }
 
 export function DeleteUser(arg1) {
@@ -42,6 +50,10 @@ export function ExportAssetsPDF(arg1) {
   return window['go']['main']['App']['ExportAssetsPDF'](arg1);
 }
 
+export function ExportGroupCSV(arg1) {
+  return window['go']['main']['App']['ExportGroupCSV'](arg1);
+}
+
 export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }
@@ -52,6 +64,10 @@ export function GetDefaultSearchMode() {
 
 export function GetGroupAssets(arg1) {
   return window['go']['main']['App']['GetGroupAssets'](arg1);
+}
+
+export function GetGroupName(arg1) {
+  return window['go']['main']['App']['GetGroupName'](arg1);
 }
 
 export function GetGroups() {
@@ -80,6 +96,10 @@ export function RemoveManual(arg1) {
 
 export function RemoveReceipt(arg1) {
   return window['go']['main']['App']['RemoveReceipt'](arg1);
+}
+
+export function RenameGroup(arg1, arg2) {
+  return window['go']['main']['App']['RenameGroup'](arg1, arg2);
 }
 
 export function SearchModeBoolean(arg1) {

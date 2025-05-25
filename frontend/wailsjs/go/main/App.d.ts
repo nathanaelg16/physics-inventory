@@ -8,7 +8,11 @@ export function AssignRecordLocator(arg1:number):Promise<void>;
 
 export function ChangeImage(arg1:number):Promise<boolean>;
 
+export function CreateGroup(arg1:string):Promise<number>;
+
 export function DeleteAsset(arg1:number):Promise<void>;
+
+export function DeleteGroup(arg1:number):Promise<void>;
 
 export function DeleteUser(arg1:string):Promise<void>;
 
@@ -22,11 +26,15 @@ export function ExportAssetsCSV(arg1:Array<number>):Promise<void>;
 
 export function ExportAssetsPDF(arg1:Array<number>):Promise<void>;
 
+export function ExportGroupCSV(arg1:number):Promise<void>;
+
 export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;
 
 export function GetGroupAssets(arg1:number):Promise<Array<main.GroupAsset>>;
+
+export function GetGroupName(arg1:number):Promise<string>;
 
 export function GetGroups():Promise<Array<main.Group>>;
 
@@ -41,6 +49,8 @@ export function RemoveImage(arg1:number):Promise<void>;
 export function RemoveManual(arg1:number):Promise<void>;
 
 export function RemoveReceipt(arg1:number):Promise<void>;
+
+export function RenameGroup(arg1:number,arg2:string):Promise<void>;
 
 export function SearchModeBoolean(arg1:string):Promise<Array<main.Asset>>;
 

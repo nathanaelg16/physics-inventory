@@ -1,24 +1,12 @@
 import SearchBox from '../../components/search-box/SearchBox'
-import {MouseEvent, useEffect, useState} from 'react'
+import {MouseEvent, useState} from 'react'
 import {main} from '../../../wailsjs/go/models'
-import {
-    Alert,
-    Box,
-    Button,
-    LinearProgress,
-    Menu,
-    MenuItem,
-    Paper,
-    Skeleton,
-    Snackbar,
-    Typography,
-    useTheme
-} from '@mui/material'
+import {Alert, Box, Button, Menu, MenuItem, Paper, Skeleton, Snackbar, Typography, useTheme} from '@mui/material'
 import AssetCard from '../../components/asset-card/AssetCard'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import './searchView.css'
 import {ExportAssetsCSV, ExportAssetsPDF} from "../../../wailsjs/go/main/App"
-import {EventsOff, EventsOn} from '../../../wailsjs/runtime'
+import ExportProgress from "../../components/export-progress/ExportProgress";
 import Asset = main.Asset;
 
 export default function SearchView() {
@@ -27,31 +15,8 @@ export default function SearchView() {
     const [alert, setAlert] = useState<SnackbarAlert | null>(null)
     const [isSearching, setSearching] = useState<boolean>(false)
     const [isExporting, setIsExporting] = useState<boolean>(false)
-    const [exportProgress, setExportProgress] = useState<number>(0)
     const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(null)
     const openExportMenu = Boolean(exportMenuAnchor)
-
-    useEffect(() => {
-        // Listen for export progress events
-        EventsOn('export-progress', (progress: number) => {
-            setExportProgress(progress)
-            if (progress > 0 && !isExporting) {
-                setIsExporting(true)
-            }
-            if (progress >= 1) {
-                // Reset export status after a brief delay
-                setTimeout(() => {
-                    setIsExporting(false)
-                    setExportProgress(0)
-                }, 2000)
-            }
-        })
-
-        // Cleanup event listeners when component unmounts
-        return () => {
-            EventsOff('export-progress')
-        }
-    }, [isExporting])
 
     const handleExportMenuOpen = (event: MouseEvent<HTMLElement>) => {
         setExportMenuAnchor(event.currentTarget)
@@ -64,31 +29,35 @@ export default function SearchView() {
     const handleExportToCSV = () => {
         handleExportMenuClose()
         setIsExporting(true)
-        setExportProgress(0)
 
         ExportAssetsCSV(results.map(asset => asset.id))
             .then(() => setAlert({
                 severity: 'success',
                 msg: 'Export finished successfully!'
-            })).catch(err => setAlert({
-                severity: 'error',
-                msg: `Error: ${err}`
-            }))
+            })).catch(err => {
+                setAlert({
+                    severity: 'error',
+                    msg: `Error: ${err}`
+                })
+                setIsExporting(false)
+            })
     }
 
     const handleExportToPDF = () => {
         handleExportMenuClose()
         setIsExporting(true)
-        setExportProgress(0)
 
         ExportAssetsPDF(results.map(asset => asset.id))
         .then(() => setAlert({
             severity: 'success',
             msg: 'Export finished successfully!'
-        })).catch(err => setAlert({
-            severity: 'error',
-            msg: `Error: ${err}`
-        }))
+        })).catch(err => {
+            setAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            })
+            setIsExporting(false)
+        })
     }
 
     return (
@@ -138,18 +107,7 @@ export default function SearchView() {
                     </div>
                 </Box>
 
-                {isExporting && (
-                    <Box sx={{ width: '100%', px: 2, pt: 1 }}>
-                        <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                            Exporting: {Math.round(exportProgress * 100)}%
-                        </Typography>
-                        <LinearProgress
-                            variant="determinate"
-                            value={exportProgress * 100}
-                            sx={{ height: 8, borderRadius: 4 }}
-                        />
-                    </Box>
-                )}
+                <ExportProgress isExporting={isExporting} onExportComplete={() => setIsExporting(false)} />
 
                 <Box className="results-container" sx={{
                     p: { xs: 1, sm: 2 },

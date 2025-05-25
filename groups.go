@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -17,6 +19,81 @@ type GroupAsset struct {
 type Group struct {
 	Id   int64  `json:"id"`
 	Name string `json:"name"`
+}
+
+func (a *App) CreateGroup(name string) (int64, error) {
+	res, err := a.db.Exec("insert into `groups` (name) values (?);", name)
+	if err != nil {
+		var mysqlError *mysql.MySQLError
+		if errors.As(err, &mysqlError) {
+			if mysqlError.Number == 1062 {
+				return -1, fmt.Errorf("a group with the name '%s' already exists", name)
+			}
+		}
+
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return -1, err
+	}
+
+	insertId, err := res.LastInsertId()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return -1, nil
+	}
+
+	return insertId, nil
+}
+
+func (a *App) RenameGroup(id int64, name string) error {
+	_, err := a.db.Exec("update `groups` set name = ? where id = ?;", name, id)
+	if err != nil {
+		var mysqlError *mysql.MySQLError
+		if errors.As(err, &mysqlError) {
+			if mysqlError.Number == 1062 {
+				return fmt.Errorf("a group with the name '%s' already exists", name)
+			}
+		}
+
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) DeleteGroup(id int64) error {
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("delete from lab_data where type = ? and type_id = ?;", GroupType, id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	_, err = tx.Exec("delete from group_records where group_id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	_, err = tx.Exec("delete from `groups` where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	return nil
 }
 
 func (a *App) GetGroups() ([]Group, error) {
@@ -85,4 +162,16 @@ func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 	}
 
 	return groupAssets, nil
+}
+
+func (a *App) GetGroupName(id int64) (string, error) {
+	var name string
+
+	err := a.db.QueryRow("select name from `groups` where id = ?;", id).Scan(&name)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting group name by id: %v", err)
+		return "", fmt.Errorf("a database error occurred: %v", err)
+	}
+
+	return name, nil
 }

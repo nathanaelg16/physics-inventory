@@ -74,6 +74,78 @@ func chooseSaveFile(ctx *context.Context, fileType FileType, defaultFileName str
 	return runtime.SaveFileDialog(*ctx, dialogOptions)
 }
 
+func (a *App) ExportGroupCSV(groupID int64) error {
+	groupName, err := a.GetGroupName(groupID)
+	if err != nil {
+		groupName = "group"
+	}
+
+	currDate := time.Now().Format("0601020304")
+	fileName, err := chooseSaveFile(&a.ctx, CSV, fmt.Sprintf("%s-%s.csv", groupName, currDate))
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+
+	// this can happen when the user cancels the save dialog, according to the Wails docs
+	if len(fileName) == 0 {
+		runtime.LogInfo(a.ctx, "user canceled save dialog")
+		return nil
+	}
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+	defer file.Close()
+
+	hasErrors := false
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	err = writer.Write([]string{"ID", "Name", "Location", "Serial Number"})
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		hasErrors = true
+	}
+
+	groupAssets, err := a.GetGroupAssets(groupID)
+	if err != nil {
+		return err
+	}
+
+	totalAssets := len(groupAssets)
+
+	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
+	defer runtime.EventsEmit(a.ctx, "export-progress", 1.0)
+
+	for i, asset := range groupAssets {
+		err = writer.Write([]string{
+			strconv.FormatInt(asset.Id, 10),
+			asset.Name.String,
+			asset.Location.String,
+			asset.Serial.String,
+		})
+
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			hasErrors = true
+		}
+
+		runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalAssets))
+	}
+
+	writer.Flush()
+
+	if hasErrors {
+		return fmt.Errorf("operation completed with errors")
+	}
+
+	return nil
+}
+
 func (a *App) ExportAssetsCSV(assetIDs []int64) error {
 	if len(assetIDs) == 0 {
 		return fmt.Errorf("no asset(s) found to export")
