@@ -170,6 +170,15 @@ func (a *App) exportCollectionPDF(collectionName string, collectionRecords []Col
 
 	totalAssets := len(collectionRecords)
 
+	// Check if any records are associated by "group"
+	hasGroupAssociations := false
+	for _, record := range collectionRecords {
+		if record.AssociatedBy == "group" {
+			hasGroupAssociations = true
+			break
+		}
+	}
+
 	// Group title
 	pdf.SetFont("Helvetica", "B", 16)
 	pdf.SetTextColor(0, 51, 102) // Dark blue for titles
@@ -184,12 +193,24 @@ func (a *App) exportCollectionPDF(collectionName string, collectionRecords []Col
 	pdf.SetDrawColor(128, 128, 128) // Gray border
 	pdf.SetFont("Helvetica", "B", 10)
 
-	// Column widths (should total to ~180mm to fit within margins)
-	nameWidth := 70.0
-	locationWidth := 60.0
-	serialWidth := 50.0
+	// Column widths - adjust based on whether we need marker column
+	var markerWidth, nameWidth, locationWidth, serialWidth float64
+	if hasGroupAssociations {
+		markerWidth = 15.0
+		nameWidth = 60.0
+		locationWidth = 55.0
+		serialWidth = 50.0
+	} else {
+		markerWidth = 0.0
+		nameWidth = 70.0
+		locationWidth = 60.0
+		serialWidth = 50.0
+	}
 
 	// Table header
+	if hasGroupAssociations {
+		pdf.CellFormat(markerWidth, baseLineHeight*1.5, "Type", "1", 0, "C", true, 0, "")
+	}
 	pdf.CellFormat(nameWidth, baseLineHeight*1.5, "Name", "1", 0, "C", true, 0, "")
 	pdf.CellFormat(locationWidth, baseLineHeight*1.5, "Location", "1", 0, "C", true, 0, "")
 	pdf.CellFormat(serialWidth, baseLineHeight*1.5, "Serial Number", "1", 1, "C", true, 0, "")
@@ -211,6 +232,9 @@ func (a *App) exportCollectionPDF(collectionName string, collectionRecords []Col
 			// Redraw table header on new page
 			pdf.SetFillColor(220, 220, 220)
 			pdf.SetFont("Helvetica", "B", 10)
+			if hasGroupAssociations {
+				pdf.CellFormat(markerWidth, baseLineHeight*1.5, "Type", "1", 0, "C", true, 0, "")
+			}
 			pdf.CellFormat(nameWidth, baseLineHeight*1.5, "Name", "1", 0, "C", true, 0, "")
 			pdf.CellFormat(locationWidth, baseLineHeight*1.5, "Location", "1", 0, "C", true, 0, "")
 			pdf.CellFormat(serialWidth, baseLineHeight*1.5, "Serial Number", "1", 1, "C", true, 0, "")
@@ -243,13 +267,31 @@ func (a *App) exportCollectionPDF(collectionName string, collectionRecords []Col
 			serial = "N/A"
 		}
 
-		// Data rows with borders
+		// Data rows with borders and optional marker
+		if hasGroupAssociations {
+			// Determine marker based on association type
+			marker := ""
+			if asset.AssociatedBy == "group" {
+				marker = "●" // Filled circle for group items
+			}
+			pdf.CellFormat(markerWidth, baseLineHeight*1.2, marker, "1", 0, "C", fill, 0, "")
+		}
 		pdf.CellFormat(nameWidth, baseLineHeight*1.2, name, "1", 0, "L", fill, 0, "")
 		pdf.CellFormat(locationWidth, baseLineHeight*1.2, location, "1", 0, "L", fill, 0, "")
 		pdf.CellFormat(serialWidth, baseLineHeight*1.2, serial, "1", 1, "L", fill, 0, "")
 
 		// Update progress
 		runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalAssets))
+	}
+
+	// Add legend at the bottom of the last page only if there are group associations
+	if hasGroupAssociations {
+		pdf.Ln(sectionSpacing)
+		pdf.SetFont("Helvetica", "B", 10)
+		pdf.Cell(0, baseLineHeight, "Legend:")
+		pdf.Ln(baseLineHeight)
+		pdf.SetFont("Helvetica", "", 9)
+		pdf.Cell(0, baseLineHeight, "● Group Association")
 	}
 
 	err = pdf.OutputFileAndClose(fileName)
