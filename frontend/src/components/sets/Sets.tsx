@@ -12,7 +12,11 @@ import {
 } from '../../../wailsjs/go/main/App'
 import CollectionManager from "../collection-manager/CollectionManager";
 
-export default function Sets() {
+interface Props {
+    onNavigateToGroup: (groupId: number) => void
+}
+
+export default function Sets({onNavigateToGroup}: Props) {
     const operations = {
         fetch: GetSets,
         fetchRecords: GetSetRecords,
@@ -31,6 +35,7 @@ export default function Sets() {
             type="set"
             operations={operations}
             storageKey="selected_set"
+            onNavigateToGroup={onNavigateToGroup}
         />
     )
 }

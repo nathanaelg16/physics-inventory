@@ -19,6 +19,11 @@ export default function SetsAndGroupsView() {
         setTabIndex(newTabIndex)
     }
 
+    const navigateToGroup = (groupId: number) => {
+        sessionStorage.setItem('selected_group', String(groupId))
+        setTabIndex(TabIndex.Groups)
+    }
+
     return <div className='sets-and-groups-view'>
         <Header title='Sets and Groups' />
 
@@ -27,7 +32,7 @@ export default function SetsAndGroupsView() {
                 <Tab label='Sets' />
                 <Tab label='Groups' />
             </Tabs>
-            { tabIndex === TabIndex.Sets && <Sets /> }
+            { tabIndex === TabIndex.Sets && <Sets onNavigateToGroup={navigateToGroup} /> }
             { tabIndex === TabIndex.Groups && <Groups /> }
         </div>
 

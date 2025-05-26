@@ -47,12 +47,12 @@ interface CollectionManagerProps {
     type: 'set' | 'group'
     operations: CollectionOperations
     storageKey: string
+    onNavigateToGroup?: (groupId: number) => void
 }
 
-export default function CollectionManager({ type, operations, storageKey }: CollectionManagerProps) {
+export default function CollectionManager({ type, operations, storageKey, onNavigateToGroup = () => {} }: CollectionManagerProps) {
     const {
         // State
-        collections,
         selectedId,
         setSelectedId,
         records,
@@ -64,6 +64,7 @@ export default function CollectionManager({ type, operations, storageKey }: Coll
         // Dialog state
         dialogs,
         openDialog,
+        closeDialog,
         newName,
         setNewName,
         renamedName,
@@ -119,7 +120,6 @@ export default function CollectionManager({ type, operations, storageKey }: Coll
     }
 
     const typeName = type.charAt(0).toUpperCase() + type.slice(1)
-    const pluralTypeName = type === 'set' ? 'Sets' : 'Groups'
 
     return (
         <Box>
@@ -262,8 +262,7 @@ export default function CollectionManager({ type, operations, storageKey }: Coll
                                                     onClick={() => {
                                                         // For sets, navigate to group if associated by group
                                                         if (type === 'set' && record.associatedBy === 'group') {
-                                                            // TODO: Navigate to group page
-                                                            navigate(`/asset/${record.id}`)
+                                                            onNavigateToGroup(record.id)
                                                         } else {
                                                             navigate(`/asset/${record.id}`)
                                                         }
@@ -324,7 +323,7 @@ export default function CollectionManager({ type, operations, storageKey }: Coll
                         collectionType={type}
                         collectionName={selectedCollection.name}
                         onDelete={deleteCollection}
-                        onCancel={() => openDialog('delete')}
+                        onCancel={() => closeDialog('delete')}
                         open={dialogs.delete}
                     />
                 </>
