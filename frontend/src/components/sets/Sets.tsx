@@ -2,15 +2,16 @@ import {MouseEvent, useContext, useEffect, useMemo, useState} from 'react'
 import {main} from '../../../wailsjs/go/models'
 import {useSessionStorage} from '@uidotdev/usehooks'
 import {
-    CreateGroup,
-    DeleteGroup,
-    DeleteGroupAssetAssociatedById,
-    DeleteGroupAssetAssociatedByRecordLocator,
-    ExportGroupCSV,
-    ExportGroupPDF,
-    GetGroupAssets,
-    GetGroups,
-    RenameGroup
+    CreateSet,
+    DeleteSet,
+    DeleteSetRecordAssociatedByGroup,
+    DeleteSetRecordAssociatedById,
+    DeleteSetRecordAssociatedByRecordLocator,
+    ExportSetCSV,
+    ExportSetPDF,
+    GetSetRecords,
+    GetSets,
+    RenameSet
 } from '../../../wailsjs/go/main/App'
 import {
     Alert,
@@ -45,82 +46,82 @@ import DeleteCollectionDialog from "../collection-dialog/DeleteCollectionDialog"
 import {SnackbarAlert} from "../../utils/snackbar-alert"
 import ExportProgress from "../export-progress/ExportProgress"
 import useCollectionDialogs from "../../hooks/useCollectionDialogs";
-import Group = main.Group;
-import GroupAsset = main.CollectionRecord;
+import Set = main.Set;
+import SetRecord = main.CollectionRecord;
 
-export default function Groups() {
+export default function Sets() {
     const navigate = useNavigate()
-    const [groups, setGroups] = useState<Array<Group>>([])
-    const [selectedGroupId, setSelectedGroupId] = useSessionStorage<number | null>('selected_group', null)
-    const [groupAssets, setGroupAssets] = useState<Array<GroupAsset>>([])
+    const [sets, setSets] = useState<Array<Set>>([])
+    const [selectedSetId, setSelectedSetId] = useSessionStorage<number | null>('selected_set', null)
+    const [setRecords, setSetRecords] = useState<Array<SetRecord>>([])
     const [loading, setLoading] = useState(false)
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>(null)
 
     const {dialogs, openDialog, closeDialog} = useCollectionDialogs()
-    const [newGroupName, setNewGroupName] = useState('')
-    const [renamedGroupName, setRenamedGroupName] = useState('')
+    const [newSetName, setNewSetName] = useState('')
+    const [renamedSetName, setRenamedSetName] = useState('')
 
     const [isExporting, setIsExporting] = useState<boolean>(false)
     const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(null)
     const openExportMenu = Boolean(exportMenuAnchor)
 
-    const [showDeleteGroupAssetDialog, setShowDeleteGroupAssetDialog] = useState(false)
-    const [pendingAssetDeletion, setPendingAssetDeletion] = useState<{
-        groupId: number,
+    const [showDeleteSetRecordDialog, setShowDeleteSetRecordDialog] = useState(false)
+    const [pendingSetRecordDeletion, setPendingSetRecordDeletion] = useState<{
+        setId: number,
         recordLocator: number
     } | null>(null)
 
     const autocompleteOptions = useMemo(() => {
-        return groups.map(group => ({
-            id: group.id,
-            label: group.name,
+        return sets.map(set => ({
+            id: set.id,
+            label: set.name,
         }))
-    }, [groups])
+    }, [sets])
 
     const authContext = useContext(AuthContext)
     const canEdit = authContext.accessLevel >= AccessLevel.Maintainer
 
-    const fetchGroups = async () => {
+    const fetchSets = async () => {
         setLoading(true)
-        GetGroups()
-            .then(groups => {
-                setGroups(groups)
+        GetSets()
+            .then(sets => {
+                setSets(sets)
                 setLoading(false)
             })
             .catch((err) => {
                 console.error(err)
                 setSnackbarAlert({
                     severity: 'error',
-                    msg: 'Failed to load groups'
+                    msg: 'Failed to load sets'
                 })
                 setLoading(false)
             })
     }
 
-    const fetchGroupAssets = async (groupId: number) => {
+    const fetchSetRecords = async (setId: number) => {
         setLoading(true)
-        GetGroupAssets(groupId)
-            .then((groupAssets) => {
-                setGroupAssets(groupAssets)
+        GetSetRecords(setId)
+            .then((setRecords) => {
+                setSetRecords(setRecords)
             }).catch(() => setSnackbarAlert({
                 severity: 'error',
-                msg: 'Failed to load group details'
+                msg: 'Failed to load set details'
             })).finally(() => setLoading(false))
     }
 
     useEffect(() => {
-        fetchGroups()
+        fetchSets()
     }, [])
 
     useEffect(() => {
-        if (selectedGroupId) {
-            fetchGroupAssets(selectedGroupId)
+        if (selectedSetId) {
+            fetchSetRecords(selectedSetId)
         } else {
-            setGroupAssets([])
+            setSetRecords([])
         }
-    }, [selectedGroupId])
+    }, [selectedSetId])
 
-    const selectedGroup = groups.find(g => g.id === selectedGroupId)
+    const selectedSet = sets.find(s => s.id === selectedSetId)
 
     const handleExportMenuOpen = (event: MouseEvent<HTMLElement>) => {
         setExportMenuAnchor(event.currentTarget)
@@ -130,19 +131,28 @@ export default function Groups() {
         setExportMenuAnchor(null)
     }
 
-    const handleDeleteAsset = (id: number, recordLocator: number, associatedBy: string) => {
-        if (!selectedGroupId) return;
-        if (associatedBy === 'recordLocator') {
-            setPendingAssetDeletion({groupId: selectedGroupId, recordLocator: recordLocator})
-            setShowDeleteGroupAssetDialog(true)
-        } else {
-            DeleteGroupAssetAssociatedById(selectedGroupId, id)
+    const handleDeleteSetRecord = (setRecord: SetRecord) => {
+        if (!selectedSetId) return;
+        if (setRecord.associatedBy === 'recordLocator') {
+            setPendingSetRecordDeletion({setId: selectedSetId, recordLocator: setRecord.recordLocator})
+            setShowDeleteSetRecordDialog(true)
+        } else if (setRecord.associatedBy === 'group') {
+            DeleteSetRecordAssociatedByGroup(selectedSetId, setRecord.id)
                 .then(() => {
                     setSnackbarAlert({
                         severity: 'success',
-                        msg: 'Asset removed from group successfully!'
+                        msg: 'Removed from set successfully!'
                     })
-                    fetchGroupAssets(selectedGroupId)
+                    fetchSetRecords(selectedSetId)
+                })
+        } else {
+            DeleteSetRecordAssociatedById(selectedSetId, setRecord.id)
+                .then(() => {
+                    setSnackbarAlert({
+                        severity: 'success',
+                        msg: 'Asset removed from set successfully!'
+                    })
+                    fetchSetRecords(selectedSetId)
                 }).catch(err => {
                     setSnackbarAlert({
                         severity: 'error',
@@ -152,35 +162,35 @@ export default function Groups() {
         }
     }
 
-    const handlePendingAssetDeletion = () => {
-        if (!pendingAssetDeletion) return
-        setShowDeleteGroupAssetDialog(false)
-        DeleteGroupAssetAssociatedByRecordLocator(pendingAssetDeletion.groupId, pendingAssetDeletion.recordLocator)
+    const handlePendingSetRecordDeletion = () => {
+        if (!pendingSetRecordDeletion) return
+        setShowDeleteSetRecordDialog(false)
+        DeleteSetRecordAssociatedByRecordLocator(pendingSetRecordDeletion.setId, pendingSetRecordDeletion.recordLocator)
             .then(() => {
                 setSnackbarAlert({
                     severity: 'success',
-                    msg: 'Asset removed from group successfully!'
+                    msg: 'Asset removed from set successfully!'
                 })
-                fetchGroupAssets(selectedGroupId!)
+                fetchSetRecords(selectedSetId!)
             }).catch(err => {
                 setSnackbarAlert({
                     severity: 'error',
                     msg: err
                 })
-            }).finally(() => setPendingAssetDeletion(null))
+            }).finally(() => setPendingSetRecordDeletion(null))
     }
 
-    const createGroup = () => {
+    const createSet = () => {
         closeDialog('new')
-        CreateGroup(newGroupName)
+        CreateSet(newSetName)
             .then(async (id) => {
                 setSnackbarAlert({
                     severity: 'success',
-                    msg: 'Group created successfully!'
+                    msg: 'Set created successfully!'
                 })
-                await fetchGroups()
-                if (groups) {
-                    setSelectedGroupId(id)
+                await fetchSets()
+                if (sets) {
+                    setSelectedSetId(id)
                 }
             }).catch((err) => {
                 setSnackbarAlert({
@@ -188,41 +198,41 @@ export default function Groups() {
                     msg: err
                 })
             }).finally(() => {
-                setNewGroupName('')
+                setNewSetName('')
             })
     }
 
-    const renameGroup = () => {
+    const renameSet = () => {
         closeDialog('rename')
-        if (!selectedGroupId) return;
-        RenameGroup(selectedGroupId, renamedGroupName)
+        if (!selectedSetId) return;
+        RenameSet(selectedSetId, renamedSetName)
             .then(async () => {
                 setSnackbarAlert({
                     severity: 'success',
-                    msg: 'Group successfully renamed!'
+                    msg: 'Set successfully renamed!'
                 })
-                await fetchGroups()
+                await fetchSets()
             }).catch(err => {
                 setSnackbarAlert({
                     severity: 'error',
                     msg: err
                 })
             }).finally(() => {
-                setRenamedGroupName('')
+                setRenamedSetName('')
             })
     }
 
-    const deleteGroup = () => {
+    const deleteSet = () => {
         closeDialog('delete')
-        if (!selectedGroupId) return;
-        DeleteGroup(selectedGroupId)
+        if (!selectedSetId) return;
+        DeleteSet(selectedSetId)
             .then(async () => {
                 setSnackbarAlert({
                     severity: 'success',
-                    msg: 'Group deleted successfully!'
+                    msg: 'Set deleted successfully!'
                 })
-                await fetchGroups()
-                setSelectedGroupId(null)
+                await fetchSets()
+                setSelectedSetId(null)
             }).catch(err => {
                 setSnackbarAlert({
                     severity: 'error',
@@ -231,21 +241,21 @@ export default function Groups() {
             })
     }
 
-    const cancelNewGroupDialog = () => {
+    const cancelNewSetDialog = () => {
         closeDialog('new')
-        setNewGroupName('')
+        setNewSetName('')
     }
 
-    const cancelRenameGroupDialog = () => {
+    const cancelRenameSetDialog = () => {
         closeDialog('rename')
-        setRenamedGroupName('')
+        setRenamedSetName('')
     }
 
     const exportToCSV = () => {
         handleExportMenuClose()
-        if (!selectedGroupId) return;
+        if (!selectedSetId) return;
         setIsExporting(true)
-        ExportGroupCSV(selectedGroupId)
+        ExportSetCSV(selectedSetId)
             .then(() => setSnackbarAlert({
                 severity: 'success',
                 msg: 'Export finished successfully!'
@@ -260,9 +270,9 @@ export default function Groups() {
 
     const exportToPDF = () => {
         handleExportMenuClose()
-        if (!selectedGroupId) return;
+        if (!selectedSetId) return;
         setIsExporting(true)
-        ExportGroupPDF(selectedGroupId)
+        ExportSetPDF(selectedSetId)
         .then(() => setSnackbarAlert({
             severity: 'success',
             msg: 'Export finished successfully!'
@@ -294,44 +304,44 @@ export default function Groups() {
                         renderInput={(params) => (
                             <TextField
                                 {...params}
-                                label="Select a Group"
-                                placeholder="Choose a group to view or manage"
+                                label="Select a Set"
+                                placeholder="Choose a set to view or manage"
                                 size="small"
                             />
                         )}
                         options={autocompleteOptions}
                         disablePortal
                         onChange={(e, value) => {
-                            setSelectedGroupId(value ? value.id : null)
+                            setSelectedSetId(value ? value.id : null)
                         }}
                         fullWidth
-                        value={autocompleteOptions.find(option => option.id === selectedGroupId) || null}
+                        value={autocompleteOptions.find(option => option.id === selectedSetId) || null}
                         loading={loading}
-                        loadingText="Loading groups..."
-                        noOptionsText="No groups found"
+                        loadingText="Loading sets..."
+                        noOptionsText="No sets found"
                     />
                     {canEdit && (
-                        <Tooltip title="Create a new group">
+                        <Tooltip title="Create a new set">
                             <Button
                                 variant="outlined"
                                 startIcon={<Add />}
                                 onClick={() => openDialog('new')}
                                 size="small"
                             >
-                                New Group
+                                New Set
                             </Button>
                         </Tooltip>
                     )}
                 </Box>
             </Paper>
 
-            {selectedGroupId ? (
+            {selectedSetId ? (
                 <TableContainer component={Paper} elevation={2}>
                     <Box px={2} py={1.5} display="flex" justifyContent="space-between" alignItems="center" bgcolor="#f9f9f9" borderBottom="1px solid #e0e0e0">
                         <Typography variant="subtitle1">
-                            {selectedGroup?.name} {' '}
+                            {selectedSet?.name} {' '}
                             <Typography component="span" variant="body2" color="textSecondary">
-                                ({groupAssets.length} {groupAssets.length === 1 ? 'item' : 'items'})
+                                ({setRecords.length} {setRecords.length === 1 ? 'item' : 'items'})
                             </Typography>
                         </Typography>
 
@@ -374,55 +384,55 @@ export default function Groups() {
                     <Table size="small">
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                <TableCell sx={{ fontWeight: 'bold' }}>Asset</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Serial Number</TableCell>
                                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {groupAssets.length === 0 ? (
+                            {setRecords.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
                                         <Typography color="textSecondary">
-                                            No items in this group yet
+                                            No items in this set yet
                                         </Typography>
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                groupAssets.map(groupAsset => (
-                                    <TableRow key={groupAsset.id} hover>
+                                setRecords.map(setRecord => (
+                                    <TableRow key={setRecord.id} hover>
                                         <TableCell>
                                             <Typography variant="body2">
-                                                {groupAsset.name.String || 'N/A'}
+                                                {setRecord.name.String || 'N/A'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Typography variant="body2">
-                                                {groupAsset.location.String || 'N/A'}
+                                                {setRecord.location.String || 'N/A'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Typography variant="body2">
-                                                {groupAsset.serial.String || 'N/A'}
+                                                {setRecord.serial.String || 'N/A'}
                                             </Typography>
                                         </TableCell>
                                         <TableCell align="right">
                                             <Tooltip title="View details">
                                                 <IconButton
                                                     size="small"
-                                                    onClick={() => navigate(`/asset/${groupAsset.id}`)}
+                                                    onClick={() => navigate(`/asset/${setRecord.id}`)} //todo: change this to navigate to group if associated by group
                                                 >
                                                     <Preview fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
 
                                             {canEdit && (
-                                                <Tooltip title="Remove from group">
+                                                <Tooltip title="Remove from set">
                                                     <IconButton
                                                         size="small"
                                                         color="error"
-                                                        onClick={() => handleDeleteAsset(groupAsset.id, groupAsset.recordLocator, groupAsset.associatedBy)}
+                                                        onClick={() => handleDeleteSetRecord(setRecord)}
                                                     >
                                                         <Delete fontSize="small" />
                                                     </IconButton>
@@ -438,50 +448,50 @@ export default function Groups() {
             ) : (
                 <Paper elevation={2} sx={{ p: 3, textAlign: 'center' }}>
                     <Typography color="textSecondary" sx={{ my: 3 }}>
-                        Select a group to view its contents
+                        Select a set to view its contents
                     </Typography>
                 </Paper>
             )}
 
-            <NewCollectionDialog collectionType='group'
-                                 collectionName={newGroupName}
-                                 setCollectionName={setNewGroupName}
-                                 onSave={createGroup}
-                                 onCancel={cancelNewGroupDialog}
+            <NewCollectionDialog collectionType='set'
+                                 collectionName={newSetName}
+                                 setCollectionName={setNewSetName}
+                                 onSave={createSet}
+                                 onCancel={cancelNewSetDialog}
                                  open={dialogs.new}
             />
-            {selectedGroup && (
+            {selectedSet && (
                 <>
-                    <RenameCollectionDialog collectionType='group'
-                                            collectionName={renamedGroupName}
-                                            setCollectionName={setRenamedGroupName}
-                                            onSave={renameGroup}
-                                            onCancel={cancelRenameGroupDialog}
+                    <RenameCollectionDialog collectionType='set'
+                                            collectionName={renamedSetName}
+                                            setCollectionName={setRenamedSetName}
+                                            onSave={renameSet}
+                                            onCancel={cancelRenameSetDialog}
                                             open={dialogs.rename}
-                                            placeholder={selectedGroup.name}
+                                            placeholder={selectedSet.name}
                     />
 
-                    <DeleteCollectionDialog collectionType='group'
-                                            collectionName={selectedGroup.name}
-                                            onDelete={deleteGroup}
+                    <DeleteCollectionDialog collectionType='set'
+                                            collectionName={selectedSet.name}
+                                            onDelete={deleteSet}
                                             onCancel={() => closeDialog('delete')}
                                             open={dialogs.delete}
                     />
                 </>
             )}
 
-            <Dialog open={showDeleteGroupAssetDialog} onClose={() => setShowDeleteGroupAssetDialog(false)}>
+            <Dialog open={showDeleteSetRecordDialog} onClose={() => setShowDeleteSetRecordDialog(false)}>
                 <DialogTitle>Asset tied by Record Number</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        This asset is tied to the group by its Record Number.
-                        Removing this asset will remove all assets in this group with the same Record Number.
-                        Are you sure you want to remove this asset from the group?
+                        This asset is tied to the set by its Record Number.
+                        Removing this asset will remove all assets in this set with the same Record Number.
+                        Are you sure you want to remove this asset from the set?
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setShowDeleteGroupAssetDialog(false)}>Cancel</Button>
-                    <Button variant='contained' color='error' onClick={handlePendingAssetDeletion}>Remove</Button>
+                    <Button onClick={() => setShowDeleteSetRecordDialog(false)}>Cancel</Button>
+                    <Button variant='contained' color='error' onClick={handlePendingSetRecordDeletion}>Remove</Button>
                 </DialogActions>
             </Dialog>
         </Box>

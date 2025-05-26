@@ -10,6 +10,8 @@ export function ChangeImage(arg1:number):Promise<boolean>;
 
 export function CreateGroup(arg1:string):Promise<number>;
 
+export function CreateSet(arg1:string):Promise<number>;
+
 export function DeleteAsset(arg1:number):Promise<void>;
 
 export function DeleteGroup(arg1:number):Promise<void>;
@@ -17,6 +19,14 @@ export function DeleteGroup(arg1:number):Promise<void>;
 export function DeleteGroupAssetAssociatedById(arg1:number,arg2:number):Promise<void>;
 
 export function DeleteGroupAssetAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
+
+export function DeleteSet(arg1:number):Promise<void>;
+
+export function DeleteSetRecordAssociatedByGroup(arg1:number,arg2:number):Promise<void>;
+
+export function DeleteSetRecordAssociatedById(arg1:number,arg2:number):Promise<void>;
+
+export function DeleteSetRecordAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
 
 export function DeleteUser(arg1:string):Promise<void>;
 
@@ -34,17 +44,27 @@ export function ExportGroupCSV(arg1:number):Promise<void>;
 
 export function ExportGroupPDF(arg1:number):Promise<void>;
 
+export function ExportSetCSV(arg1:number):Promise<void>;
+
+export function ExportSetPDF(arg1:number):Promise<void>;
+
 export function GetAsset(arg1:number):Promise<main.Asset>;
 
 export function GetDefaultSearchMode():Promise<string>;
 
-export function GetGroupAssets(arg1:number):Promise<Array<main.GroupAsset>>;
+export function GetGroupAssets(arg1:number):Promise<Array<main.CollectionRecord>>;
 
 export function GetGroupName(arg1:number):Promise<string>;
 
 export function GetGroups():Promise<Array<main.Group>>;
 
 export function GetProductVersion():Promise<string>;
+
+export function GetSetName(arg1:number):Promise<string>;
+
+export function GetSetRecords(arg1:number):Promise<Array<main.CollectionRecord>>;
+
+export function GetSets():Promise<Array<main.Set>>;
 
 export function GetUsers():Promise<Array<main.User>>;
 
@@ -57,6 +77,8 @@ export function RemoveManual(arg1:number):Promise<void>;
 export function RemoveReceipt(arg1:number):Promise<void>;
 
 export function RenameGroup(arg1:number,arg2:string):Promise<void>;
+
+export function RenameSet(arg1:number,arg2:string):Promise<void>;
 
 export function SearchModeBoolean(arg1:string):Promise<Array<main.Asset>>;
 

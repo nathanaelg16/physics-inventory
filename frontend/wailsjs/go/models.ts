@@ -104,21 +104,7 @@ export namespace main {
 		    return a;
 		}
 	}
-	export class Group {
-	    id: number;
-	    name: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new Group(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.name = source["name"];
-	    }
-	}
-	export class GroupAsset {
+	export class CollectionRecord {
 	    id: number;
 	    name: sql.NullString;
 	    location: sql.NullString;
@@ -127,7 +113,7 @@ export namespace main {
 	    associatedBy: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new GroupAsset(source);
+	        return new CollectionRecord(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -158,7 +144,35 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class Group {
+	    id: number;
+	    name: string;
 	
+	    static createFrom(source: any = {}) {
+	        return new Group(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	    }
+	}
+	
+	export class Set {
+	    id: number;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Set(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	    }
+	}
 	export class User {
 	    username: string;
 	    accessLevel: number;

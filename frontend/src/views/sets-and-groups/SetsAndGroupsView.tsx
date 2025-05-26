@@ -4,6 +4,7 @@ import {Tab, Tabs} from "@mui/material";
 import {SyntheticEvent} from "react";
 import {useSessionStorage} from "@uidotdev/usehooks";
 import Groups from '../../components/groups/Groups';
+import Sets from "../../components/sets/Sets";
 
 enum TabIndex {
     Sets = 0,
@@ -26,7 +27,7 @@ export default function SetsAndGroupsView() {
                 <Tab label='Sets' />
                 <Tab label='Groups' />
             </Tabs>
-            { tabIndex === TabIndex.Sets && <div>Sets</div> }
+            { tabIndex === TabIndex.Sets && <Sets /> }
             { tabIndex === TabIndex.Groups && <Groups /> }
         </div>
 

@@ -1,21 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
-
-type GroupAsset struct {
-	Id            int64          `json:"id"`
-	Name          sql.NullString `json:"name"`
-	Location      sql.NullString `json:"location"`
-	Serial        sql.NullString `json:"serial"`
-	RecordLocator int64          `json:"recordLocator"`
-	AssociatedBy  string         `json:"associatedBy"`
-}
 
 type Group struct {
 	Id   int64  `json:"id"`
@@ -121,8 +111,8 @@ func (a *App) GetGroups() ([]Group, error) {
 	return groups, nil
 }
 
-func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
-	var groupAssets = make([]GroupAsset, 0, 10)
+func (a *App) GetGroupAssets(id int64) ([]CollectionRecord, error) {
+	var groupAssets = make([]CollectionRecord, 0, 10)
 
 	idRows, err := a.db.Query("select id, item_name, location, serial_number, record_locator from equipment where id in (select asset_id from group_records where group_id = ? and asset_id is not null);", id)
 	if err != nil {
@@ -132,7 +122,7 @@ func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 	defer idRows.Close()
 
 	for idRows.Next() {
-		var groupAsset GroupAsset
+		var groupAsset CollectionRecord
 
 		err := idRows.Scan(&groupAsset.Id, &groupAsset.Name, &groupAsset.Location, &groupAsset.Serial, &groupAsset.RecordLocator)
 		if err != nil {
@@ -151,7 +141,7 @@ func (a *App) GetGroupAssets(id int64) ([]GroupAsset, error) {
 	defer rnRows.Close()
 
 	for rnRows.Next() {
-		var groupAsset GroupAsset
+		var groupAsset CollectionRecord
 
 		err := rnRows.Scan(&groupAsset.Id, &groupAsset.Name, &groupAsset.Location, &groupAsset.Serial, &groupAsset.RecordLocator)
 		if err != nil {

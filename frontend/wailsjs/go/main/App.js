@@ -18,6 +18,10 @@ export function CreateGroup(arg1) {
   return window['go']['main']['App']['CreateGroup'](arg1);
 }
 
+export function CreateSet(arg1) {
+  return window['go']['main']['App']['CreateSet'](arg1);
+}
+
 export function DeleteAsset(arg1) {
   return window['go']['main']['App']['DeleteAsset'](arg1);
 }
@@ -32,6 +36,22 @@ export function DeleteGroupAssetAssociatedById(arg1, arg2) {
 
 export function DeleteGroupAssetAssociatedByRecordLocator(arg1, arg2) {
   return window['go']['main']['App']['DeleteGroupAssetAssociatedByRecordLocator'](arg1, arg2);
+}
+
+export function DeleteSet(arg1) {
+  return window['go']['main']['App']['DeleteSet'](arg1);
+}
+
+export function DeleteSetRecordAssociatedByGroup(arg1, arg2) {
+  return window['go']['main']['App']['DeleteSetRecordAssociatedByGroup'](arg1, arg2);
+}
+
+export function DeleteSetRecordAssociatedById(arg1, arg2) {
+  return window['go']['main']['App']['DeleteSetRecordAssociatedById'](arg1, arg2);
+}
+
+export function DeleteSetRecordAssociatedByRecordLocator(arg1, arg2) {
+  return window['go']['main']['App']['DeleteSetRecordAssociatedByRecordLocator'](arg1, arg2);
 }
 
 export function DeleteUser(arg1) {
@@ -66,6 +86,14 @@ export function ExportGroupPDF(arg1) {
   return window['go']['main']['App']['ExportGroupPDF'](arg1);
 }
 
+export function ExportSetCSV(arg1) {
+  return window['go']['main']['App']['ExportSetCSV'](arg1);
+}
+
+export function ExportSetPDF(arg1) {
+  return window['go']['main']['App']['ExportSetPDF'](arg1);
+}
+
 export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }
@@ -90,6 +118,18 @@ export function GetProductVersion() {
   return window['go']['main']['App']['GetProductVersion']();
 }
 
+export function GetSetName(arg1) {
+  return window['go']['main']['App']['GetSetName'](arg1);
+}
+
+export function GetSetRecords(arg1) {
+  return window['go']['main']['App']['GetSetRecords'](arg1);
+}
+
+export function GetSets() {
+  return window['go']['main']['App']['GetSets']();
+}
+
 export function GetUsers() {
   return window['go']['main']['App']['GetUsers']();
 }
@@ -112,6 +152,10 @@ export function RemoveReceipt(arg1) {
 
 export function RenameGroup(arg1, arg2) {
   return window['go']['main']['App']['RenameGroup'](arg1, arg2);
+}
+
+export function RenameSet(arg1, arg2) {
+  return window['go']['main']['App']['RenameSet'](arg1, arg2);
 }
 
 export function SearchModeBoolean(arg1) {
