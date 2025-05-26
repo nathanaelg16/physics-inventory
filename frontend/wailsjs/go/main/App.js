@@ -6,6 +6,10 @@ export function AddAsset(arg1) {
   return window['go']['main']['App']['AddAsset'](arg1);
 }
 
+export function AddSetRecordAssociatedByGroup(arg1, arg2) {
+  return window['go']['main']['App']['AddSetRecordAssociatedByGroup'](arg1, arg2);
+}
+
 export function AssignRecordLocator(arg1) {
   return window['go']['main']['App']['AssignRecordLocator'](arg1);
 }

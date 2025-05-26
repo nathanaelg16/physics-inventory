@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function AddAsset(arg1:Record<string, string>):Promise<number>;
 
+export function AddSetRecordAssociatedByGroup(arg1:number,arg2:number):Promise<void>;
+
 export function AssignRecordLocator(arg1:number):Promise<void>;
 
 export function ChangeImage(arg1:number):Promise<boolean>;

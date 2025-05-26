@@ -186,6 +186,16 @@ func (a *App) GetSetName(id int64) (string, error) {
 	return name, nil
 }
 
+func (a *App) AddSetRecordAssociatedByGroup(setId int64, groupId int64) error {
+	_, err := a.db.Exec("insert into set_records (set_id, collection_group_id) values (?, ?);", setId, groupId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error adding set record associated by group: %v", err)
+		return fmt.Errorf("a database error occurred: %v", err)
+	}
+
+	return nil
+}
+
 func (a *App) DeleteSetRecordAssociatedById(setId int64, assetId int64) error {
 	_, err := a.db.Exec("delete from set_records where set_id = ? and asset_id = ?;", setId, assetId)
 	if err != nil {

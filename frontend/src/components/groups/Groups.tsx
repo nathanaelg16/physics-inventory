@@ -1,4 +1,5 @@
 import {
+    AddSetRecordAssociatedByGroup,
     CreateGroup,
     DeleteGroup,
     DeleteGroupAssetAssociatedById,
@@ -7,6 +8,7 @@ import {
     ExportGroupPDF,
     GetGroupAssets,
     GetGroups,
+    GetSets,
     RenameGroup
 } from '../../../wailsjs/go/main/App'
 import CollectionManager from "../collection-manager/CollectionManager";
@@ -21,7 +23,9 @@ export default function Groups() {
         deleteRecordById: DeleteGroupAssetAssociatedById,
         deleteRecordByRecordLocator: DeleteGroupAssetAssociatedByRecordLocator,
         exportCSV: ExportGroupCSV,
-        exportPDF: ExportGroupPDF
+        exportPDF: ExportGroupPDF,
+        addToSet: AddSetRecordAssociatedByGroup,
+        getAllSets: GetSets
     }
 
     return (

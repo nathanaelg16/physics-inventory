@@ -23,7 +23,7 @@ import {
     Tooltip,
     Typography
 } from '@mui/material'
-import {Add, Delete, Edit, GetApp, Preview} from '@mui/icons-material'
+import {Add, Delete, Edit, GetApp, PlaylistAdd, Preview} from '@mui/icons-material'
 import NewCollectionDialog from '../collection-dialog/NewCollectionDialog'
 import RenameCollectionDialog from '../collection-dialog/RenameCollectionDialog'
 import DeleteCollectionDialog from '../collection-dialog/DeleteCollectionDialog'
@@ -41,6 +41,9 @@ interface CollectionOperations {
     deleteRecordByGroup?: (collectionId: number, recordId: number) => Promise<void>
     exportCSV: (id: number) => Promise<void>
     exportPDF: (id: number) => Promise<void>
+    // For adding groups to sets
+    addToSet?: (setId: number, groupId: number) => Promise<void>
+    getAllSets?: () => Promise<any[]>
 }
 
 interface CollectionManagerProps {
@@ -101,6 +104,12 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
     const [exportMenuAnchor, setExportMenuAnchor] = useState<HTMLElement | null>(null)
     const openExportMenu = Boolean(exportMenuAnchor)
 
+    // Add to Set dialog state (for Groups only)
+    const [showAddToSetDialog, setShowAddToSetDialog] = useState(false)
+    const [availableSets, setAvailableSets] = useState<any[]>([])
+    const [selectedSetId, setSelectedSetId] = useState<number | null>(null)
+    const [loadingSets, setLoadingSets] = useState(false)
+
     const handleExportMenuOpen = (event: MouseEvent<HTMLElement>) => {
         setExportMenuAnchor(event.currentTarget)
     }
@@ -117,6 +126,49 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
     const handleExportToPDF = () => {
         handleExportMenuClose()
         exportToPDF()
+    }
+
+    // Add to Set functionality
+    const handleOpenAddToSetDialog = async () => {
+        if (!operations.getAllSets) return
+
+        setLoadingSets(true)
+        try {
+            const sets = await operations.getAllSets()
+            setAvailableSets(sets)
+            setShowAddToSetDialog(true)
+        } catch (err) {
+            setSnackbarAlert({
+                severity: 'error',
+                msg: `Failed to load sets: ${err}`
+            })
+        } finally {
+            setLoadingSets(false)
+        }
+    }
+
+    const handleAddToSet = async () => {
+        if (!selectedSetId || !selectedId || !operations.addToSet) return
+
+        try {
+            await operations.addToSet(selectedSetId, selectedId)
+            setSnackbarAlert({
+                severity: 'success',
+                msg: 'Group added to set successfully!'
+            })
+            setShowAddToSetDialog(false)
+            setSelectedSetId(null)
+        } catch (err) {
+            setSnackbarAlert({
+                severity: 'error',
+                msg: `Failed to add group to set: ${err}`
+            })
+        }
+    }
+
+    const handleCancelAddToSet = () => {
+        setShowAddToSetDialog(false)
+        setSelectedSetId(null)
     }
 
     const typeName = type.charAt(0).toUpperCase() + type.slice(1)
@@ -189,6 +241,18 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
                                 <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
                                 <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
                             </Menu>
+
+                            {type === 'group' && canEdit && operations.addToSet && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<PlaylistAdd />}
+                                    onClick={handleOpenAddToSetDialog}
+                                    disabled={loadingSets}
+                                >
+                                    Add to Set
+                                </Button>
+                            )}
 
                             {canEdit && (
                                 <>
@@ -341,6 +405,44 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
                 <DialogActions>
                     <Button onClick={() => setShowDeleteRecordDialog(false)}>Cancel</Button>
                     <Button variant='contained' color='error' onClick={handlePendingRecordDeletion}>Remove</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Add to Set Dialog (Groups only) */}
+            <Dialog open={showAddToSetDialog} onClose={handleCancelAddToSet} maxWidth="xs" fullWidth>
+                <DialogTitle>Add Group to Set</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                        Select a set to add "{selectedCollection?.name}" to:
+                    </Typography>
+                    <Autocomplete
+                        options={availableSets.map(set => ({ id: set.id, label: set.name }))}
+                        value={availableSets.find(set => set.id === selectedSetId) ? { id: selectedSetId, label: availableSets.find(set => set.id === selectedSetId)?.name || '' } : null}
+                        onChange={(e, value) => setSelectedSetId(value ? value.id : null)}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Select Set"
+                                placeholder="Choose a set"
+                                size="small"
+                                autoFocus
+                            />
+                        )}
+                        loading={loadingSets}
+                        loadingText="Loading sets..."
+                        noOptionsText="No sets found"
+                        fullWidth
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelAddToSet}>Cancel</Button>
+                    <Button
+                        onClick={handleAddToSet}
+                        variant="contained"
+                        disabled={!selectedSetId}
+                    >
+                        Add to Set
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>
