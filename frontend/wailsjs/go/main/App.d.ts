@@ -4,7 +4,15 @@ import {main} from '../models';
 
 export function AddAsset(arg1:Record<string, string>):Promise<number>;
 
+export function AddGroupAssetAssociatedById(arg1:number,arg2:number):Promise<void>;
+
+export function AddGroupAssetAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
+
 export function AddSetRecordAssociatedByGroup(arg1:number,arg2:number):Promise<void>;
+
+export function AddSetRecordAssociatedById(arg1:number,arg2:number):Promise<void>;
+
+export function AddSetRecordAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
 
 export function AssignRecordLocator(arg1:number):Promise<void>;
 

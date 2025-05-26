@@ -167,6 +167,26 @@ func (a *App) GetGroupName(id int64) (string, error) {
 	return name, nil
 }
 
+func (a *App) AddGroupAssetAssociatedById(groupId int64, assetId int64) error {
+	_, err := a.db.Exec("insert into group_records (group_id, asset_id) values (?, ?);", groupId, assetId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error adding group asset associated by id: %v", err)
+		return fmt.Errorf("a database error occurred: %v", err)
+	}
+
+	return nil
+}
+
+func (a *App) AddGroupAssetAssociatedByRecordLocator(groupId int64, recordLocator int64) error {
+	_, err := a.db.Exec("insert into group_records (group_id, asset_record_number) values (?, ?);", groupId, recordLocator)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error adding group asset associated by record locator: %v", err)
+		return fmt.Errorf("a database error occurred: %v", err)
+	}
+
+	return nil
+}
+
 func (a *App) DeleteGroupAssetAssociatedById(groupId int64, assetId int64) error {
 	_, err := a.db.Exec("delete from group_records where group_id = ? and asset_id = ?;", groupId, assetId)
 	if err != nil {

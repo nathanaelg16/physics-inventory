@@ -6,8 +6,24 @@ export function AddAsset(arg1) {
   return window['go']['main']['App']['AddAsset'](arg1);
 }
 
+export function AddGroupAssetAssociatedById(arg1, arg2) {
+  return window['go']['main']['App']['AddGroupAssetAssociatedById'](arg1, arg2);
+}
+
+export function AddGroupAssetAssociatedByRecordLocator(arg1, arg2) {
+  return window['go']['main']['App']['AddGroupAssetAssociatedByRecordLocator'](arg1, arg2);
+}
+
 export function AddSetRecordAssociatedByGroup(arg1, arg2) {
   return window['go']['main']['App']['AddSetRecordAssociatedByGroup'](arg1, arg2);
+}
+
+export function AddSetRecordAssociatedById(arg1, arg2) {
+  return window['go']['main']['App']['AddSetRecordAssociatedById'](arg1, arg2);
+}
+
+export function AddSetRecordAssociatedByRecordLocator(arg1, arg2) {
+  return window['go']['main']['App']['AddSetRecordAssociatedByRecordLocator'](arg1, arg2);
 }
 
 export function AssignRecordLocator(arg1) {
