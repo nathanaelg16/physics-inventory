@@ -66,9 +66,10 @@ export default function Groups() {
     const openExportMenu = Boolean(exportMenuAnchor)
 
     const [showDeleteGroupAssetDialog, setShowDeleteGroupAssetDialog] = useState(false)
-    const [deleteGroupAssetAssociatedByRecordNumber, setDeleteGroupAssetAssociatedByRecordNumber] = useState<() => void>(() => () => {
-
-    })
+    const [pendingAssetDeletion, setPendingAssetDeletion] = useState<{
+        groupId: number,
+        recordLocator: number
+    } | null>(null)
 
     const autocompleteOptions = useMemo(() => {
         return groups.map(group => ({
@@ -131,33 +132,18 @@ export default function Groups() {
     }
 
     const handleDeleteAsset = (id: number, recordLocator: number, associatedBy: string) => {
-        if (!Boolean(selectedGroupId)) return;
+        if (!selectedGroupId) return;
         if (associatedBy === 'recordLocator') {
-            setDeleteGroupAssetAssociatedByRecordNumber(() => () => {
-                setShowDeleteGroupAssetDialog(false)
-                DeleteGroupAssetAssociatedByRecordLocator(selectedGroupId!, recordLocator)
-                    .then(() => {
-                        setSnackbarAlert({
-                            severity: 'success',
-                            msg: 'Asset removed from group successfully!'
-                        })
-                        fetchGroupAssets(selectedGroupId!)
-                    }).catch(err => {
-                        setSnackbarAlert({
-                            severity: 'error',
-                            msg: err
-                        })
-                    })
-            })
+            setPendingAssetDeletion({groupId: selectedGroupId, recordLocator: recordLocator})
             setShowDeleteGroupAssetDialog(true)
         } else {
-            DeleteGroupAssetAssociatedById(selectedGroupId!, id)
+            DeleteGroupAssetAssociatedById(selectedGroupId, id)
                 .then(() => {
                     setSnackbarAlert({
                         severity: 'success',
                         msg: 'Asset removed from group successfully!'
                     })
-                    fetchGroupAssets(selectedGroupId!)
+                    fetchGroupAssets(selectedGroupId)
                 }).catch(err => {
                     setSnackbarAlert({
                         severity: 'error',
@@ -165,6 +151,24 @@ export default function Groups() {
                     })
                 })
         }
+    }
+
+    const handlePendingAssetDeletion = () => {
+        if (!pendingAssetDeletion) return
+        setShowDeleteGroupAssetDialog(false)
+        DeleteGroupAssetAssociatedByRecordLocator(pendingAssetDeletion.groupId, pendingAssetDeletion.recordLocator)
+            .then(() => {
+                setSnackbarAlert({
+                    severity: 'success',
+                    msg: 'Asset removed from group successfully!'
+                })
+                fetchGroupAssets(selectedGroupId!)
+            }).catch(err => {
+                setSnackbarAlert({
+                    severity: 'error',
+                    msg: err
+                })
+            }).finally(() => setPendingAssetDeletion(null))
     }
 
     const createGroup = () => {
@@ -191,8 +195,8 @@ export default function Groups() {
 
     const renameGroup = () => {
         closeDialog('rename')
-        if (!Boolean(selectedGroupId)) return;
-        RenameGroup(selectedGroupId!, renamedGroupName)
+        if (!selectedGroupId) return;
+        RenameGroup(selectedGroupId, renamedGroupName)
             .then(async () => {
                 setSnackbarAlert({
                     severity: 'success',
@@ -211,8 +215,8 @@ export default function Groups() {
 
     const deleteGroup = () => {
         closeDialog('delete')
-        if (!Boolean(selectedGroupId)) return;
-        DeleteGroup(selectedGroupId!)
+        if (!selectedGroupId) return;
+        DeleteGroup(selectedGroupId)
             .then(async () => {
                 setSnackbarAlert({
                     severity: 'success',
@@ -240,9 +244,9 @@ export default function Groups() {
 
     const exportToCSV = () => {
         handleExportMenuClose()
-        if (!Boolean(selectedGroupId)) return;
+        if (!selectedGroupId) return;
         setIsExporting(true)
-        ExportGroupCSV(selectedGroupId!)
+        ExportGroupCSV(selectedGroupId)
             .then(() => setSnackbarAlert({
                 severity: 'success',
                 msg: 'Export finished successfully!'
@@ -257,9 +261,9 @@ export default function Groups() {
 
     const exportToPDF = () => {
         handleExportMenuClose()
-        if (!Boolean(selectedGroupId)) return;
+        if (!selectedGroupId) return;
         setIsExporting(true)
-        ExportGroupPDF(selectedGroupId!)
+        ExportGroupPDF(selectedGroupId)
         .then(() => setSnackbarAlert({
             severity: 'success',
             msg: 'Export finished successfully!'
@@ -477,7 +481,7 @@ export default function Groups() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setShowDeleteGroupAssetDialog(false)}>Cancel</Button>
-                    <Button variant='contained' color='error' onClick={deleteGroupAssetAssociatedByRecordNumber}>Remove</Button>
+                    <Button variant='contained' color='error' onClick={handlePendingAssetDeletion}>Remove</Button>
                 </DialogActions>
             </Dialog>
         </Box>
