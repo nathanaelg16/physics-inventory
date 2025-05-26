@@ -1,4 +1,3 @@
-import './groups.css'
 import {MouseEvent, useContext, useEffect, useMemo, useState} from 'react'
 import {main} from '../../../wailsjs/go/models'
 import {useSessionStorage} from '@uidotdev/usehooks'
