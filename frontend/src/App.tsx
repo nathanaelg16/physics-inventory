@@ -8,6 +8,7 @@ import AssetView from "./views/asset/AssetView";
 import NewAssetView from "./views/new-asset/NewAssetView";
 import AdminView from "./views/admin/AdminView";
 import SetsAndGroupsView from "./views/sets-and-groups/SetsAndGroupsView";
+import LabsView from "./views/labs/LabsView";
 
 function App() {
     return <HashRouter>
@@ -20,6 +21,7 @@ function App() {
                 <Route path='/asset/:id' element={<AssetView />} />
                 <Route path='/admin' element={<AdminView />} />
                 <Route path='/sets-and-groups' element={<SetsAndGroupsView />} />
+                <Route path='/labs' element={<LabsView />} />
             </Route>
         </Routes>
     </HashRouter>

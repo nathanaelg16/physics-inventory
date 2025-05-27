@@ -72,6 +72,12 @@ export function GetGroupName(arg1:number):Promise<string>;
 
 export function GetGroups():Promise<Array<main.Group>>;
 
+export function GetLabCourses():Promise<Array<main.LabCourse>>;
+
+export function GetLabData(arg1:number):Promise<Array<main.LabData>>;
+
+export function GetLabs(arg1:number):Promise<Array<main.Lab>>;
+
 export function GetProductVersion():Promise<string>;
 
 export function GetSetName(arg1:number):Promise<string>;

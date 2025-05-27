@@ -84,7 +84,7 @@ export default function Layout() {
                         </ListItemIcon>
                         <ListItemText primary='Sets/Groups' />
                     </ListItem>
-                    <ListItem>
+                    <ListItem onClick={() => navigateTo('/labs')}>
                         <ListItemIcon>
                             <SvgIcon>
                                 <svg fill='#ffffff' width='800px' height='800px' viewBox='0 0 32 32' version='1.1' xmlns='http://www.w3.org/2000/svg'>

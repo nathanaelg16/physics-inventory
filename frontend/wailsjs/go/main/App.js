@@ -142,6 +142,18 @@ export function GetGroups() {
   return window['go']['main']['App']['GetGroups']();
 }
 
+export function GetLabCourses() {
+  return window['go']['main']['App']['GetLabCourses']();
+}
+
+export function GetLabData(arg1) {
+  return window['go']['main']['App']['GetLabData'](arg1);
+}
+
+export function GetLabs(arg1) {
+  return window['go']['main']['App']['GetLabs'](arg1);
+}
+
 export function GetProductVersion() {
   return window['go']['main']['App']['GetProductVersion']();
 }

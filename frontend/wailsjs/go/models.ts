@@ -159,6 +159,60 @@ export namespace main {
 	    }
 	}
 	
+	export class Lab {
+	    id: number;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Lab(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	    }
+	}
+	export class LabCourse {
+	    id: number;
+	    courseNumber: string;
+	    courseName: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LabCourse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.courseNumber = source["courseNumber"];
+	        this.courseName = source["courseName"];
+	    }
+	}
+	export class LabData {
+	    recordId: number;
+	    type: number;
+	    typeId: number;
+	    quantityPerStation: string;
+	    quantityOnFrontTable: string;
+	    consumable: boolean;
+	    notes: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LabData(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.recordId = source["recordId"];
+	        this.type = source["type"];
+	        this.typeId = source["typeId"];
+	        this.quantityPerStation = source["quantityPerStation"];
+	        this.quantityOnFrontTable = source["quantityOnFrontTable"];
+	        this.consumable = source["consumable"];
+	        this.notes = source["notes"];
+	    }
+	}
 	export class Set {
 	    id: number;
 	    name: string;
