@@ -13,6 +13,10 @@ type Group struct {
 }
 
 func (a *App) CreateGroup(name string) (int64, error) {
+	if len(name) == 0 {
+		return 0, fmt.Errorf("group name is empty")
+	}
+
 	res, err := a.db.Exec("insert into `groups` (name) values (?);", name)
 	if err != nil {
 		var mysqlError *mysql.MySQLError
@@ -36,6 +40,10 @@ func (a *App) CreateGroup(name string) (int64, error) {
 }
 
 func (a *App) RenameGroup(id int64, name string) error {
+	if len(name) == 0 {
+		return fmt.Errorf("group name must not be empty")
+	}
+
 	_, err := a.db.Exec("update `groups` set name = ? where id = ?;", name, id)
 	if err != nil {
 		var mysqlError *mysql.MySQLError

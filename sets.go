@@ -13,6 +13,10 @@ type Set struct {
 }
 
 func (a *App) CreateSet(name string) (int64, error) {
+	if len(name) == 0 {
+		return 0, fmt.Errorf("set name is empty")
+	}
+
 	res, err := a.db.Exec("insert into sets (name) values (?);", name)
 	if err != nil {
 		var mysqlError *mysql.MySQLError
@@ -36,6 +40,10 @@ func (a *App) CreateSet(name string) (int64, error) {
 }
 
 func (a *App) RenameSet(id int64, name string) error {
+	if len(name) == 0 {
+		return fmt.Errorf("set name must not be empty")
+	}
+
 	_, err := a.db.Exec("update sets set name = ? where id = ?;", name, id)
 	if err != nil {
 		var mysqlError *mysql.MySQLError
