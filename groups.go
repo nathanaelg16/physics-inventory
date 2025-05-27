@@ -167,6 +167,30 @@ func (a *App) GetGroupName(id int64) (string, error) {
 	return name, nil
 }
 
+func (a *App) GetAssetGroups(assetId int64) ([]Group, error) {
+	query := "select distinct g.id, g.name from `groups` g join group_records gr on g.id = gr.group_id where gr.asset_id = ? or gr.asset_record_number = (select record_locator from equipment where id = ?) order by g.name"
+
+	rows, err := a.db.Query(query, assetId, assetId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting asset groups: %v", err)
+		return nil, fmt.Errorf("a database error occurred: %v", err)
+	}
+	defer rows.Close()
+
+	var groups = make([]Group, 0, 2)
+	for rows.Next() {
+		var group Group
+		err := rows.Scan(&group.Id, &group.Name)
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			continue
+		}
+		groups = append(groups, group)
+	}
+
+	return groups, nil
+}
+
 func (a *App) AddGroupAssetAssociatedById(groupId int64, assetId int64) error {
 	_, err := a.db.Exec("insert into group_records (group_id, asset_id) values (?, ?);", groupId, assetId)
 	if err != nil {

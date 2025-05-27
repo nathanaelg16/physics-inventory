@@ -54,6 +54,7 @@ import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMis
 import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
 import {AccessLevel, AuthContext} from "../../utils/auth";
+import AddToCollectionsDialog from "../../components/add-to-collections-dialog/AddToCollectionsDialog";
 import Asset = main.Asset;
 
 export default function AssetView() {
@@ -590,6 +591,13 @@ export default function AssetView() {
                         <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
                         <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
                     </Menu>
+                    {canEdit && (
+                        <AddToCollectionsDialog
+                            assetId={asset.id}
+                            recordLocator={asset.recordLocator}
+                            disabled={loading || hasEdits}
+                        />
+                    )}
                     {canEdit && (
                         <>
                             <Button

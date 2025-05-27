@@ -186,6 +186,37 @@ func (a *App) GetSetName(id int64) (string, error) {
 	return name, nil
 }
 
+func (a *App) GetAssetSets(assetId int64) ([]Set, error) {
+	query := `
+        select distinct s.id, s.name 
+        from sets s
+        join set_records sr on s.id = sr.set_id
+        where sr.asset_id = ? or sr.asset_record_number = (
+            select record_locator from equipment where id = ?
+        )
+        order by s.name`
+
+	rows, err := a.db.Query(query, assetId, assetId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting asset sets: %v", err)
+		return nil, fmt.Errorf("a database error occurred: %v", err)
+	}
+	defer rows.Close()
+
+	var sets = make([]Set, 0, 2)
+	for rows.Next() {
+		var set Set
+		err := rows.Scan(&set.Id, &set.Name)
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			continue
+		}
+		sets = append(sets, set)
+	}
+
+	return sets, nil
+}
+
 func (a *App) AddSetRecordAssociatedById(setId int64, assetId int64) error {
 	_, err := a.db.Exec("insert into set_records (set_id, asset_id) values (?, ?);", setId, assetId)
 	if err != nil {

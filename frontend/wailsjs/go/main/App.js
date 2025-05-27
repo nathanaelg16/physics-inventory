@@ -118,6 +118,14 @@ export function GetAsset(arg1) {
   return window['go']['main']['App']['GetAsset'](arg1);
 }
 
+export function GetAssetGroups(arg1) {
+  return window['go']['main']['App']['GetAssetGroups'](arg1);
+}
+
+export function GetAssetSets(arg1) {
+  return window['go']['main']['App']['GetAssetSets'](arg1);
+}
+
 export function GetDefaultSearchMode() {
   return window['go']['main']['App']['GetDefaultSearchMode']();
 }

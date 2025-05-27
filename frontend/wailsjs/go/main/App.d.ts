@@ -60,6 +60,10 @@ export function ExportSetPDF(arg1:number):Promise<void>;
 
 export function GetAsset(arg1:number):Promise<main.Asset>;
 
+export function GetAssetGroups(arg1:number):Promise<Array<main.Group>>;
+
+export function GetAssetSets(arg1:number):Promise<Array<main.Set>>;
+
 export function GetDefaultSearchMode():Promise<string>;
 
 export function GetGroupAssets(arg1:number):Promise<Array<main.CollectionRecord>>;
