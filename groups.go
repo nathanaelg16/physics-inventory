@@ -19,6 +19,8 @@ func (a *App) CreateGroup(name string) (int64, error) {
 
 	res, err := a.db.Exec("insert into `groups` (name) values (?);", name)
 	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+
 		var mysqlError *mysql.MySQLError
 		if errors.As(err, &mysqlError) {
 			if mysqlError.Number == 1062 {
@@ -26,7 +28,6 @@ func (a *App) CreateGroup(name string) (int64, error) {
 			}
 		}
 
-		runtime.LogErrorf(a.ctx, "%v", err)
 		return -1, err
 	}
 
@@ -46,6 +47,8 @@ func (a *App) RenameGroup(id int64, name string) error {
 
 	_, err := a.db.Exec("update `groups` set name = ? where id = ?;", name, id)
 	if err != nil {
+		runtime.LogErrorf(a.ctx, "%v", err)
+
 		var mysqlError *mysql.MySQLError
 		if errors.As(err, &mysqlError) {
 			if mysqlError.Number == 1062 {
@@ -53,7 +56,6 @@ func (a *App) RenameGroup(id int64, name string) error {
 			}
 		}
 
-		runtime.LogErrorf(a.ctx, "%v", err)
 		return err
 	}
 
