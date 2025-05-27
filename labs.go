@@ -37,7 +37,7 @@ type LabData struct {
 func (a *App) GetLabCourses() ([]LabCourse, error) {
 	labCourses := make([]LabCourse, 0, 10)
 
-	rows, err := a.db.Query("select id, course_name, course_number from lab_courses;")
+	rows, err := a.db.Query("select id, course_name, course_number from lab_courses order by course_number;")
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error getting lab courses: %v", err)
 		return nil, fmt.Errorf("error getting lab courses: %v", err)
@@ -62,7 +62,7 @@ func (a *App) GetLabCourses() ([]LabCourse, error) {
 func (a *App) GetLabs(labCourseId int64) ([]Lab, error) {
 	labs := make([]Lab, 0, 10)
 
-	rows, err := a.db.Query("select id, lab_name from labs;")
+	rows, err := a.db.Query("select id, lab_name from labs order by lab_name;")
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error getting labs for lab course id %d: %v", labCourseId, err)
 		return nil, fmt.Errorf("error getting labs: %v", err)
