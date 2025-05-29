@@ -20,6 +20,10 @@ export function ChangeImage(arg1:number):Promise<boolean>;
 
 export function CreateGroup(arg1:string):Promise<number>;
 
+export function CreateLab(arg1:string,arg2:string):Promise<void>;
+
+export function CreateLabCourse(arg1:string,arg2:string):Promise<void>;
+
 export function CreateSet(arg1:string):Promise<number>;
 
 export function DeleteAsset(arg1:number):Promise<void>;

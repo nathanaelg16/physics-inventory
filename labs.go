@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -32,6 +34,50 @@ type LabData struct {
 	QuantityOnFrontTable string      `json:"quantityOnFrontTable"`
 	Consumable           bool        `json:"consumable"`
 	Notes                string      `json:"notes"`
+}
+
+func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
+	if len(courseNumber) == 0 {
+		return fmt.Errorf("course number is empty")
+	}
+
+	if len(courseName) == 0 {
+		return fmt.Errorf("course name is empty")
+	}
+
+	_, err := a.db.Exec("insert into lab_courses (course_name, course_number) values (?, ?);", courseName, courseNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred creating new lab course: %v", err)
+
+		var mysqlError *mysql.MySQLError
+		if errors.As(err, &mysqlError) {
+			if mysqlError.Number == 1062 {
+				return fmt.Errorf("course number already exists")
+			}
+		}
+
+		return fmt.Errorf("a database error occurred: %s", err.Error())
+	}
+
+	return nil
+}
+
+func (a *App) CreateLab(courseNumber string, labName string) error {
+	if len(courseNumber) == 0 {
+		return fmt.Errorf("course number is empty")
+	}
+
+	if len(labName) == 0 {
+		return fmt.Errorf("lab name is empty")
+	}
+
+	_, err := a.db.Exec("insert into labs (lab_course_number, lab_name) values (?, ?);", courseNumber, labName)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred creating new lab: %v", err)
+		return fmt.Errorf("a database error occurred: %s", err.Error())
+	}
+
+	return nil
 }
 
 func (a *App) GetLabCourses() ([]LabCourse, error) {

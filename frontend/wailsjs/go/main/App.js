@@ -38,6 +38,14 @@ export function CreateGroup(arg1) {
   return window['go']['main']['App']['CreateGroup'](arg1);
 }
 
+export function CreateLab(arg1, arg2) {
+  return window['go']['main']['App']['CreateLab'](arg1, arg2);
+}
+
+export function CreateLabCourse(arg1, arg2) {
+  return window['go']['main']['App']['CreateLabCourse'](arg1, arg2);
+}
+
 export function CreateSet(arg1) {
   return window['go']['main']['App']['CreateSet'](arg1);
 }
