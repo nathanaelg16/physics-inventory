@@ -1,4 +1,4 @@
-import "./login.css"
+import styles from "./login.module.css"
 import {Alert, Button, Snackbar, Stack, TextField} from "@mui/material";
 import {KeyboardEvent, useContext, useState} from "react";
 import {Login} from "../../../wailsjs/go/main/App"
@@ -34,11 +34,11 @@ export default function LoginView() {
         }
     }
 
-    return <div id='login-viewport'>
+    return <div className={styles.loginViewport}>
         <Snackbar anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} open={Boolean(errorMessage)} onClose={() => setErrorMessage('')}>
             <Alert severity='error'>{errorMessage}</Alert>
         </Snackbar>
-        <Stack id='login-form' gap={2}>
+        <Stack className={styles.loginForm} gap={2}>
             <img id='logo' alt='Physics Inventory' src={logo} width={250}/>
             <TextField variant='outlined' placeholder='Username' type='text' size='small' onChange={updateUsername} autoComplete='off' />
             <TextField variant='outlined' placeholder='Password' type='password' size='small' onChange={updatePassword} onKeyUp={enterKeyListener} />

@@ -1,11 +1,11 @@
-#login-viewport {
+.login-viewport {
     display: flex;
     flex-direction: column;
     height: 100%;
     width: 100%;
 }
 
-#login-form {
+.login-form {
     background-color: #ffffff;
     margin: auto;
     padding: 30px 50px;
