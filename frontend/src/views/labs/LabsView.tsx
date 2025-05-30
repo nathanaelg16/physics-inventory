@@ -9,6 +9,7 @@ import LabsList from '../../components/labs-list/LabsList'
 import {Add, Class, Delete} from '@mui/icons-material'
 import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog";
 import {AccessLevel, AuthContext} from "../../utils/auth";
+import DeleteLabCourseDialog from "../../components/delete-lab-course-dialog/DeleteLabCourseDialog";
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
@@ -16,6 +17,7 @@ export default function LabsView() {
     const [selectedLabCourseNumber, setSelectedLabCourseNumber] = useState<string | null>(null)
 
     const [showNewLabCourseDialog, setShowNewLabCourseDialog] = useState<boolean>(false)
+    const [showDeleteLabCourseDialog, setShowDeleteLabCourseDialog] = useState<boolean>(false)
 
     const [loading, setLoading] = useState<boolean>(false)
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>()
@@ -84,7 +86,7 @@ export default function LabsView() {
 
                     {canEdit && <>
                         <Button
-                            className={styles.newCourseButton}
+                            className={styles.courseActionButton}
                             variant='contained'
                             startIcon={<Add />}
                             color='primary'
@@ -92,7 +94,16 @@ export default function LabsView() {
                         >
                             New Course
                         </Button>
-                    )}
+                        <Button
+                            className={styles.courseActionButton}
+                            variant='outlined'
+                            startIcon={<Delete />}
+                            color='error'
+                            disabled={!selectedLabCourseNumber}
+                            onClick={() => setShowDeleteLabCourseDialog(true)}
+                        >
+                            Delete Course
+                        </Button>
                     </>}
                 </div>
             </div>
@@ -107,13 +118,27 @@ export default function LabsView() {
             />
         )}
 
-        <NewLabCourseDialog open={showNewLabCourseDialog}
-                            onClose={() => setShowNewLabCourseDialog(false)}
-                            onCreated={(courseNumber: string) => {
-                                fetchLabCourses()
-                                setSelectedLabCourseNumber(courseNumber)
-                            }}
-        />
+        {canEdit && <>
+            <NewLabCourseDialog open={showNewLabCourseDialog}
+                                onClose={() => setShowNewLabCourseDialog(false)}
+                                onCreated={(courseNumber: string) => {
+                                    fetchLabCourses()
+                                    setSelectedLabCourseNumber(courseNumber)
+                                }}
+            />
+
+            {selectedCourse && (
+                <DeleteLabCourseDialog open={showDeleteLabCourseDialog}
+                                       onClose={() => setShowDeleteLabCourseDialog(false)}
+                                       onDeleted={() => {
+                                           fetchLabCourses()
+                                           setSelectedLabCourseNumber(null)
+                                       }}
+                                       courseNumber={selectedCourse.courseNumber}
+                                       courseName={selectedCourse.label}
+                />
+            )}
+        </>}
 
         <Snackbar
             autoHideDuration={3000}

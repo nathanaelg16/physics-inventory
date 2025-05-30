@@ -61,6 +61,41 @@ func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
 	return nil
 }
 
+func (a *App) DeleteLabCourse(courseNumber string) error {
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred beginning transaction: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("delete from lab_data where lab_id in (select id from labs where lab_course_number = ?);", courseNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred deleting lab data: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	_, err = tx.Exec("delete from labs where lab_course_number = ?;", courseNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred deleting labs: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	_, err = tx.Exec("delete from lab_courses where course_number = ?;", courseNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred deleting lab courses: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred committing transaction: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	return nil
+}
+
 func (a *App) CreateLab(courseNumber string, labName string) error {
 	if len(courseNumber) == 0 {
 		return fmt.Errorf("course number is empty")
