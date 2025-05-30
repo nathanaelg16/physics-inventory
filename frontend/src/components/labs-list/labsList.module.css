@@ -33,41 +33,30 @@
 .lab-listing-skeleton {
     background: white;
     border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 20px;
-    min-height: 120px;
+    border-radius: 8px;
+    padding: 16px;
+    min-height: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
     animation: pulse 1.5s ease-in-out infinite;
 }
 
-.skeleton-header {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
 .skeleton-icon {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     background: #f0f0f0;
-    border-radius: 8px;
-}
-
-.skeleton-content {
-    flex: 1;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 .skeleton-title {
-    height: 20px;
+    height: 18px;
     background: #f0f0f0;
     border-radius: 4px;
-    margin-bottom: 8px;
-}
-
-.skeleton-subtitle {
-    height: 16px;
-    background: #f5f5f5;
-    border-radius: 4px;
-    width: 70%;
+    flex: 1;
+    max-width: 200px;
 }
 
 @keyframes pulse {
@@ -84,5 +73,20 @@
         grid-template-columns: 1fr;
         gap: 12px;
         margin-top: 20px;
+    }
+
+    .lab-listing-skeleton {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .lab-listing-skeleton {
+        padding: 14px;
+    }
+
+    .skeleton-icon {
+        width: 30px;
+        height: 30px;
     }
 }

@@ -37,13 +37,8 @@ export default function LabsList({labCourseId, onAlert, onNewLab}: Props) {
             <div className={styles.labsListLoading}>
                 {Array.from({length: 6}).map((_, index) => (
                     <div key={index} className={styles.labListingSkeleton}>
-                        <div className={styles.skeletonHeader}>
-                            <div className={styles.skeletonIcon}></div>
-                            <div className={styles.skeletonContent}>
-                                <div className={styles.skeletonTitle}></div>
-                                <div className={styles.skeletonSubtitle}></div>
-                            </div>
-                        </div>
+                        <div className={styles.skeletonIcon}></div>
+                        <div className={styles.skeletonTitle}></div>
                     </div>
                 ))}
             </div>
