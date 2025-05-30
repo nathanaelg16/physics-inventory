@@ -1,4 +1,4 @@
-import './labsView.css'
+import styles from './labsView.module.css'
 import Header from '../../components/header/Header'
 import {main} from '../../../wailsjs/go/models'
 import {useEffect, useMemo, useState} from 'react'
@@ -42,18 +42,18 @@ export default function LabsView() {
     return <div>
         <Header title='Labs'/>
 
-        <div className='labs-view-container'>
-            <div className='course-selection-section'>
-                <div className='course-selection-header'>
-                    <h2 className='course-selection-label'>
+        <div className={styles.labsViewContainer}>
+            <div className={styles.courseSelectionSection}>
+                <div className={styles.courseSelectionHeader}>
+                    <h2 className={styles.courseSelectionLabel}>
                         <Class sx={{ marginRight: 1, verticalAlign: 'middle' }} />
                         Course Selection
                     </h2>
                 </div>
 
-                <div className='course-selection-controls'>
+                <div className={styles.courseSelectionControls}>
                     <Autocomplete
-                        className='course-autocomplete'
+                        className={styles.courseAutocomplete}
                         renderInput={(params) => (
                             <TextField
                                 {...params}
@@ -76,7 +76,7 @@ export default function LabsView() {
                     />
 
                     <Button
-                        className='new-course-button'
+                        className={styles.newCourseButton}
                         variant='contained'
                         startIcon={<Add />}
                         color='primary'
@@ -91,6 +91,7 @@ export default function LabsView() {
             <LabsList
                 labCourseId={selectedLabCourseId}
                 onAlert={(alert) => setSnackbarAlert(alert)}
+                onNewLab={() => {}}
             />
         )}
 

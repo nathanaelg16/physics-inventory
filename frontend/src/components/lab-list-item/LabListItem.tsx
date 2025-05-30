@@ -1,6 +1,8 @@
+import styles from './labListItem.module.css'
 import {Typography} from '@mui/material'
 import {useNavigate} from 'react-router'
 import {Science} from '@mui/icons-material'
+import {KeyboardEvent} from 'react'
 
 interface Props {
     labId: number,
@@ -14,7 +16,7 @@ export default function LabListItem({labId, labName}: Props) {
         navigate(`/labs/${labId}`)
     }
 
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault()
             handleClick()
@@ -23,16 +25,16 @@ export default function LabListItem({labId, labName}: Props) {
 
     return (
         <li
-            className='lab-listing'
+            className={styles.labListing}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
             tabIndex={0}
             role='button'
         >
-            <div className='lab-listing-icon'>
+            <div className={styles.labListingIcon}>
                 <Science fontSize='small' />
             </div>
-            <Typography className='lab-listing-title'>
+            <Typography className={styles.labListingTitle}>
                 {labName}
             </Typography>
         </li>

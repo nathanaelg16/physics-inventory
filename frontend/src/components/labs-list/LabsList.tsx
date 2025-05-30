@@ -1,4 +1,4 @@
-import './labsList.css'
+import styles from './labsList.module.css'
 import {useEffect, useState} from 'react'
 import {main} from '../../../wailsjs/go/models'
 import {GetLabs} from '../../../wailsjs/go/main/App'
@@ -11,9 +11,10 @@ import Lab = main.Lab;
 interface Props {
     labCourseId: number,
     onAlert: (snackbarAlert: SnackbarAlert) => void,
+    onNewLab: () => void,
 }
 
-export default function LabsList({labCourseId, onAlert}: Props) {
+export default function LabsList({labCourseId, onAlert, onNewLab}: Props) {
     const [labs, setLabs] = useState<Lab[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
@@ -32,14 +33,14 @@ export default function LabsList({labCourseId, onAlert}: Props) {
 
     if (loading) {
         return (
-            <div className='labs-list-loading'>
+            <div className={styles.labsListLoading}>
                 {Array.from({length: 6}).map((_, index) => (
-                    <div key={index} className='lab-listing-skeleton'>
-                        <div className='skeleton-header'>
-                            <div className='skeleton-icon'></div>
-                            <div className='skeleton-content'>
-                                <div className='skeleton-title'></div>
-                                <div className='skeleton-subtitle'></div>
+                    <div key={index} className={styles.labListingSkeleton}>
+                        <div className={styles.skeletonHeader}>
+                            <div className={styles.skeletonIcon}></div>
+                            <div className={styles.skeletonContent}>
+                                <div className={styles.skeletonTitle}></div>
+                                <div className={styles.skeletonSubtitle}></div>
                             </div>
                         </div>
                     </div>
@@ -50,8 +51,8 @@ export default function LabsList({labCourseId, onAlert}: Props) {
 
     if (labs.length === 0) {
         return (
-            <div className='labs-list-empty'>
-                <ScienceOutlined className='labs-list-empty-icon' />
+            <div className={styles.labsListEmpty}>
+                <ScienceOutlined className={styles.labsListEmptyIcon} />
                 <Typography variant='h6' gutterBottom>
                     No Labs Found
                 </Typography>
@@ -63,7 +64,7 @@ export default function LabsList({labCourseId, onAlert}: Props) {
     }
 
     return (
-        <ul className='labs-list'>
+        <ul className={styles.labsList}>
             {labs.map((lab) => (
                 <LabListItem
                     key={lab.id}
