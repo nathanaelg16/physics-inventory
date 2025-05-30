@@ -6,7 +6,7 @@ import {Alert, Autocomplete, Button, Snackbar, TextField} from '@mui/material'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {GetLabCourses} from '../../../wailsjs/go/main/App'
 import LabsList from '../../components/labs-list/LabsList'
-import {Add, Class} from '@mui/icons-material'
+import {Add, Class, Delete} from '@mui/icons-material'
 import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog";
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import LabCourse = main.LabCourse;
@@ -82,7 +82,7 @@ export default function LabsView() {
                         isOptionEqualToValue={(option, value) => option.courseNumber === value.courseNumber}
                     />
 
-                    {canEdit && (
+                    {canEdit && <>
                         <Button
                             className={styles.newCourseButton}
                             variant='contained'
@@ -93,6 +93,7 @@ export default function LabsView() {
                             New Course
                         </Button>
                     )}
+                    </>}
                 </div>
             </div>
         </div>
@@ -108,7 +109,7 @@ export default function LabsView() {
 
         <NewLabCourseDialog open={showNewLabCourseDialog}
                             onClose={() => setShowNewLabCourseDialog(false)}
-                            onCreate={(courseNumber: string) => {
+                            onCreated={(courseNumber: string) => {
                                 fetchLabCourses()
                                 setSelectedLabCourseNumber(courseNumber)
                             }}

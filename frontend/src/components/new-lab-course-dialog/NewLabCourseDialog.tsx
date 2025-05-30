@@ -17,10 +17,10 @@ import {CreateLabCourse} from '../../../wailsjs/go/main/App'
 interface Props {
     open: boolean
     onClose: () => void
-    onCreate: (courseNumber: string) => void
+    onCreated: (courseNumber: string) => void
 }
 
-export default function NewLabCourseDialog({ open, onClose, onCreate }: Props) {
+export default function NewLabCourseDialog({ open, onClose, onCreated }: Props) {
     const [courseNumber, setCourseNumber] = useState<string>('')
     const [courseName, setCourseName] = useState<string>('')
     const [error, setError] = useState<string | null>(null)
@@ -44,7 +44,7 @@ export default function NewLabCourseDialog({ open, onClose, onCreate }: Props) {
 
         try {
             await CreateLabCourse(courseNumber.trim(), courseName.trim())
-            onCreate(courseNumber.trim())
+            onCreated(courseNumber.trim())
             handleClose()
         } catch (err) {
             setError(err as string)
