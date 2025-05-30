@@ -1,90 +1,11 @@
 .lab-listing {
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: auto;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.lab-listing:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-color: #1976d2;
-}
-
-.lab-listing:active {
-    transform: translateY(-1px);
-}
-
-.lab-listing::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #1976d2, #42a5f5);
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.lab-listing:hover::before {
-    opacity: 1;
+    composes: card card-interactive flex-item from '../labs-list/labsList.module.css';
 }
 
 .lab-listing-icon {
-    background: #f5f5f5;
-    border-radius: 6px;
-    padding: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.lab-listing:hover .lab-listing-icon {
-    background: #e3f2fd;
-    color: #1976d2;
-}
-
-.lab-listing:hover .lab-listing-action {
-    opacity: 1;
+    composes: icon-container from '../labs-list/labsList.module.css';
 }
 
 .lab-listing-title {
-    font-weight: 500 !important;
-    font-size: 15px !important;
-    color: #263238 !important;
-    margin: 0 !important;
-    line-height: 1.4 !important;
-    word-break: break-word;
-}
-
-@media (max-width: 768px) {
-    .lab-listing {
-        padding: 16px;
-        min-height: 100px;
-    }
-
-    .lab-listing-title {
-        font-size: 15px !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .lab-listing {
-        padding: 14px;
-    }
-
-    .lab-listing-icon {
-        padding: 6px;
-    }
+    composes: title from '../labs-list/labsList.module.css';
 }
