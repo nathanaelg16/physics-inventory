@@ -1,0 +1,33 @@
+.new-lab-item {
+    border: 2px dashed #e0e0e0 !important;
+    background: #fafafa !important;
+}
+
+.new-lab-item:hover {
+    border-color: #1976d2 !important;
+    background: #f5f9ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.new-lab-item:hover::before {
+    opacity: 0 !important;
+}
+
+.new-lab-icon {
+    background: #e8f4fd !important;
+    color: #1976d2 !important;
+}
+
+.new-lab-item:hover .new-lab-icon {
+    background: #1976d2 !important;
+    color: white !important;
+}
+
+.new-lab-title {
+    color: #666 !important;
+}
+
+.new-lab-item:hover .new-lab-title {
+    color: #1976d2 !important;
+}

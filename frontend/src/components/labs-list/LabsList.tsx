@@ -6,6 +6,7 @@ import {SnackbarAlert} from '../../utils/snackbar-alert'
 import LabListItem from '../lab-list-item/LabListItem'
 import {Typography} from '@mui/material'
 import {ScienceOutlined} from '@mui/icons-material'
+import NewLabItem from "../lab-list-item/NewLabItem";
 import Lab = main.Lab;
 
 interface Props {
@@ -65,6 +66,8 @@ export default function LabsList({labCourseId, onAlert, onNewLab}: Props) {
 
     return (
         <ul className={styles.labsList}>
+            <NewLabItem onClick={onNewLab} />
+
             {labs.map((lab) => (
                 <LabListItem
                     key={lab.id}
