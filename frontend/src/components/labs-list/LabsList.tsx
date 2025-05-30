@@ -13,9 +13,10 @@ interface Props {
     labCourseNumber: string,
     onAlert: (snackbarAlert: SnackbarAlert) => void,
     onNewLab: () => void,
+    canEdit: boolean,
 }
 
-export default function LabsList({labCourseNumber, onAlert, onNewLab}: Props) {
+export default function LabsList({labCourseNumber, onAlert, onNewLab, canEdit}: Props) {
     const [labs, setLabs] = useState<Lab[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
@@ -53,7 +54,7 @@ export default function LabsList({labCourseNumber, onAlert, onNewLab}: Props) {
                 </Typography>
             </div>)}
         <ul className={styles.labsList}>
-            <NewLabItem onClick={onNewLab}/>
+            {canEdit && <NewLabItem onClick={onNewLab}/>}
 
             {labs.map((lab) => (<LabListItem
                     key={lab.id}

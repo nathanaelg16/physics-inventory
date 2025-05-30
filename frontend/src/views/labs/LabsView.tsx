@@ -1,13 +1,14 @@
 import styles from './labsView.module.css'
 import Header from '../../components/header/Header'
 import {main} from '../../../wailsjs/go/models'
-import {useEffect, useMemo, useState} from 'react'
+import {useContext, useEffect, useMemo, useState} from 'react'
 import {Alert, Autocomplete, Button, Snackbar, TextField} from '@mui/material'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {GetLabCourses} from '../../../wailsjs/go/main/App'
 import LabsList from '../../components/labs-list/LabsList'
 import {Add, Class} from '@mui/icons-material'
 import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog";
+import {AccessLevel, AuthContext} from "../../utils/auth";
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
@@ -18,6 +19,9 @@ export default function LabsView() {
 
     const [loading, setLoading] = useState<boolean>(false)
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>()
+
+    const authContext = useContext(AuthContext)
+    const canEdit = authContext.accessLevel >= AccessLevel.Maintainer
 
     const fetchLabCourses = () => {
         setLoading(true)
@@ -78,15 +82,17 @@ export default function LabsView() {
                         isOptionEqualToValue={(option, value) => option.courseNumber === value.courseNumber}
                     />
 
-                    <Button
-                        className={styles.newCourseButton}
-                        variant='contained'
-                        startIcon={<Add />}
-                        color='primary'
-                        onClick={() => setShowNewLabCourseDialog(true)}
-                    >
-                        New Course
-                    </Button>
+                    {canEdit && (
+                        <Button
+                            className={styles.newCourseButton}
+                            variant='contained'
+                            startIcon={<Add />}
+                            color='primary'
+                            onClick={() => setShowNewLabCourseDialog(true)}
+                        >
+                            New Course
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
@@ -96,6 +102,7 @@ export default function LabsView() {
                 labCourseNumber={selectedLabCourseNumber}
                 onAlert={(alert) => setSnackbarAlert(alert)}
                 onNewLab={() => {}}
+                canEdit={canEdit}
             />
         )}
 
