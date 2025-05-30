@@ -174,7 +174,6 @@ export namespace main {
 	    }
 	}
 	export class LabCourse {
-	    id: number;
 	    courseNumber: string;
 	    courseName: string;
 	
@@ -184,7 +183,6 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
 	        this.courseNumber = source["courseNumber"];
 	        this.courseName = source["courseName"];
 	    }

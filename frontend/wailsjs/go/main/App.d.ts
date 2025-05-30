@@ -80,7 +80,7 @@ export function GetLabCourses():Promise<Array<main.LabCourse>>;
 
 export function GetLabData(arg1:number):Promise<Array<main.LabData>>;
 
-export function GetLabs(arg1:number):Promise<Array<main.Lab>>;
+export function GetLabs(arg1:string):Promise<Array<main.Lab>>;
 
 export function GetProductVersion():Promise<string>;
 

@@ -16,7 +16,6 @@ const (
 )
 
 type LabCourse struct {
-	Id           int64  `json:"id"`
 	CourseNumber string `json:"courseNumber"`
 	CourseName   string `json:"courseName"`
 }
@@ -83,7 +82,7 @@ func (a *App) CreateLab(courseNumber string, labName string) error {
 func (a *App) GetLabCourses() ([]LabCourse, error) {
 	labCourses := make([]LabCourse, 0, 10)
 
-	rows, err := a.db.Query("select id, course_name, course_number from lab_courses order by course_number;")
+	rows, err := a.db.Query("select course_name, course_number from lab_courses order by course_number;")
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error getting lab courses: %v", err)
 		return nil, fmt.Errorf("error getting lab courses: %v", err)
@@ -93,7 +92,7 @@ func (a *App) GetLabCourses() ([]LabCourse, error) {
 	for rows.Next() {
 		var row LabCourse
 
-		err = rows.Scan(&row.Id, &row.CourseName, &row.CourseNumber)
+		err = rows.Scan(&row.CourseName, &row.CourseNumber)
 		if err != nil {
 			runtime.LogErrorf(a.ctx, "error scanning lab course: %v", err)
 			continue
@@ -105,12 +104,12 @@ func (a *App) GetLabCourses() ([]LabCourse, error) {
 	return labCourses, nil
 }
 
-func (a *App) GetLabs(labCourseId int64) ([]Lab, error) {
+func (a *App) GetLabs(courseNumber string) ([]Lab, error) {
 	labs := make([]Lab, 0, 10)
 
-	rows, err := a.db.Query("select id, lab_name from labs order by lab_name;")
+	rows, err := a.db.Query("select id, lab_name from labs where lab_course_number = ? order by lab_name;", courseNumber)
 	if err != nil {
-		runtime.LogErrorf(a.ctx, "error getting labs for lab course id %d: %v", labCourseId, err)
+		runtime.LogErrorf(a.ctx, "error getting labs for lab course %s: %v", courseNumber, err)
 		return nil, fmt.Errorf("error getting labs: %v", err)
 	}
 	defer rows.Close()
@@ -133,7 +132,7 @@ func (a *App) GetLabs(labCourseId int64) ([]Lab, error) {
 func (a *App) GetLabData(labId int64) ([]LabData, error) {
 	labData := make([]LabData, 0, 10)
 
-	rows, err := a.db.Query("select id, type, type_id, quantity_per_station, quantity_on_front_table, consumable, notes from lab_data;")
+	rows, err := a.db.Query("select id, type, type_id, quantity_per_station, quantity_on_front_table, consumable, notes from lab_data where lab_id = ?;", labId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error getting lab data for lab id %d: %v", labId, err)
 		return nil, fmt.Errorf("error getting lab data: %v", err)

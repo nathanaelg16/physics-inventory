@@ -7,11 +7,14 @@ import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {GetLabCourses} from '../../../wailsjs/go/main/App'
 import LabsList from '../../components/labs-list/LabsList'
 import {Add, Class} from '@mui/icons-material'
+import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog";
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
     const [labCourses, setLabCourses] = useState<LabCourse[]>([])
-    const [selectedLabCourseId, setSelectedLabCourseId] = useState<number | null>(null)
+    const [selectedLabCourseNumber, setSelectedLabCourseNumber] = useState<string | null>(null)
+
+    const [showNewLabCourseDialog, setShowNewLabCourseDialog] = useState<boolean>(false)
 
     const [loading, setLoading] = useState<boolean>(false)
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>()
@@ -31,13 +34,13 @@ export default function LabsView() {
 
     const autocompleteOptions = useMemo(() => {
         return labCourses.map(lc => ({
-            id: lc.id, label: `${lc.courseNumber}: ${lc.courseName}`
+            courseNumber: lc.courseNumber, label: `${lc.courseNumber}: ${lc.courseName}`
         }))
     }, [labCourses])
 
     const selectedCourse = useMemo(() => {
-        return autocompleteOptions.find(option => option.id === selectedLabCourseId) || null
-    }, [autocompleteOptions, selectedLabCourseId])
+        return autocompleteOptions.find(option => option.courseNumber === selectedLabCourseNumber) || null
+    }, [autocompleteOptions, selectedLabCourseNumber])
 
     return <div>
         <Header title='Labs'/>
@@ -66,13 +69,13 @@ export default function LabsView() {
                         options={autocompleteOptions}
                         disablePortal
                         onChange={(e, value) => {
-                            setSelectedLabCourseId(value ? value.id : null)
+                            setSelectedLabCourseNumber(value ? value.courseNumber : null)
                         }}
                         value={selectedCourse}
                         loading={loading}
                         loadingText='Loading lab courses...'
                         noOptionsText='No lab courses found'
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        isOptionEqualToValue={(option, value) => option.courseNumber === value.courseNumber}
                     />
 
                     <Button
@@ -80,6 +83,7 @@ export default function LabsView() {
                         variant='contained'
                         startIcon={<Add />}
                         color='primary'
+                        onClick={() => setShowNewLabCourseDialog(true)}
                     >
                         New Course
                     </Button>
@@ -87,13 +91,21 @@ export default function LabsView() {
             </div>
         </div>
 
-        {selectedLabCourseId && (
+        {selectedLabCourseNumber && (
             <LabsList
-                labCourseId={selectedLabCourseId}
+                labCourseNumber={selectedLabCourseNumber}
                 onAlert={(alert) => setSnackbarAlert(alert)}
                 onNewLab={() => {}}
             />
         )}
+
+        <NewLabCourseDialog open={showNewLabCourseDialog}
+                            onClose={() => setShowNewLabCourseDialog(false)}
+                            onCreate={(courseNumber: string) => {
+                                fetchLabCourses()
+                                setSelectedLabCourseNumber(courseNumber)
+                            }}
+        />
 
         <Snackbar
             autoHideDuration={3000}

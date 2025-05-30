@@ -10,27 +10,24 @@ import NewLabItem from "../lab-list-item/NewLabItem";
 import Lab = main.Lab;
 
 interface Props {
-    labCourseId: number,
+    labCourseNumber: string,
     onAlert: (snackbarAlert: SnackbarAlert) => void,
     onNewLab: () => void,
 }
 
-export default function LabsList({labCourseId, onAlert, onNewLab}: Props) {
+export default function LabsList({labCourseNumber, onAlert, onNewLab}: Props) {
     const [labs, setLabs] = useState<Lab[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
     useEffect(() => {
         setLoading(true)
-        GetLabs(labCourseId)
+        GetLabs(labCourseNumber)
             .then((labs) => {
                 setLabs(labs)
-            })
-            .catch((err) => onAlert({
-                severity: 'error',
-                msg: err
-            }))
-            .finally(() => setLoading(false))
-    }, [labCourseId, onAlert])
+            }).catch((err) => onAlert({
+                severity: 'error', msg: err
+            })).finally(() => setLoading(false))
+    }, [labCourseNumber, onAlert])
 
     if (loading) {
         return (
@@ -45,31 +42,24 @@ export default function LabsList({labCourseId, onAlert, onNewLab}: Props) {
         )
     }
 
-    if (labs.length === 0) {
-        return (
-            <div className={styles.labsListEmpty}>
-                <ScienceOutlined className={styles.labsListEmptyIcon} />
+    return <>
+        {labs.length === 0 && (<div className={styles.labsListEmpty}>
+                <ScienceOutlined className={styles.labsListEmptyIcon}/>
                 <Typography variant='h6' gutterBottom>
                     No Labs Found
                 </Typography>
                 <Typography variant='body2' color='textSecondary'>
                     This course doesn't have any labs yet. Create a new lab to get started.
                 </Typography>
-            </div>
-        )
-    }
-
-    return (
+            </div>)}
         <ul className={styles.labsList}>
-            <NewLabItem onClick={onNewLab} />
+            <NewLabItem onClick={onNewLab}/>
 
-            {labs.map((lab) => (
-                <LabListItem
+            {labs.map((lab) => (<LabListItem
                     key={lab.id}
                     labId={lab.id}
                     labName={lab.name}
-                />
-            ))}
+                />))}
         </ul>
-    )
+    </>
 }
