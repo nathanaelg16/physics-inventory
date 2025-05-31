@@ -104,6 +104,8 @@ export function RemoveReceipt(arg1:number):Promise<void>;
 
 export function RenameGroup(arg1:number,arg2:string):Promise<void>;
 
+export function RenameLabCourse(arg1:string,arg2:string):Promise<void>;
+
 export function RenameSet(arg1:number,arg2:string):Promise<void>;
 
 export function SearchModeBoolean(arg1:string):Promise<Array<main.Asset>>;

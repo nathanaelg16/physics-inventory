@@ -6,10 +6,11 @@ import {Alert, Autocomplete, Button, Snackbar, TextField} from '@mui/material'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {GetLabCourses} from '../../../wailsjs/go/main/App'
 import LabsList from '../../components/labs-list/LabsList'
-import {Add, Class, Delete} from '@mui/icons-material'
+import {Add, Class, Delete, Edit} from '@mui/icons-material'
 import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog";
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import DeleteLabCourseDialog from "../../components/delete-lab-course-dialog/DeleteLabCourseDialog";
+import RenameLabCourseDialog from "../../components/rename-lab-course-dialog/RenameLabCourseDialog";
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
@@ -17,6 +18,7 @@ export default function LabsView() {
     const [selectedLabCourseNumber, setSelectedLabCourseNumber] = useState<string | null>(null)
 
     const [showNewLabCourseDialog, setShowNewLabCourseDialog] = useState<boolean>(false)
+    const [showRenameLabCourseDialog, setShowRenameLabCourseDialog] = useState<boolean>(false)
     const [showDeleteLabCourseDialog, setShowDeleteLabCourseDialog] = useState<boolean>(false)
 
     const [loading, setLoading] = useState<boolean>(false)
@@ -40,7 +42,7 @@ export default function LabsView() {
 
     const autocompleteOptions = useMemo(() => {
         return labCourses.map(lc => ({
-            courseNumber: lc.courseNumber, label: `${lc.courseNumber}: ${lc.courseName}`
+            courseNumber: lc.courseNumber, courseName: lc.courseName, label: `${lc.courseNumber}: ${lc.courseName}`
         }))
     }, [labCourses])
 
@@ -87,12 +89,13 @@ export default function LabsView() {
                     {canEdit && <>
                         <Button
                             className={styles.courseActionButton}
-                            variant='contained'
-                            startIcon={<Add />}
+                            variant='outlined'
+                            startIcon={<Edit />}
                             color='primary'
-                            onClick={() => setShowNewLabCourseDialog(true)}
+                            disabled={!selectedLabCourseNumber}
+                            onClick={() => setShowRenameLabCourseDialog(true)}
                         >
-                            New Course
+                            Rename Course
                         </Button>
                         <Button
                             className={styles.courseActionButton}
@@ -103,6 +106,15 @@ export default function LabsView() {
                             onClick={() => setShowDeleteLabCourseDialog(true)}
                         >
                             Delete Course
+                        </Button>
+                        <Button
+                            className={styles.courseActionButton}
+                            variant='contained'
+                            startIcon={<Add />}
+                            color='primary'
+                            onClick={() => setShowNewLabCourseDialog(true)}
+                        >
+                            New Course
                         </Button>
                     </>}
                 </div>
@@ -127,7 +139,14 @@ export default function LabsView() {
                                 }}
             />
 
-            {selectedCourse && (
+            {selectedCourse && (<>
+                <RenameLabCourseDialog open={showRenameLabCourseDialog}
+                                       onClose={() => setShowRenameLabCourseDialog(false)}
+                                       onRenamed={() => fetchLabCourses()}
+                                       courseNumber={selectedCourse.courseNumber}
+                                       courseName={selectedCourse.courseName}
+                />
+
                 <DeleteLabCourseDialog open={showDeleteLabCourseDialog}
                                        onClose={() => setShowDeleteLabCourseDialog(false)}
                                        onDeleted={() => {
@@ -137,7 +156,7 @@ export default function LabsView() {
                                        courseNumber={selectedCourse.courseNumber}
                                        courseName={selectedCourse.label}
                 />
-            )}
+            </>)}
         </>}
 
         <Snackbar

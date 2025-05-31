@@ -65,6 +65,26 @@ func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
 	return nil
 }
 
+func (a *App) RenameLabCourse(courseNumber string, courseName string) error {
+	if len(courseNumber) == 0 {
+		return fmt.Errorf("course number is empty")
+	}
+
+	courseName = strings.TrimSpace(courseName)
+
+	if len(courseName) == 0 {
+		return fmt.Errorf("course name is empty")
+	}
+
+	_, err := a.db.Exec("update lab_courses set course_name = ? where course_number = ?;", courseName, courseNumber)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred renaming lab course: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	return nil
+}
+
 func (a *App) DeleteLabCourse(courseNumber string) error {
 	tx, err := a.db.Begin()
 	if err != nil {

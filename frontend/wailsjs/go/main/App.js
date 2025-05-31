@@ -206,6 +206,10 @@ export function RenameGroup(arg1, arg2) {
   return window['go']['main']['App']['RenameGroup'](arg1, arg2);
 }
 
+export function RenameLabCourse(arg1, arg2) {
+  return window['go']['main']['App']['RenameLabCourse'](arg1, arg2);
+}
+
 export function RenameSet(arg1, arg2) {
   return window['go']['main']['App']['RenameSet'](arg1, arg2);
 }
