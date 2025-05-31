@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"strings"
 )
 
 type LabDataType uint8
@@ -36,6 +37,9 @@ type LabData struct {
 }
 
 func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
+	courseNumber = strings.TrimSpace(courseNumber)
+	courseName = strings.TrimSpace(courseName)
+
 	if len(courseNumber) == 0 {
 		return fmt.Errorf("course number is empty")
 	}
@@ -100,6 +104,8 @@ func (a *App) CreateLab(courseNumber string, labName string) error {
 	if len(courseNumber) == 0 {
 		return fmt.Errorf("course number is empty")
 	}
+
+	labName = strings.TrimSpace(labName)
 
 	if len(labName) == 0 {
 		return fmt.Errorf("lab name is empty")

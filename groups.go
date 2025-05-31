@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"strings"
 )
 
 type Group struct {
@@ -13,6 +14,8 @@ type Group struct {
 }
 
 func (a *App) CreateGroup(name string) (int64, error) {
+	name = strings.TrimSpace(name)
+
 	if len(name) == 0 {
 		return 0, fmt.Errorf("group name is empty")
 	}
@@ -41,6 +44,8 @@ func (a *App) CreateGroup(name string) (int64, error) {
 }
 
 func (a *App) RenameGroup(id int64, name string) error {
+	name = strings.TrimSpace(name)
+
 	if len(name) == 0 {
 		return fmt.Errorf("group name must not be empty")
 	}

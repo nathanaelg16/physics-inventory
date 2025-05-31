@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"strings"
 )
 
 type Set struct {
@@ -13,6 +14,8 @@ type Set struct {
 }
 
 func (a *App) CreateSet(name string) (int64, error) {
+	name = strings.TrimSpace(name)
+
 	if len(name) == 0 {
 		return 0, fmt.Errorf("set name is empty")
 	}
@@ -41,6 +44,8 @@ func (a *App) CreateSet(name string) (int64, error) {
 }
 
 func (a *App) RenameSet(id int64, name string) error {
+	name = strings.TrimSpace(name)
+
 	if len(name) == 0 {
 		return fmt.Errorf("set name must not be empty")
 	}
