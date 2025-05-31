@@ -7,11 +7,11 @@ import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {GetLabCourses} from '../../../wailsjs/go/main/App'
 import LabsList from '../../components/labs-list/LabsList'
 import {Add, Class, Delete, Edit} from '@mui/icons-material'
-import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog";
-import {AccessLevel, AuthContext} from "../../utils/auth";
-import DeleteLabCourseDialog from "../../components/delete-lab-course-dialog/DeleteLabCourseDialog";
-import RenameLabCourseDialog from "../../components/rename-lab-course-dialog/RenameLabCourseDialog";
-import NewLabDialog from "../../components/new-lab-dialog/NewLabDialog";
+import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCourseDialog"
+import {AccessLevel, AuthContext} from "../../utils/auth"
+import DeleteLabCourseDialog from "../../components/delete-lab-course-dialog/DeleteLabCourseDialog"
+import RenameLabCourseDialog from "../../components/rename-lab-course-dialog/RenameLabCourseDialog"
+import NewLabDialog from "../../components/new-lab-dialog/NewLabDialog"
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
@@ -69,7 +69,9 @@ export default function LabsView() {
 
     const autocompleteOptions = useMemo(() => {
         return labCourses.map(lc => ({
-            courseNumber: lc.courseNumber, courseName: lc.courseName, label: `${lc.courseNumber}: ${lc.courseName}`
+            courseNumber: lc.courseNumber,
+            courseName: lc.courseName,
+            label: `${lc.courseNumber}: ${lc.courseName}`
         }))
     }, [labCourses])
 
@@ -90,60 +92,66 @@ export default function LabsView() {
                 </div>
 
                 <div className={styles.courseSelectionControls}>
-                    <Autocomplete
-                        className={styles.courseAutocomplete}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label='Select a course'
-                                placeholder='Select a course to view its labs'
-                                size='small'
-                                variant='outlined'
-                            />
-                        )}
-                        options={autocompleteOptions}
-                        disablePortal
-                        onChange={(e, value) => {
-                            setSelectedLabCourseNumber(value ? value.courseNumber : null)
-                        }}
-                        value={selectedCourse}
-                        loading={loading}
-                        loadingText='Loading lab courses...'
-                        noOptionsText='No lab courses found'
-                        isOptionEqualToValue={(option, value) => option.courseNumber === value.courseNumber}
-                    />
+                    <div className={styles.courseAutocompleteSection}>
+                        <Autocomplete
+                            className={styles.courseAutocomplete}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label='Select a course'
+                                    placeholder='Select a course to view its labs'
+                                    size='small'
+                                    variant='outlined'
+                                />
+                            )}
+                            options={autocompleteOptions}
+                            disablePortal
+                            onChange={(e, value) => {
+                                setSelectedLabCourseNumber(value ? value.courseNumber : null)
+                            }}
+                            value={selectedCourse}
+                            loading={loading}
+                            loadingText='Loading lab courses...'
+                            noOptionsText='No lab courses found'
+                            isOptionEqualToValue={(option, value) => option.courseNumber === value.courseNumber}
+                        />
+                    </div>
 
-                    {canEdit && <>
-                        <Button
-                            className={styles.courseActionButton}
-                            variant='outlined'
-                            startIcon={<Edit />}
-                            color='primary'
-                            disabled={!selectedLabCourseNumber}
-                            onClick={() => setShowRenameLabCourseDialog(true)}
-                        >
-                            Rename Course
-                        </Button>
-                        <Button
-                            className={styles.courseActionButton}
-                            variant='outlined'
-                            startIcon={<Delete />}
-                            color='error'
-                            disabled={!selectedLabCourseNumber}
-                            onClick={() => setShowDeleteLabCourseDialog(true)}
-                        >
-                            Delete Course
-                        </Button>
-                        <Button
-                            className={styles.courseActionButton}
-                            variant='contained'
-                            startIcon={<Add />}
-                            color='primary'
-                            onClick={() => setShowNewLabCourseDialog(true)}
-                        >
-                            New Course
-                        </Button>
-                    </>}
+                    {canEdit && (
+                        <div className={styles.courseActionsSection}>
+                            <div className={styles.courseActionsGrid}>
+                                <Button
+                                    className={styles.courseActionButton}
+                                    variant='contained'
+                                    startIcon={<Add />}
+                                    color='primary'
+                                    onClick={() => setShowNewLabCourseDialog(true)}
+                                >
+                                    New Course
+                                </Button>
+                                <Button
+                                    className={styles.courseActionButton}
+                                    variant='outlined'
+                                    startIcon={<Edit />}
+                                    color='primary'
+                                    disabled={!selectedLabCourseNumber}
+                                    onClick={() => setShowRenameLabCourseDialog(true)}
+                                >
+                                    Rename Course
+                                </Button>
+                                <Button
+                                    className={styles.courseActionButton}
+                                    variant='outlined'
+                                    startIcon={<Delete />}
+                                    color='error'
+                                    disabled={!selectedLabCourseNumber}
+                                    onClick={() => setShowDeleteLabCourseDialog(true)}
+                                >
+                                    Delete Course
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
