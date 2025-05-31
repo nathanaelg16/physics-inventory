@@ -12,7 +12,7 @@ import Lab = main.Lab;
 interface Props {
     labCourseNumber: string,
     onAlert: (snackbarAlert: SnackbarAlert) => void,
-    onNewLab: () => void,
+    onNewLab: () => Promise<void>,
     canEdit: boolean,
 }
 
@@ -20,15 +20,23 @@ export default function LabsList({labCourseNumber, onAlert, onNewLab, canEdit}: 
     const [labs, setLabs] = useState<Lab[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
-    useEffect(() => {
+    const fetchLabs = () => {
         setLoading(true)
         GetLabs(labCourseNumber)
             .then((labs) => {
                 setLabs(labs)
             }).catch((err) => onAlert({
-                severity: 'error', msg: err
-            })).finally(() => setLoading(false))
+            severity: 'error', msg: err
+        })).finally(() => setLoading(false))
+    }
+
+    useEffect(() => {
+        fetchLabs()
     }, [labCourseNumber, onAlert])
+
+    const handleNewLabItemClick = () => {
+        onNewLab().finally(() => fetchLabs())
+    }
 
     if (loading) {
         return (
@@ -54,7 +62,7 @@ export default function LabsList({labCourseNumber, onAlert, onNewLab, canEdit}: 
                 </Typography>
             </div>)}
         <ul className={styles.labsList}>
-            {canEdit && <NewLabItem onClick={onNewLab}/>}
+            {canEdit && <NewLabItem onClick={handleNewLabItemClick}/>}
 
             {labs.map((lab) => (<LabListItem
                     key={lab.id}

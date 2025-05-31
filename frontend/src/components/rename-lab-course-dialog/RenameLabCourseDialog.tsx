@@ -41,7 +41,7 @@ export default function RenameLabCourseDialog({ open, onClose, onRenamed, course
         try {
             await RenameLabCourse(courseNumber, newCourseName.trim())
             onRenamed()
-            handleClose()
+            onClose()
         } catch (err) {
             setError(err as string)
         } finally {
@@ -131,6 +131,7 @@ export default function RenameLabCourseDialog({ open, onClose, onRenamed, course
                                 borderRadius: 1.5
                             }
                         }}
+                        autoComplete='off'
                     />
                 </Stack>
             </DialogContent>

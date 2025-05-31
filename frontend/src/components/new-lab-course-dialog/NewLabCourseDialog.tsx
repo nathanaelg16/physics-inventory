@@ -45,7 +45,7 @@ export default function NewLabCourseDialog({ open, onClose, onCreated }: Props) 
         try {
             await CreateLabCourse(courseNumber.trim(), courseName.trim())
             onCreated(courseNumber.trim())
-            handleClose()
+            onClose()
         } catch (err) {
             setError(err as string)
         } finally {
@@ -137,6 +137,7 @@ export default function NewLabCourseDialog({ open, onClose, onCreated }: Props) 
                                 borderRadius: 1.5
                             }
                         }}
+                        autoComplete='off'
                     />
 
                     <TextField
@@ -156,6 +157,7 @@ export default function NewLabCourseDialog({ open, onClose, onCreated }: Props) 
                                 borderRadius: 1.5
                             }
                         }}
+                        autoComplete='off'
                     />
                 </Stack>
             </DialogContent>

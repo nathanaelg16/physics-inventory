@@ -11,6 +11,7 @@ import NewLabCourseDialog from "../../components/new-lab-course-dialog/NewLabCou
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import DeleteLabCourseDialog from "../../components/delete-lab-course-dialog/DeleteLabCourseDialog";
 import RenameLabCourseDialog from "../../components/rename-lab-course-dialog/RenameLabCourseDialog";
+import NewLabDialog from "../../components/new-lab-dialog/NewLabDialog";
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
@@ -20,6 +21,9 @@ export default function LabsView() {
     const [showNewLabCourseDialog, setShowNewLabCourseDialog] = useState<boolean>(false)
     const [showRenameLabCourseDialog, setShowRenameLabCourseDialog] = useState<boolean>(false)
     const [showDeleteLabCourseDialog, setShowDeleteLabCourseDialog] = useState<boolean>(false)
+
+    const [showNewLabDialog, setShowNewLabDialog] = useState<boolean>(false)
+    const [labCreationResolve, setLabCreationResolve] = useState<(() => void) | null>(null)
 
     const [loading, setLoading] = useState<boolean>(false)
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>()
@@ -39,6 +43,29 @@ export default function LabsView() {
     useEffect(() => {
         fetchLabCourses()
     }, [])
+
+    const handleNewLab = async (): Promise<void> => {
+        return new Promise<void>((resolve) => {
+            setShowNewLabDialog(true)
+            setLabCreationResolve(() => resolve)
+        })
+    }
+
+    const handleLabCreated = () => {
+        setShowNewLabDialog(false)
+        if (labCreationResolve) {
+            labCreationResolve()
+            setLabCreationResolve(null)
+        }
+    }
+
+    const handleLabDialogClose = () => {
+        setShowNewLabDialog(false)
+        if (labCreationResolve) {
+            labCreationResolve()
+            setLabCreationResolve(null)
+        }
+    }
 
     const autocompleteOptions = useMemo(() => {
         return labCourses.map(lc => ({
@@ -125,7 +152,7 @@ export default function LabsView() {
             <LabsList
                 labCourseNumber={selectedLabCourseNumber}
                 onAlert={(alert) => setSnackbarAlert(alert)}
-                onNewLab={() => {}}
+                onNewLab={handleNewLab}
                 canEdit={canEdit}
             />
         )}
@@ -156,6 +183,12 @@ export default function LabsView() {
                                        courseNumber={selectedCourse.courseNumber}
                                        courseName={selectedCourse.label}
                 />
+
+                <NewLabDialog open={showNewLabDialog}
+                              onClose={handleLabDialogClose}
+                              onCreated={handleLabCreated}
+                              courseNumber={selectedCourse.courseNumber}
+                              courseName={selectedCourse.label}/>
             </>)}
         </>}
 
