@@ -6,6 +6,18 @@
     border: 1px solid #e0e0e0;
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.header-text {
+    flex: 1;
+    min-width: 0;
+}
+
 .header-card--title {
     font-size: 24px;
     font-weight: 600;
@@ -23,4 +35,12 @@
     font-weight: 500;
     border: 1px solid #e8eaed;
     display: inline-block;
+}
+
+.course-subtitle {
+    margin-top: 8px;
+}
+
+.delete-button {
+    flex-shrink: 0;
 }
