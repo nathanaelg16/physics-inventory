@@ -12,11 +12,12 @@ import {AccessLevel, AuthContext} from "../../utils/auth"
 import DeleteLabCourseDialog from "../../components/delete-lab-course-dialog/DeleteLabCourseDialog"
 import RenameLabCourseDialog from "../../components/rename-lab-course-dialog/RenameLabCourseDialog"
 import NewLabDialog from "../../components/new-lab-dialog/NewLabDialog"
+import {useSessionStorage} from "@uidotdev/usehooks";
 import LabCourse = main.LabCourse;
 
 export default function LabsView() {
     const [labCourses, setLabCourses] = useState<LabCourse[]>([])
-    const [selectedLabCourseNumber, setSelectedLabCourseNumber] = useState<string | null>(null)
+    const [selectedLabCourseNumber, setSelectedLabCourseNumber] = useSessionStorage<string | null>('selected_lab_course',null)
 
     const [showNewLabCourseDialog, setShowNewLabCourseDialog] = useState<boolean>(false)
     const [showRenameLabCourseDialog, setShowRenameLabCourseDialog] = useState<boolean>(false)
