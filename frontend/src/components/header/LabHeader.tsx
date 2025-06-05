@@ -2,6 +2,7 @@ import styles from './header.module.css'
 import EditableParagraph from '../editable-paragraph/EditableParagraph'
 import {IconButton, Tooltip} from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
+import {nonEmptyFieldValidator} from "../../utils/validators";
 
 interface Props {
     courseNumber: string
@@ -22,6 +23,7 @@ export default function LabHeader({courseNumber, courseName, labName, allowEdits
                         onSave={onRename}
                         allowEdits={allowEdits}
                         className={styles.headerCardTitle}
+                        validator={nonEmptyFieldValidator}
                     />
                     <div className={styles.courseSubtitle}>
                         <span className={styles.courseInfo}>{courseNumber}: {courseName}</span>

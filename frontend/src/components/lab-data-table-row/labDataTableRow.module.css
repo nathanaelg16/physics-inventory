@@ -1,0 +1,331 @@
+/* Table Row States */
+.tableRow {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.tableRow:hover {
+    background-color: #f8f9fa !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.expandedRow {
+    background-color: #f0f7ff !important;
+    border-left: 3px solid #2196f3;
+}
+
+/* Type Column Styling */
+.marker {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.assetType {
+    color: #f44336;
+}
+
+.groupType {
+    color: #2196f3;
+}
+
+.setType {
+    color: #4caf50;
+}
+
+.consumableIcon {
+    color: #ff9800;
+    animation: pulse 2s infinite;
+}
+
+.warningIndicator {
+    background-color: #ff5722;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Name Column */
+.nameContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.itemName {
+    font-weight: 500;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.consumableChip {
+    align-self: flex-start;
+    border-color: #ff9800;
+    color: #ff9800;
+    font-size: 10px;
+    height: 20px;
+}
+
+/* Location Column */
+.locationContainer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.locationIcon {
+    color: #666;
+    flex-shrink: 0;
+}
+
+.locationText {
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+/* Quantity Columns */
+.quantityContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.quantityText {
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    min-width: 40px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.quantityText:hover {
+    background-color: #f0f0f0;
+}
+
+.lowQuantity {
+    color: #f44336;
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+}
+
+.lowQuantity:hover {
+    background-color: #ffcdd2;
+}
+
+.quantityLabel {
+    color: #666;
+    font-size: 10px;
+    text-align: center;
+    line-height: 1;
+}
+
+/* Notes Column */
+.notesContainer {
+    max-width: 100%;
+}
+
+.notesPreview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.notesIcon {
+    color: #666;
+    align-self: flex-start;
+    margin-bottom: 2px;
+}
+
+.notesText {
+    line-height: 1.4;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.moreIndicator {
+    color: #2196f3;
+    font-style: italic;
+    font-size: 11px;
+}
+
+/* Actions Column */
+.actionButton {
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.actionButton:hover {
+    background-color: #e3f2fd;
+    transform: scale(1.1);
+}
+
+.activeEditButton {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.deleteButton:hover {
+    background-color: #ffebee;
+    transform: scale(1.1);
+}
+
+/* Expanded Content - Simplified for Notes Only */
+.expandedContent {
+    padding: 16px 24px;
+    background-color: #fafafa;
+    border-top: 1px solid #e0e0e0;
+    margin: 0 -12px;
+}
+
+.notesSection {
+    background-color: white;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #263238;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.expandedNotes {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    min-height: 60px;
+    line-height: 1.5;
+    color: #333;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.expandedNotesEdit {
+    width: 100%;
+}
+
+/* Common Styles */
+.placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .expandedContent {
+        padding: 12px 16px;
+    }
+
+    .notesSection {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .nameContainer {
+        gap: 2px;
+    }
+
+    .itemName {
+        font-size: 14px;
+    }
+
+    .quantityText {
+        font-size: 14px;
+        padding: 2px 4px;
+    }
+
+    .quantityLabel {
+        font-size: 9px;
+    }
+
+    .notesText {
+        font-size: 13px;
+        -webkit-line-clamp: 2;
+    }
+
+    .expandedContent {
+        padding: 8px 12px;
+    }
+
+    .notesSection {
+        padding: 8px;
+    }
+
+    .moreIndicator {
+        font-size: 10px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .actionButton,
+    .expandedContent {
+        display: none !important;
+    }
+
+    .tableRow {
+        background-color: white !important;
+        box-shadow: none !important;
+    }
+
+    .notesText {
+        -webkit-line-clamp: unset;
+        overflow: visible;
+        display: block;
+    }
+}
+
+/* Accessibility Improvements */
+.actionButton:focus {
+    outline: 2px solid #2196f3;
+    outline-offset: 2px;
+}
+
+.tableRow:focus-within {
+    outline: 2px solid #2196f3;
+    outline-offset: -2px;
+}
+
+/* Animation for expand/collapse */
+.expandedContent {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

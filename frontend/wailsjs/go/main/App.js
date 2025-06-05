@@ -162,6 +162,10 @@ export function GetLabData(arg1) {
   return window['go']['main']['App']['GetLabData'](arg1);
 }
 
+export function GetLabDetails(arg1) {
+  return window['go']['main']['App']['GetLabDetails'](arg1);
+}
+
 export function GetLabs(arg1) {
   return window['go']['main']['App']['GetLabs'](arg1);
 }
@@ -204,6 +208,10 @@ export function RemoveReceipt(arg1) {
 
 export function RenameGroup(arg1, arg2) {
   return window['go']['main']['App']['RenameGroup'](arg1, arg2);
+}
+
+export function RenameLab(arg1, arg2) {
+  return window['go']['main']['App']['RenameLab'](arg1, arg2);
 }
 
 export function RenameLabCourse(arg1, arg2) {

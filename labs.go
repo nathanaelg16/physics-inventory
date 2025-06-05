@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
@@ -27,13 +28,22 @@ type Lab struct {
 }
 
 type LabData struct {
-	RecordId             int64       `json:"recordId"`
-	Type                 LabDataType `json:"type"`
-	TypeId               int64       `json:"typeId"`
-	QuantityPerStation   string      `json:"quantityPerStation"`
-	QuantityOnFrontTable string      `json:"quantityOnFrontTable"`
-	Consumable           bool        `json:"consumable"`
-	Notes                string      `json:"notes"`
+	Id                   int64          `json:"id"`
+	Type                 LabDataType    `json:"type"`
+	TypeId               int64          `json:"typeId"`
+	Name                 sql.NullString `json:"name"`
+	Location             sql.NullString `json:"location"`
+	QuantityPerStation   string         `json:"quantityPerStation"`
+	QuantityOnFrontTable string         `json:"quantityOnFrontTable"`
+	Consumable           bool           `json:"consumable"`
+	Notes                sql.NullString `json:"notes"`
+}
+
+type LabDetails struct {
+	CourseNumber string `json:"courseNumber"`
+	CourseName   string `json:"courseName"`
+	LabName      string `json:"labName"`
+	LabId        int64  `json:"labId"`
 }
 
 func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
@@ -140,6 +150,20 @@ func (a *App) CreateLab(courseNumber string, labName string) error {
 	return nil
 }
 
+func (a *App) RenameLab(labId int64, labName string) error {
+	if len(labName) == 0 {
+		return fmt.Errorf("lab name is empty")
+	}
+
+	_, err := a.db.Exec("update labs set lab_name = ? where id = ?;", labName, labId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred renaming lab: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	return nil
+}
+
 func (a *App) GetLabCourses() ([]LabCourse, error) {
 	labCourses := make([]LabCourse, 0, 10)
 
@@ -190,6 +214,20 @@ func (a *App) GetLabs(courseNumber string) ([]Lab, error) {
 	return labs, nil
 }
 
+func (a *App) GetLabDetails(labId int64) (LabDetails, error) {
+	var labDetails LabDetails
+
+	err := a.db.QueryRow("select l.lab_course_number, l.lab_name, lc.course_name from labs l inner join lab_courses lc on l.lab_course_number = lc.course_number where l.id = ?;", labId).Scan(&labDetails.CourseNumber, &labDetails.LabName, &labDetails.CourseName)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting lab for lab id %d: %v", labId, err)
+		return labDetails, fmt.Errorf("error getting lab: %v", err)
+	}
+
+	labDetails.LabId = labId
+
+	return labDetails, nil
+}
+
 func (a *App) GetLabData(labId int64) ([]LabData, error) {
 	labData := make([]LabData, 0, 10)
 
@@ -204,9 +242,32 @@ func (a *App) GetLabData(labId int64) ([]LabData, error) {
 		var labDatum LabData
 		var consumable uint8
 
-		err = rows.Scan(&labDatum.RecordId, &labDatum.Type, &labDatum.TypeId, &labDatum.QuantityPerStation, &labDatum.QuantityOnFrontTable, &consumable, &labDatum.Notes)
+		err = rows.Scan(&labDatum.Id, &labDatum.Type, &labDatum.TypeId, &labDatum.QuantityPerStation, &labDatum.QuantityOnFrontTable, &consumable, &labDatum.Notes)
 		if err != nil {
 			runtime.LogErrorf(a.ctx, "error scanning lab data: %v", err)
+			continue
+		}
+
+		if labDatum.Type == AssetType {
+			err = a.db.QueryRow("select item_name, location from equipment where id = ?;", labDatum.TypeId).Scan(&labDatum.Name, &labDatum.Location)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "error scanning lab asset data from equipment table: %v", err)
+				continue
+			}
+		} else if labDatum.Type == GroupType {
+			err = a.db.QueryRow("select name from `groups` where id = ?;", labDatum.TypeId).Scan(&labDatum.Name)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "error scanning lab group data from groups table: %v", err)
+				continue
+			}
+		} else if labDatum.Type == SetType {
+			err = a.db.QueryRow("select name from sets where id = ?;", labDatum.TypeId).Scan(&labDatum.Name)
+			if err != nil {
+				runtime.LogErrorf(a.ctx, "error scanning lab set data from sets table: %v", err)
+				continue
+			}
+		} else {
+			runtime.LogErrorf(a.ctx, "unknown lab data type: %v", labDatum.Type)
 			continue
 		}
 

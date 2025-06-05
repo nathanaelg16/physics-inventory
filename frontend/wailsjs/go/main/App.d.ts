@@ -82,6 +82,8 @@ export function GetLabCourses():Promise<Array<main.LabCourse>>;
 
 export function GetLabData(arg1:number):Promise<Array<main.LabData>>;
 
+export function GetLabDetails(arg1:number):Promise<main.LabDetails>;
+
 export function GetLabs(arg1:string):Promise<Array<main.Lab>>;
 
 export function GetProductVersion():Promise<string>;
@@ -103,6 +105,8 @@ export function RemoveManual(arg1:number):Promise<void>;
 export function RemoveReceipt(arg1:number):Promise<void>;
 
 export function RenameGroup(arg1:number,arg2:string):Promise<void>;
+
+export function RenameLab(arg1:number,arg2:string):Promise<void>;
 
 export function RenameLabCourse(arg1:string,arg2:string):Promise<void>;
 

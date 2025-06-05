@@ -188,13 +188,15 @@ export namespace main {
 	    }
 	}
 	export class LabData {
-	    recordId: number;
+	    id: number;
 	    type: number;
 	    typeId: number;
+	    name: sql.NullString;
+	    location: sql.NullString;
 	    quantityPerStation: string;
 	    quantityOnFrontTable: string;
 	    consumable: boolean;
-	    notes: string;
+	    notes: sql.NullString;
 	
 	    static createFrom(source: any = {}) {
 	        return new LabData(source);
@@ -202,13 +204,51 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.recordId = source["recordId"];
+	        this.id = source["id"];
 	        this.type = source["type"];
 	        this.typeId = source["typeId"];
+	        this.name = this.convertValues(source["name"], sql.NullString);
+	        this.location = this.convertValues(source["location"], sql.NullString);
 	        this.quantityPerStation = source["quantityPerStation"];
 	        this.quantityOnFrontTable = source["quantityOnFrontTable"];
 	        this.consumable = source["consumable"];
-	        this.notes = source["notes"];
+	        this.notes = this.convertValues(source["notes"], sql.NullString);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class LabDetails {
+	    courseNumber: string;
+	    courseName: string;
+	    labName: string;
+	    labId: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new LabDetails(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.courseNumber = source["courseNumber"];
+	        this.courseName = source["courseName"];
+	        this.labName = source["labName"];
+	        this.labId = source["labId"];
 	    }
 	}
 	export class Set {
