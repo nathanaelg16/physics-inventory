@@ -5,9 +5,9 @@ import {AccessLevel, AuthContext} from '../../utils/auth'
 import {main} from '../../../wailsjs/go/models'
 import {GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
-import {Alert, Box, Paper, Skeleton, Snackbar, Stack, Typography,} from '@mui/material'
+import {Alert, Box, Button, Paper, Skeleton, Snackbar, Stack, Typography,} from '@mui/material'
 import LabHeader from '../../components/header/LabHeader'
-import {Science} from '@mui/icons-material'
+import {ArrowBack, Science} from '@mui/icons-material'
 import LabDataCard from "../../components/lab-data-card/LabDataCard";
 import LabDetails = main.LabDetails;
 import LabData = main.LabData;
@@ -98,6 +98,14 @@ export default function LabView() {
     if (!labDetails) {
         return (
             <Box className={styles.container}>
+                <Button
+                    variant="outlined"
+                    startIcon={<ArrowBack />}
+                    onClick={() => navigate(-1)}
+                    sx={{ mb: 2 }}
+                >
+                    Back
+                </Button>
                 <Typography variant="h6" color="error">
                     Lab not found
                 </Typography>
@@ -107,6 +115,15 @@ export default function LabView() {
 
     return (
         <Box className={styles.container}>
+            <Button
+                variant="outlined"
+                startIcon={<ArrowBack />}
+                onClick={() => navigate(-1)}
+                sx={{ mb: 2 }}
+            >
+                Back
+            </Button>
+
             <LabHeader
                 courseNumber={labDetails.courseNumber}
                 courseName={labDetails.courseName}
