@@ -25,9 +25,6 @@ export default function LabHeader({courseNumber, courseName, labName, allowEdits
                         className={styles.headerCardTitle}
                         validator={nonEmptyFieldValidator}
                     />
-                    <div className={styles.courseSubtitle}>
-                        <span className={styles.courseInfo}>{courseNumber}: {courseName}</span>
-                    </div>
                 </div>
                 {allowEdits && (
                     <Tooltip title="Delete lab" arrow>
@@ -41,6 +38,9 @@ export default function LabHeader({courseNumber, courseName, labName, allowEdits
                         </IconButton>
                     </Tooltip>
                 )}
+            </div>
+            <div className={styles.courseSubtitle}>
+                <span className={styles.courseInfo}>{courseNumber}: {courseName}</span>
             </div>
         </div>
     )

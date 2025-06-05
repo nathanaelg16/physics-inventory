@@ -1,26 +1,14 @@
+import styles from './labView.module.css'
 import {useNavigate, useParams} from 'react-router'
 import {useContext, useEffect, useState} from 'react'
 import {AccessLevel, AuthContext} from '../../utils/auth'
 import {main} from '../../../wailsjs/go/models'
 import {GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
-import {
-    Alert,
-    Box,
-    Skeleton,
-    Snackbar,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography,
-} from '@mui/material'
+import {Alert, Box, Paper, Skeleton, Snackbar, Stack, Typography,} from '@mui/material'
 import LabHeader from '../../components/header/LabHeader'
-import LabDataTableRow from '../../components/lab-data-table-row/LabDataTableRow'
-import LabLegend from '../../components/lab-legend/LabLegend'
-import styles from './labView.module.css'
+import {Science} from '@mui/icons-material'
+import LabDataCard from "../../components/lab-data-card/LabDataCard";
 import LabDetails = main.LabDetails;
 import LabData = main.LabData;
 
@@ -75,6 +63,8 @@ export default function LabView() {
 
     const renameLab = async (newName: string) => {
         if (id === undefined) return
+        if (labDetails === undefined) return
+        if (newName === labDetails.labName) return
         try {
             await RenameLab(parseInt(id), newName)
             setSnackbarAlert({
@@ -126,32 +116,29 @@ export default function LabView() {
                 onDelete={handleDeleteLab}
             />
 
-            <LabLegend />
+            <Box>
+                <Stack spacing={0}>
+                    {labData.map((ld) => (
+                        <LabDataCard key={ld.id} data={ld} allowEdits={canEdit} />
+                    ))}
+                </Stack>
 
-            <TableContainer className={styles.tableContainer}>
-                <Table className={styles.labTable} stickyHeader>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell className={styles.typeColumn}>Type</TableCell>
-                            <TableCell className={styles.nameColumn}>Name</TableCell>
-                            <TableCell className={styles.locationColumn}>Location</TableCell>
-                            <TableCell className={styles.quantityColumn}>Qty Per Station</TableCell>
-                            <TableCell className={styles.quantityColumn}>Qty Front Table</TableCell>
-                            <TableCell className={styles.notesColumn}>Notes</TableCell>
-                            <TableCell className={styles.actionsColumn}>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {labData.map((ld) => (
-                                <LabDataTableRow
-                                    key={ld.id}
-                                    data={ld}
-                                    allowEdits={canEdit}
-                                />
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                {labData.length === 0 && (
+                    <Paper elevation={0}
+                           sx={{
+                               textAlign: 'center',
+                               py: 8,
+                               bgcolor: '#fafafa',
+                               border: '2px dashed #e0e0e0'
+                           }}
+                    >
+                        <Science sx={{ fontSize: 80, mb: 2, opacity: 0.3, color: 'text.secondary' }} />
+                        <Typography variant="h6" gutterBottom color="text.secondary">
+                            No items found
+                        </Typography>
+                    </Paper>
+                )}
+            </Box>
 
             {snackbarAlert && (
                 <Snackbar
