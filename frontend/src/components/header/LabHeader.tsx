@@ -1,6 +1,6 @@
 import styles from './header.module.css'
 import EditableParagraph from '../editable-paragraph/EditableParagraph'
-import {IconButton, Tooltip} from '@mui/material'
+import {Chip, IconButton, Tooltip} from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {nonEmptyFieldValidator} from "../../utils/validators";
 
@@ -16,6 +16,7 @@ interface Props {
 export default function LabHeader({courseNumber, courseName, labName, allowEdits, onRename, onDelete}: Props) {
     return (
         <div className={styles.headerCard}>
+            <Chip label='Lab' color='primary' sx={{fontWeight: 600, mb: 2}}/>
             <div className={styles.headerContent}>
                 <div className={styles.headerText}>
                     <EditableParagraph

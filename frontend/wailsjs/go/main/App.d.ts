@@ -100,6 +100,8 @@ export function Login(arg1:string,arg2:string):Promise<number>;
 
 export function RemoveImage(arg1:number):Promise<void>;
 
+export function RemoveLabData(arg1:number):Promise<void>;
+
 export function RemoveManual(arg1:number):Promise<void>;
 
 export function RemoveReceipt(arg1:number):Promise<void>;
@@ -127,6 +129,8 @@ export function SetDefaultSearchMode(arg1:string):Promise<void>;
 export function ToggleMissing(arg1:number,arg2:boolean,arg3:string):Promise<void>;
 
 export function UpdateAsset(arg1:number,arg2:Record<string, string>):Promise<void>;
+
+export function UpdateLabData(arg1:number,arg2:string,arg3:string):Promise<void>;
 
 export function UpdateUserAccessLevel(arg1:main.User):Promise<void>;
 

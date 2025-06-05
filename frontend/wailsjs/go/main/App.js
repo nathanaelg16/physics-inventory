@@ -198,6 +198,10 @@ export function RemoveImage(arg1) {
   return window['go']['main']['App']['RemoveImage'](arg1);
 }
 
+export function RemoveLabData(arg1) {
+  return window['go']['main']['App']['RemoveLabData'](arg1);
+}
+
 export function RemoveManual(arg1) {
   return window['go']['main']['App']['RemoveManual'](arg1);
 }
@@ -252,6 +256,10 @@ export function ToggleMissing(arg1, arg2, arg3) {
 
 export function UpdateAsset(arg1, arg2) {
   return window['go']['main']['App']['UpdateAsset'](arg1, arg2);
+}
+
+export function UpdateLabData(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpdateLabData'](arg1, arg2, arg3);
 }
 
 export function UpdateUserAccessLevel(arg1) {

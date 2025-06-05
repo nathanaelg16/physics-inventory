@@ -12,13 +12,15 @@ import {
     Paper,
     Stack,
     Tooltip,
-    Typography,
-    useMediaQuery,
-    useTheme
+    Typography
 } from '@mui/material'
 import {Delete, Group, Inventory, LocationOn, Notes, Preview, Recycling, Science} from '@mui/icons-material'
 import {main} from '../../../wailsjs/go/models'
 import EditableParagraph from '../editable-paragraph/EditableParagraph'
+import {useNavigate} from "react-router";
+import {CollectionsTabIndex} from "../../views/sets-and-groups/SetsAndGroupsView";
+import {nonEmptyFieldValidator} from "../../utils/validators";
+import {RemoveLabData, UpdateLabData} from "../../../wailsjs/go/main/App";
 import LabData = main.LabData;
 
 enum LabDataType {
@@ -30,11 +32,11 @@ enum LabDataType {
 interface Props {
     data: LabData
     allowEdits: boolean
+    onEdited: (success: boolean, msg: string) => void
 }
 
-export default function LabDataCard({ data, allowEdits }: Props) {
-    const theme = useTheme()
-    const isLargeScreen = useMediaQuery(theme.breakpoints.down(1369))
+export default function LabDataCard({ data, allowEdits, onEdited }: Props) {
+    const navigate = useNavigate()
 
     const getTypeInfo = () => {
         switch (data.type) {
@@ -73,11 +75,64 @@ export default function LabDataCard({ data, allowEdits }: Props) {
         }
     }
 
+    const handleViewDetails = () => {
+        switch (data.type) {
+            case LabDataType.AssetType:
+                navigate(`/asset/${data.typeId}`)
+                break
+            case LabDataType.GroupType:
+                sessionStorage.setItem('sets_groups_tab_index', String(CollectionsTabIndex.Groups))
+                sessionStorage.setItem('selected_group', data.typeId.toString())
+                navigate('/sets-and-groups')
+                break
+            case LabDataType.SetType:
+                sessionStorage.setItem('sets_groups_tab_index', String(CollectionsTabIndex.Sets))
+                sessionStorage.setItem('selected_set', data.typeId.toString())
+                navigate('/sets-and-groups')
+                break
+            default:
+                // do nothing
+                break
+        }
+    }
+
     const typeInfo = getTypeInfo()
 
-    const handleSave = (field: string) => (newValue: string) => {
-        console.log(`Saving ${field}:`, newValue)
-        // TODO: Implement actual save functionality
+    const handleSave = (field: string) => {
+        let currentFieldValue: string
+        switch (field) {
+            case 'consumable':
+                currentFieldValue = String(data.consumable)
+                break
+            case 'notes':
+                currentFieldValue = data.notes.String
+                break
+            case 'quantityPerStation':
+                currentFieldValue = data.quantityPerStation
+                break
+            case 'quantityOnFrontTable':
+                currentFieldValue = data.quantityOnFrontTable
+                break
+            default:
+                throw new Error('unrecognized field name')
+        }
+
+        return (newValue: string) => {
+            if (currentFieldValue === newValue) return
+            UpdateLabData(data.id, field, newValue)
+                .then(() => onEdited(true, 'Field updated successfully.'))
+                .catch(() => onEdited(false, 'Unable to update field.'))
+        }
+    }
+
+    const toggleConsumable = () => {
+        handleSave('consumable')(String(!data.consumable))
+    }
+
+    const handleDelete = () => {
+        RemoveLabData(data.id)
+            .then(() => onEdited(true, 'Removed from lab successfully!'))
+            .catch(() => onEdited(false, 'Unable to remove from lab.'))
     }
 
     return (
@@ -188,6 +243,7 @@ export default function LabDataCard({ data, allowEdits }: Props) {
                                         allowEdits={allowEdits}
                                         placeholder="0"
                                         className={styles.quantityDisplay}
+                                        validator={nonEmptyFieldValidator}
                                     />
                                 </Paper>
                             </Grid>
@@ -211,6 +267,7 @@ export default function LabDataCard({ data, allowEdits }: Props) {
                                         allowEdits={allowEdits}
                                         placeholder="0"
                                         className={styles.quantityDisplay}
+                                        validator={nonEmptyFieldValidator}
                                     />
                                 </Paper>
                             </Grid>
@@ -221,31 +278,23 @@ export default function LabDataCard({ data, allowEdits }: Props) {
                     <Grid size={{xs: 12, sm: 12, lg: 1}}>
                         <Stack direction={{ xs: 'row', sm: 'row', lg: 'column' }} spacing={1} justifyContent="center">
                             <Tooltip title="View details">
-                                <IconButton
-                                    size="medium"
-                                    sx={{
-                                        bgcolor: '#f5f5f5',
-                                        '&:hover': { bgcolor: '#e0e0e0' }
-                                    }}
-                                >
+                                <IconButton size="medium" color='primary' onClick={handleViewDetails}>
                                     <Preview />
                                 </IconButton>
                             </Tooltip>
 
-                            {allowEdits && (
+                            {allowEdits && (<>
+                                <Tooltip title={data.consumable ? 'Unmark as Consumable' : 'Mark as Consumable'}>
+                                    <IconButton size='medium' color='warning' onClick={toggleConsumable}>
+                                        <Recycling />
+                                    </IconButton>
+                                </Tooltip>
                                 <Tooltip title="Remove from lab">
-                                    <IconButton
-                                        size="medium"
-                                        color="error"
-                                        sx={{
-                                            bgcolor: '#f5f5f5',
-                                            '&:hover': { bgcolor: '#ffebee' }
-                                        }}
-                                    >
+                                    <IconButton size="medium" color="error" onClick={handleDelete}>
                                         <Delete />
                                     </IconButton>
                                 </Tooltip>
-                            )}
+                            </>)}
                         </Stack>
                     </Grid>
                 </Grid>

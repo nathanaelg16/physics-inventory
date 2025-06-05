@@ -85,6 +85,21 @@ export default function LabView() {
         console.log('Delete lab functionality to be implemented')
     }
 
+    const handleEdited = (success: boolean, msg: string) => {
+        if (success) {
+            setSnackbarAlert({
+                severity: 'success',
+                msg: msg
+            })
+            fetchLabData()
+        } else {
+            setSnackbarAlert({
+                severity: 'error',
+                msg: msg
+            })
+        }
+    }
+
     if (loading) {
         return (
             <Box className={styles.container}>
@@ -136,7 +151,7 @@ export default function LabView() {
             <Box>
                 <Stack spacing={0}>
                     {labData.map((ld) => (
-                        <LabDataCard key={ld.id} data={ld} allowEdits={canEdit} />
+                        <LabDataCard key={ld.id} data={ld} allowEdits={canEdit} onEdited={handleEdited} />
                     ))}
                 </Stack>
 

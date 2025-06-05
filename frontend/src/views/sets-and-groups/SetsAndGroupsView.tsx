@@ -6,22 +6,22 @@ import {useSessionStorage} from "@uidotdev/usehooks";
 import Groups from '../../components/groups/Groups';
 import Sets from "../../components/sets/Sets";
 
-enum TabIndex {
+export enum CollectionsTabIndex {
     Sets = 0,
     Groups = 1,
 }
 
 export default function SetsAndGroupsView() {
-    const [tabIndex, setTabIndex] = useSessionStorage<TabIndex>('sets_groups_tab_index', TabIndex.Sets)
+    const [tabIndex, setTabIndex] = useSessionStorage<CollectionsTabIndex>('sets_groups_tab_index', CollectionsTabIndex.Sets)
 
     const handleChange = (event: SyntheticEvent, newValue: number) => {
-        const newTabIndex: TabIndex = newValue as TabIndex
+        const newTabIndex: CollectionsTabIndex = newValue as CollectionsTabIndex
         setTabIndex(newTabIndex)
     }
 
     const navigateToGroup = (groupId: number) => {
         sessionStorage.setItem('selected_group', String(groupId))
-        setTabIndex(TabIndex.Groups)
+        setTabIndex(CollectionsTabIndex.Groups)
     }
 
     return <div className='sets-and-groups-view'>
@@ -32,8 +32,8 @@ export default function SetsAndGroupsView() {
                 <Tab label='Sets' />
                 <Tab label='Groups' />
             </Tabs>
-            { tabIndex === TabIndex.Sets && <Sets onNavigateToGroup={navigateToGroup} /> }
-            { tabIndex === TabIndex.Groups && <Groups /> }
+            { tabIndex === CollectionsTabIndex.Sets && <Sets onNavigateToGroup={navigateToGroup} /> }
+            { tabIndex === CollectionsTabIndex.Groups && <Groups /> }
         </div>
 
     </div>

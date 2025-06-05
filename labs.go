@@ -282,3 +282,60 @@ func (a *App) GetLabData(labId int64) ([]LabData, error) {
 
 	return labData, nil
 }
+
+func (a *App) UpdateLabData(id int64, field string, newValue string) error {
+	var err error
+
+	switch field {
+	case "notes":
+		var notes sql.NullString
+		if len(newValue) > 0 {
+			notes = sql.NullString{String: newValue, Valid: true}
+		} else {
+			notes = sql.NullString{String: "", Valid: false}
+		}
+		_, err = a.db.Exec("update lab_data set notes = ? where id = ?;", notes, id)
+	case "consumable":
+		var consumable bool
+		if newValue == "true" {
+			consumable = true
+		} else if newValue == "false" {
+			consumable = false
+		} else {
+			err = fmt.Errorf("unknown consumable value: %v", newValue)
+			break
+		}
+		_, err = a.db.Exec("update lab_data set consumable = ? where id = ?;", consumable, id)
+	case "quantityPerStation":
+		if len(newValue) == 0 {
+			err = fmt.Errorf("quantityPerStation is required")
+			break
+		}
+		_, err = a.db.Exec("update lab_data set quantity_per_station = ? where id = ?;", newValue, id)
+	case "quantityOnFrontTable":
+		if len(newValue) == 0 {
+			err = fmt.Errorf("quantityOnFrontTable is required")
+			break
+		}
+		_, err = a.db.Exec("update lab_data set quantity_on_front_table = ? where id = ?;", newValue, id)
+	default:
+		err = fmt.Errorf("unknown field: %v", field)
+	}
+
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error updating lab data: %v", err)
+		return fmt.Errorf("error updating lab data: %v", err)
+	}
+
+	return nil
+}
+
+func (a *App) RemoveLabData(id int64) error {
+	_, err := a.db.Exec("delete from lab_data where id = ?;", id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error removing lab data: %v", err)
+		return fmt.Errorf("error removing lab data: %v", err)
+	}
+
+	return nil
+}
