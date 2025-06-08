@@ -66,6 +66,10 @@ export function DeleteGroupAssetAssociatedByRecordLocator(arg1, arg2) {
   return window['go']['main']['App']['DeleteGroupAssetAssociatedByRecordLocator'](arg1, arg2);
 }
 
+export function DeleteLab(arg1) {
+  return window['go']['main']['App']['DeleteLab'](arg1);
+}
+
 export function DeleteLabCourse(arg1) {
   return window['go']['main']['App']['DeleteLabCourse'](arg1);
 }

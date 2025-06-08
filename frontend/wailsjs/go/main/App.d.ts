@@ -34,6 +34,8 @@ export function DeleteGroupAssetAssociatedById(arg1:number,arg2:number):Promise<
 
 export function DeleteGroupAssetAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
 
+export function DeleteLab(arg1:number):Promise<void>;
+
 export function DeleteLabCourse(arg1:string):Promise<void>;
 
 export function DeleteSet(arg1:number):Promise<void>;

@@ -3,9 +3,22 @@ import {useNavigate, useParams} from 'react-router'
 import {useContext, useEffect, useState} from 'react'
 import {AccessLevel, AuthContext} from '../../utils/auth'
 import {main} from '../../../wailsjs/go/models'
-import {GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
+import {DeleteLab, GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
-import {Alert, Box, Button, Paper, Skeleton, Snackbar, Stack, Typography,} from '@mui/material'
+import {
+    Alert,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Paper,
+    Skeleton,
+    Snackbar,
+    Stack,
+    Typography,
+} from '@mui/material'
 import LabHeader from '../../components/header/LabHeader'
 import {ArrowBack, Science} from '@mui/icons-material'
 import LabDataCard from "../../components/lab-data-card/LabDataCard";
@@ -20,6 +33,8 @@ export default function LabView() {
     const [labDetails, setLabDetails] = useState<LabDetails>()
     const [labData, setLabData] = useState<LabData[]>([])
     const [loading, setLoading] = useState(true)
+
+    const [showDeleteLabDialog, setShowDeleteLabDialog] = useState(false)
 
     const [snackbarAlert, setSnackbarAlert] = useState<SnackbarAlert | null>()
 
@@ -80,9 +95,21 @@ export default function LabView() {
         }
     }
 
-    const handleDeleteLab = () => {
-        // TODO: implement this
-        console.log('Delete lab functionality to be implemented')
+    const deleteLab = async () => {
+        if (id === undefined) return
+        try {
+            await DeleteLab(parseInt(id))
+            setSnackbarAlert({
+                severity: 'success',
+                msg: 'Lab deleted successfully'
+            })
+            setTimeout(() => navigate('/labs'), 1500)
+        } catch (err) {
+            setSnackbarAlert({
+                severity: 'error',
+                msg: err as string
+            })
+        }
     }
 
     const handleEdited = (success: boolean, msg: string) => {
@@ -145,7 +172,7 @@ export default function LabView() {
                 labName={labDetails.labName}
                 allowEdits={canEdit}
                 onRename={renameLab}
-                onDelete={handleDeleteLab}
+                onDelete={() => setShowDeleteLabDialog(true)}
             />
 
             <Box>
@@ -171,6 +198,22 @@ export default function LabView() {
                     </Paper>
                 )}
             </Box>
+
+            <Dialog open={showDeleteLabDialog} onClose={() => setShowDeleteLabDialog(false)}>
+                <DialogTitle>Delete Lab</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete this lab? This action cannot be undone.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowDeleteLabDialog(false)}>Cancel</Button>
+                    <Button color='error' variant='contained' onClick={() => {
+                        setShowDeleteLabDialog(false)
+                        deleteLab()
+                    }}>Delete</Button>
+                </DialogActions>
+            </Dialog>
 
             {snackbarAlert && (
                 <Snackbar

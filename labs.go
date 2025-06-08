@@ -164,6 +164,35 @@ func (a *App) RenameLab(labId int64, labName string) error {
 	return nil
 }
 
+func (a *App) DeleteLab(labId int64) error {
+	tx, err := a.db.Begin()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred beginning transaction: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("delete from lab_data where lab_id = ?;", labId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred deleting lab data: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	_, err = tx.Exec("delete from labs where id = ?;", labId)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred deleting lab: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "an error occurred committing transaction: %v", err)
+		return fmt.Errorf("a database error occurred")
+	}
+
+	return nil
+}
+
 func (a *App) GetLabCourses() ([]LabCourse, error) {
 	labCourses := make([]LabCourse, 0, 10)
 
