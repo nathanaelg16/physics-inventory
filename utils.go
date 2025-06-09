@@ -533,7 +533,7 @@ func formatRecordLocator(recordLocator int64) string {
 		return ""
 	}
 
-	return strconv.FormatInt(recordLocator, 10)
+	return fmt.Sprintf("%05d", recordLocator)
 }
 
 // determineMimeType determines the MIME type of a file based on its byte signature
