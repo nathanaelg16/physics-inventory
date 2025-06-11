@@ -64,6 +64,8 @@ export function ExportGroupPDF(arg1:number):Promise<void>;
 
 export function ExportLabCSV(arg1:number):Promise<void>;
 
+export function ExportLabPDF(arg1:number):Promise<void>;
+
 export function ExportSetCSV(arg1:number):Promise<void>;
 
 export function ExportSetPDF(arg1:number):Promise<void>;

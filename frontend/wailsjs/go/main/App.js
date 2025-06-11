@@ -126,6 +126,10 @@ export function ExportLabCSV(arg1) {
   return window['go']['main']['App']['ExportLabCSV'](arg1);
 }
 
+export function ExportLabPDF(arg1) {
+  return window['go']['main']['App']['ExportLabPDF'](arg1);
+}
+
 export function ExportSetCSV(arg1) {
   return window['go']['main']['App']['ExportSetCSV'](arg1);
 }

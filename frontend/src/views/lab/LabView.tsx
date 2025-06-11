@@ -3,7 +3,7 @@ import {useNavigate, useParams} from 'react-router'
 import {useContext, useEffect, useState} from 'react'
 import {AccessLevel, AuthContext} from '../../utils/auth'
 import {main} from '../../../wailsjs/go/models'
-import {DeleteLab, ExportLabCSV, GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
+import {DeleteLab, ExportLabCSV, ExportLabPDF, GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
     Alert,
@@ -116,6 +116,15 @@ export default function LabView() {
         if (id === undefined) return
         if (option === 'csv') {
             ExportLabCSV(parseInt(id))
+                .then(() => setSnackbarAlert({
+                    severity: 'success',
+                    msg: 'Export completed successfully.'
+                })).catch((err) => setSnackbarAlert({
+                    severity: 'error',
+                    msg: err
+                }))
+        } else {
+            ExportLabPDF(parseInt(id))
                 .then(() => setSnackbarAlert({
                     severity: 'success',
                     msg: 'Export completed successfully.'

@@ -462,3 +462,231 @@ func (a *App) ExportLabCSV(id int64) error {
 
 	return nil
 }
+
+func (a *App) ExportLabPDF(id int64) error {
+	labDetails, err := a.GetLabDetails(id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting lab details for export: %v", err)
+		return err
+	}
+
+	currDate := time.Now().Format("0601020304")
+	fileName, err := chooseSaveFile(&a.ctx, PDF, fmt.Sprintf("%s-%s-%s.pdf", labDetails.CourseNumber, labDetails.LabName, currDate))
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+
+	// this can happen when the user cancels the save dialog, according to the Wails docs
+	if len(fileName) == 0 {
+		runtime.LogInfo(a.ctx, "user canceled save dialog")
+		return nil
+	}
+
+	pdf, err := a.initializePDF()
+	if err != nil {
+		return err
+	}
+
+	// Add first page
+	pdf.AddPage()
+
+	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
+	defer runtime.EventsEmit(a.ctx, "export-progress", 1.0)
+
+	labData, err := a.GetLabData(id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting lab data: %v", err)
+		return err
+	}
+
+	totalData := len(labData)
+
+	// Lab title with course info
+	pdf.SetFont("Helvetica", "B", 16)
+	pdf.SetTextColor(0, 51, 102) // Dark blue for titles
+	pdf.CellFormat(0, 10, fmt.Sprintf("%s - %s", labDetails.CourseNumber, labDetails.CourseName), "", 1, "C", false, 0, "")
+	pdf.SetFont("Helvetica", "B", 14)
+	pdf.CellFormat(0, 8, labDetails.LabName, "", 1, "C", false, 0, "")
+	pdf.Ln(8)
+
+	// Configuration
+	baseRowHeight := 6.5
+	itemSpacing := 3.0  // Space between items for better separation
+	pageHeight := 279.4 // Letter height in mm
+	bottomMargin := 20.0
+	maxY := pageHeight - bottomMargin
+	leftMargin := 15.0
+
+	// Column widths for letter size (185mm usable width) - adjusted for consumable overflow
+	nameWidth := 70.0 // Reduced slightly from 75.0
+	typeWidth := 18.0
+	locationWidth := 35.0
+	perStationWidth := 22.0
+	frontTableWidth := 22.0
+	consumableWidth := 23.0 // Increased from 18.0
+
+	// Helper function to calculate required height for text in a cell
+	calculateTextHeight := func(text string, width float64, fontSize float64) float64 {
+		if text == "" {
+			return baseRowHeight
+		}
+		pdf.SetFont("Helvetica", "", fontSize)
+		lines := pdf.SplitLines([]byte(text), width-4) // -4 for better cell padding
+		lineCount := len(lines)
+		if lineCount == 0 {
+			lineCount = 1
+		}
+		return float64(lineCount) * baseRowHeight
+	}
+
+	// Helper function to draw table header
+	drawTableHeader := func() {
+		pdf.SetFont("Helvetica", "B", 10)
+		pdf.SetTextColor(255, 255, 255) // White text
+		pdf.SetFillColor(0, 51, 102)    // Dark blue background
+
+		headerHeight := baseRowHeight * 1.5
+		pdf.CellFormat(nameWidth, headerHeight, "Item Name", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(typeWidth, headerHeight, "Type", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(locationWidth, headerHeight, "Location", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(perStationWidth, headerHeight, "Per Station", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(frontTableWidth, headerHeight, "Front Table", "1", 0, "C", true, 0, "")
+		pdf.CellFormat(consumableWidth, headerHeight, "Consumable", "1", 1, "C", true, 0, "")
+
+		// Reset text color
+		pdf.SetTextColor(0, 0, 0)
+	}
+
+	// Helper function to draw multi-line cell content
+	drawMultiLineCell := func(x, y, width, height float64, text string, fontSize float64, align string, border bool, fill bool) {
+		if fill {
+			pdf.SetFillColor(248, 248, 248)
+			pdf.Rect(x, y, width, height, "F")
+		}
+
+		if text != "" {
+			pdf.SetFont("Helvetica", "", fontSize)
+			pdf.SetXY(x+2, y) // Better padding for readability
+			pdf.MultiCell(width-4, baseRowHeight, text, "", align, false)
+		}
+
+		if border {
+			pdf.SetDrawColor(0, 0, 0) // Black borders for better visibility
+			pdf.Rect(x, y, width, height, "D")
+		}
+	}
+
+	// Draw initial table header
+	drawTableHeader()
+	rowIndex := 0
+
+	// Process each lab data item
+	for i, labDatum := range labData {
+		// Handle empty values
+		name := labDatum.Name.String
+
+		location := labDatum.Location.String
+
+		notes := labDatum.Notes.String
+
+		// Calculate required height for this row based on longest text
+		nameHeight := calculateTextHeight(name, nameWidth, 9)
+		locationHeight := calculateTextHeight(location, locationWidth, 9)
+		notesHeight := float64(0)
+		if notes != "" {
+			notesHeight = calculateTextHeight(notes, nameWidth+typeWidth+locationWidth, 9) // Notes span multiple columns
+		}
+
+		// Row height is the maximum of all text heights, minimum baseRowHeight
+		rowHeight := nameHeight
+		if locationHeight > rowHeight {
+			rowHeight = locationHeight
+		}
+		if rowHeight < baseRowHeight {
+			rowHeight = baseRowHeight
+		}
+
+		// Additional height for notes if present
+		totalItemHeight := rowHeight
+		if notes != "" {
+			totalItemHeight += notesHeight
+		}
+		// Add spacing between items
+		totalItemHeight += itemSpacing
+
+		// Check if we need a new page
+		if pdf.GetY()+totalItemHeight+baseRowHeight > maxY { // +baseRowHeight for header
+			pdf.AddPage()
+			pdf.Ln(5)
+			drawTableHeader()
+			rowIndex = 0
+		}
+
+		currentY := pdf.GetY()
+		fillColor := false // Consistent white background for all rows
+
+		// Consumable indicator
+		consumableText := ""
+		if labDatum.Consumable {
+			consumableText = "Yes"
+		} else {
+			consumableText = "No"
+		}
+
+		// Draw main row cells with proper heights
+		drawMultiLineCell(leftMargin, currentY, nameWidth, rowHeight, name, 9, "L", true, fillColor)
+		drawMultiLineCell(leftMargin+nameWidth, currentY, typeWidth, rowHeight, labDatum.Type.String(), 9, "C", true, fillColor)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth, currentY, locationWidth, rowHeight, location, 9, "L", true, fillColor)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth, currentY, perStationWidth, rowHeight, labDatum.QuantityPerStation, 9, "C", true, fillColor)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth+perStationWidth, currentY, frontTableWidth, rowHeight, labDatum.QuantityOnFrontTable, 9, "C", true, fillColor)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth+perStationWidth+frontTableWidth, currentY, consumableWidth, rowHeight, consumableText, 9, "C", true, fillColor)
+
+		// Move to next line
+		pdf.SetY(currentY + rowHeight)
+
+		// Add notes row if present
+		if notes != "" {
+			notesY := pdf.GetY()
+
+			// Notes label
+			pdf.SetFont("Helvetica", "B", 9)
+			pdf.SetXY(leftMargin+3, notesY+2)
+			pdf.CellFormat(25, baseRowHeight, "Notes:", "", 0, "L", false, 0, "")
+
+			// Notes content spanning remaining width
+			notesStartX := leftMargin + 28
+			notesWidth := nameWidth + typeWidth + locationWidth + perStationWidth + frontTableWidth + consumableWidth - 28
+			drawMultiLineCell(notesStartX, notesY, notesWidth, notesHeight, notes, 9, "L", true, fillColor)
+
+			// Draw border around entire notes section
+			pdf.SetDrawColor(0, 0, 0) // Black borders to match cells
+			pdf.Rect(leftMargin, notesY, nameWidth+typeWidth+locationWidth+perStationWidth+frontTableWidth+consumableWidth, notesHeight, "D")
+
+			pdf.SetY(notesY + notesHeight)
+		}
+
+		// Add spacing between items
+		pdf.SetY(pdf.GetY() + itemSpacing)
+
+		rowIndex++
+
+		// Update progress
+		runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalData))
+	}
+
+	// Add footer information
+	pdf.Ln(10)
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetTextColor(100, 100, 100)
+	pdf.CellFormat(0, 5, fmt.Sprintf("Generated on %s", time.Now().Format("January 2, 2006 at 3:04 PM")), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 5, fmt.Sprintf("Total items: %d", totalData), "", 1, "L", false, 0, "")
+
+	err = pdf.OutputFileAndClose(fileName)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+
+	return nil
+}
