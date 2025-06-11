@@ -2,11 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type LabDataType uint8
@@ -16,6 +20,19 @@ const (
 	GroupType LabDataType = 1
 	SetType   LabDataType = 2
 )
+
+func (l LabDataType) String() string {
+	switch l {
+	case AssetType:
+		return "Asset"
+	case GroupType:
+		return "Group"
+	case SetType:
+		return "Set"
+	default:
+		return "Unknown"
+	}
+}
 
 type LabCourse struct {
 	CourseNumber string `json:"courseNumber"`
@@ -364,6 +381,83 @@ func (a *App) RemoveLabData(id int64) error {
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error removing lab data: %v", err)
 		return fmt.Errorf("error removing lab data: %v", err)
+	}
+
+	return nil
+}
+
+func (a *App) ExportLabCSV(id int64) error {
+	labDetails, err := a.GetLabDetails(id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting lab details for export: %v", err)
+		return err
+	}
+
+	currDate := time.Now().Format("0601020304")
+	fileName, err := chooseSaveFile(&a.ctx, CSV, fmt.Sprintf("%s-%s-%s", labDetails.CourseNumber, labDetails.LabName, currDate))
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+
+	// this can happen when the user cancels the save dialog, according to the Wails docs
+	if len(fileName) == 0 {
+		runtime.LogInfo(a.ctx, "user canceled save dialog")
+		return nil
+	}
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return err
+	}
+	defer file.Close()
+
+	hasErrors := false
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	err = writer.Write([]string{"Type", "Name", "Location", "Qty per Station", "Qty Front Table", "Consumable", "Notes"})
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		hasErrors = true
+	}
+
+	labData, err := a.GetLabData(id)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error getting lab data: %v", err)
+		return err
+	}
+
+	totalData := len(labData)
+
+	runtime.EventsEmit(a.ctx, "export-progress", 0.0)
+	defer runtime.EventsEmit(a.ctx, "export-progress", 1.0)
+
+	for i, labDatum := range labData {
+		err := writer.Write([]string{
+			labDatum.Type.String(),
+			labDatum.Name.String,
+			labDatum.Location.String,
+			labDatum.QuantityPerStation,
+			labDatum.QuantityOnFrontTable,
+			strconv.FormatBool(labDatum.Consumable),
+			labDatum.Notes.String,
+		})
+
+		if err != nil {
+			runtime.LogError(a.ctx, err.Error())
+			hasErrors = true
+		}
+
+		runtime.EventsEmit(a.ctx, "export-progress", float64(i+1)/float64(totalData))
+	}
+
+	writer.Flush()
+
+	if hasErrors {
+		return fmt.Errorf("operation completed with errors")
 	}
 
 	return nil

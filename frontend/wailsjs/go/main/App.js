@@ -122,6 +122,10 @@ export function ExportGroupPDF(arg1) {
   return window['go']['main']['App']['ExportGroupPDF'](arg1);
 }
 
+export function ExportLabCSV(arg1) {
+  return window['go']['main']['App']['ExportLabCSV'](arg1);
+}
+
 export function ExportSetCSV(arg1) {
   return window['go']['main']['App']['ExportSetCSV'](arg1);
 }

@@ -25,6 +25,11 @@
     margin: 0;
 }
 
+.header-actions {
+    display: flex;
+    flex-direction: row;
+}
+
 .course-info {
     margin-top: 8px;
     background-color: #f8f9fa;
@@ -39,8 +44,4 @@
 
 .course-subtitle {
     margin-top: 8px;
-}
-
-.delete-button {
-    flex-shrink: 0;
 }

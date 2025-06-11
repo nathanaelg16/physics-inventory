@@ -3,7 +3,7 @@ import {useNavigate, useParams} from 'react-router'
 import {useContext, useEffect, useState} from 'react'
 import {AccessLevel, AuthContext} from '../../utils/auth'
 import {main} from '../../../wailsjs/go/models'
-import {DeleteLab, GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
+import {DeleteLab, ExportLabCSV, GetLabData, GetLabDetails, RenameLab} from '../../../wailsjs/go/main/App'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
     Alert,
@@ -112,6 +112,20 @@ export default function LabView() {
         }
     }
 
+    const handleExport = (option: 'csv' | 'pdf') => {
+        if (id === undefined) return
+        if (option === 'csv') {
+            ExportLabCSV(parseInt(id))
+                .then(() => setSnackbarAlert({
+                    severity: 'success',
+                    msg: 'Export completed successfully.'
+                })).catch((err) => setSnackbarAlert({
+                    severity: 'error',
+                    msg: err
+                }))
+        }
+    }
+
     const handleEdited = (success: boolean, msg: string) => {
         if (success) {
             setSnackbarAlert({
@@ -173,6 +187,7 @@ export default function LabView() {
                 allowEdits={canEdit}
                 onRename={renameLab}
                 onDelete={() => setShowDeleteLabDialog(true)}
+                onExport={handleExport}
             />
 
             <Box>
