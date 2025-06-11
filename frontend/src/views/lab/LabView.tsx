@@ -22,6 +22,7 @@ import {
 import LabHeader from '../../components/header/LabHeader'
 import {ArrowBack, Science} from '@mui/icons-material'
 import LabDataCard from "../../components/lab-data-card/LabDataCard";
+import ExportProgress from "../../components/export-progress/ExportProgress";
 import LabDetails = main.LabDetails;
 import LabData = main.LabData;
 
@@ -33,6 +34,7 @@ export default function LabView() {
     const [labDetails, setLabDetails] = useState<LabDetails>()
     const [labData, setLabData] = useState<LabData[]>([])
     const [loading, setLoading] = useState(true)
+    const [isExporting, setExporting] = useState(false);
 
     const [showDeleteLabDialog, setShowDeleteLabDialog] = useState(false)
 
@@ -114,6 +116,7 @@ export default function LabView() {
 
     const handleExport = (option: 'csv' | 'pdf') => {
         if (id === undefined) return
+        setExporting(true)
         if (option === 'csv') {
             ExportLabCSV(parseInt(id))
                 .then(() => setSnackbarAlert({
@@ -198,6 +201,8 @@ export default function LabView() {
                 onDelete={() => setShowDeleteLabDialog(true)}
                 onExport={handleExport}
             />
+
+            <ExportProgress isExporting={isExporting} onExportComplete={() => setExporting(false)} />
 
             <Box>
                 <Stack spacing={0}>
