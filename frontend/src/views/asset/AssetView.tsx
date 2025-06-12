@@ -19,7 +19,7 @@ import {
     useMediaQuery,
     useTheme
 } from '@mui/material'
-import {ArrowBack, Close, ErrorOutline, Save} from '@mui/icons-material'
+import {ArrowBack, Close, CopyAll, Delete, Download, ErrorOutline, Save} from '@mui/icons-material'
 import {main} from '../../../wailsjs/go/models'
 import {MouseEvent, useContext, useEffect, useRef, useState} from 'react'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
@@ -54,7 +54,7 @@ import AssetMissingUpdater from "../../components/asset-missing-updater/AssetMis
 import AssetImageManager from "../../components/asset-image-manager/AssetImageManager";
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
 import {AccessLevel, AuthContext} from "../../utils/auth";
-import AddToCollectionsDialog from "../../components/add-to-collections-dialog/AddToCollectionsDialog";
+import AddToCollectionsButton from "../../components/add-to-collections-button/AddToCollectionsButton";
 import Asset = main.Asset;
 
 export default function AssetView() {
@@ -580,10 +580,11 @@ export default function AssetView() {
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <Button variant='outlined'
-                            color='secondary'
+                            color='primary'
                             disabled={loading || hasEdits}
                             size={isSmallScreen ? 'small' : 'medium'}
                             onClick={handleExportMenuOpen}
+                            startIcon={<Download />}
                     >
                         Export
                     </Button>
@@ -592,20 +593,19 @@ export default function AssetView() {
                         <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
                     </Menu>
                     {canEdit && (
-                        <AddToCollectionsDialog
-                            assetId={asset.id}
-                            recordLocator={asset.recordLocator}
-                            disabled={loading || hasEdits}
-                        />
-                    )}
-                    {canEdit && (
                         <>
+                            <AddToCollectionsButton
+                                assetId={asset.id}
+                                recordLocator={asset.recordLocator}
+                                disabled={loading || hasEdits}
+                            />
                             <Button
                                 variant="outlined"
                                 color="primary"
                                 onClick={handleDuplicateAsset}
                                 disabled={loading || hasEdits}
                                 size={isSmallScreen ? 'small' : 'medium'}
+                                startIcon={<CopyAll />}
                             >
                                 Duplicate
                             </Button>
@@ -615,6 +615,7 @@ export default function AssetView() {
                                 onClick={handleDeleteConfirmation}
                                 disabled={loading || hasEdits}
                                 size={isSmallScreen ? 'small' : 'medium'}
+                                startIcon={<Delete />}
                             >
                                 Delete
                             </Button>

@@ -66,7 +66,7 @@ function TabPanel(props: TabPanelProps) {
     )
 }
 
-export default function AddToCollectionsDialog({assetId, recordLocator, disabled = false}: DialogProps) {
+export default function AddToCollectionsButton({assetId, recordLocator, disabled = false}: DialogProps) {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [tabValue, setTabValue] = useState(0)
     const [availableSets, setAvailableSets] = useState<main.Set[]>([])
