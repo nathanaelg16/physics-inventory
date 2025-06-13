@@ -1,0 +1,82 @@
+.dialogContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    min-height: 300px;
+}
+
+.formSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sectionTitle {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.courseSelection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.quantityFields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.notesField {
+    min-height: 100px;
+}
+
+.divider {
+    margin: 0.5rem 0 !important;
+}
+
+.dialogActions {
+    padding: 1rem 1.5rem !important;
+    gap: 0.75rem;
+}
+
+.cancelButton {
+    color: #6b7280 !important;
+}
+
+.addButton {
+    min-width: 80px;
+}
+
+.alert {
+    margin-bottom: 1rem !important;
+}
+
+.selectField {
+    background-color: #f9fafb;
+}
+
+.selectField:hover {
+    background-color: #f3f4f6;
+}
+
+.selectField.Mui-focused {
+    background-color: #ffffff;
+}
+
+@media (max-width: 600px) {
+    .quantityFields {
+        grid-template-columns: 1fr;
+    }
+
+    .dialogContent {
+        gap: 1rem;
+        min-height: 250px;
+    }
+}
