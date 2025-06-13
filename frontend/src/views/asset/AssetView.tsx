@@ -55,6 +55,7 @@ import AssetImageManager from "../../components/asset-image-manager/AssetImageMa
 import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from "../../utils/validators";
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import AddToCollectionsButton from "../../components/add-to-collections-button/AddToCollectionsButton";
+import AddToLabButton from "../../components/add-to-lab-button/AddToLabButton";
 import Asset = main.Asset;
 
 export default function AssetView() {
@@ -521,6 +522,10 @@ export default function AssetView() {
             }))
     }
 
+    const handleAddToLab = (labId: number, qtyPerStation: string, qtyFrontTable: string, notes: string) => {
+        // todo implement this
+    }
+
     // Helper function to check if a field has been edited
     const isFieldEdited = (fieldName: string): boolean => {
         return edits.hasOwnProperty(fieldName)
@@ -597,6 +602,10 @@ export default function AssetView() {
                             <AddToCollectionsButton
                                 assetId={asset.id}
                                 recordLocator={asset.recordLocator}
+                                disabled={loading || hasEdits}
+                            />
+                            <AddToLabButton
+                                onSave={handleAddToLab}
                                 disabled={loading || hasEdits}
                             />
                             <Button
