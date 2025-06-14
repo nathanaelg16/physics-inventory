@@ -329,6 +329,37 @@ func (a *App) GetLabData(labId int64) ([]LabData, error) {
 	return labData, nil
 }
 
+func (a *App) AddLabData(labId int64, labDataType LabDataType, labDataTypeId int64, qtyPerStation string, qtyFrontTable string, consumable bool, notes string) error {
+	if qtyPerStation == "" {
+		return fmt.Errorf("quantity per station is required")
+	}
+
+	if qtyFrontTable == "" {
+		return fmt.Errorf("quantity front table is required")
+	}
+
+	var sqlNotes sql.NullString
+	if len(notes) > 0 {
+		sqlNotes = sql.NullString{
+			Valid:  true,
+			String: notes,
+		}
+	} else {
+		sqlNotes = sql.NullString{
+			Valid:  false,
+			String: "",
+		}
+	}
+
+	_, err := a.db.Exec("insert into lab_data (lab_id, type, type_id, quantity_per_station, quantity_on_front_table, consumable, notes) values (?, ?, ?, ?, ?, ?, ?);", labId, labDataType, labDataTypeId, qtyPerStation, qtyFrontTable, consumable, sqlNotes)
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "error adding lab data: %v", err)
+		return fmt.Errorf("a database error occurred: %v", err)
+	}
+
+	return nil
+}
+
 func (a *App) UpdateLabData(id int64, field string, newValue string) error {
 	var err error
 

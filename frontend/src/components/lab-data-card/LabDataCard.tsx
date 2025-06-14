@@ -21,13 +21,8 @@ import {useNavigate} from "react-router";
 import {CollectionsTabIndex} from "../../views/sets-and-groups/SetsAndGroupsView";
 import {nonEmptyFieldValidator} from "../../utils/validators";
 import {RemoveLabData, UpdateLabData} from "../../../wailsjs/go/main/App";
+import {LabDataType} from "../../utils/lab-data-type";
 import LabData = main.LabData;
-
-enum LabDataType {
-    AssetType = 0,
-    GroupType = 1,
-    SetType = 2
-}
 
 interface Props {
     data: LabData

@@ -8,6 +8,8 @@ export function AddGroupAssetAssociatedById(arg1:number,arg2:number):Promise<voi
 
 export function AddGroupAssetAssociatedByRecordLocator(arg1:number,arg2:number):Promise<void>;
 
+export function AddLabData(arg1:number,arg2:main.LabDataType,arg3:number,arg4:string,arg5:string,arg6:boolean,arg7:string):Promise<void>;
+
 export function AddSetRecordAssociatedByGroup(arg1:number,arg2:number):Promise<void>;
 
 export function AddSetRecordAssociatedById(arg1:number,arg2:number):Promise<void>;

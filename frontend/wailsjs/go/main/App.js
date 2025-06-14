@@ -14,6 +14,10 @@ export function AddGroupAssetAssociatedByRecordLocator(arg1, arg2) {
   return window['go']['main']['App']['AddGroupAssetAssociatedByRecordLocator'](arg1, arg2);
 }
 
+export function AddLabData(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  return window['go']['main']['App']['AddLabData'](arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+}
+
 export function AddSetRecordAssociatedByGroup(arg1, arg2) {
   return window['go']['main']['App']['AddSetRecordAssociatedByGroup'](arg1, arg2);
 }

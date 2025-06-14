@@ -19,11 +19,12 @@ import {
 import {useEffect, useState} from 'react'
 import {main} from '../../../wailsjs/go/models'
 import {GetLabCourses, GetLabs} from '../../../wailsjs/go/main/App'
+import YesNoToggle from "../yes-no-toggle/YesNoToggle";
 import LabCourse = main.LabCourse;
 import Lab = main.Lab;
 
 interface Props {
-    onSave: (labId: number, qtyPerStation: string, qtyFrontTable: string, notes: string) => void,
+    onSave: (labId: number, qtyPerStation: string, qtyFrontTable: string, consumable: boolean, notes: string) => void,
     disabled: boolean
 }
 
@@ -38,6 +39,7 @@ export default function AddToLabButton({ onSave, disabled }: Props) {
 
     const [qtyPerStation, setQtyPerStation] = useState<string>('')
     const [qtyFrontTable, setQtyFrontTable] = useState<string>('')
+    const [consumable, setConsumable] = useState<boolean>(false)
     const [notes, setNotes] = useState<string>('')
 
     const [alert, setAlert] = useState<string | null>(null)
@@ -76,7 +78,7 @@ export default function AddToLabButton({ onSave, disabled }: Props) {
 
     const handleSave = () => {
         if (!selectedLabId) return
-        onSave(selectedLabId, qtyPerStation, qtyFrontTable, notes)
+        onSave(selectedLabId, qtyPerStation, qtyFrontTable, consumable, notes)
         handleDialogClose()
     }
 
@@ -200,6 +202,15 @@ export default function AddToLabButton({ onSave, disabled }: Props) {
                                 variant='outlined'
                             />
                         </div>
+                    </div>
+
+                    <div className={styles.formSection}>
+                        <Typography className={styles.sectionTitle}>
+                            Consumable
+                        </Typography>
+
+                        <Typography>Is this item consumable?</Typography>
+                        <YesNoToggle value={consumable} setValue={(val) => setConsumable(val)}/>
                     </div>
 
                     <div className={styles.formSection}>

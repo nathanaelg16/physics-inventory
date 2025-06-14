@@ -24,6 +24,7 @@ import {main} from '../../../wailsjs/go/models'
 import {MouseEvent, useContext, useEffect, useRef, useState} from 'react'
 import {SnackbarAlert} from '../../utils/snackbar-alert'
 import {
+    AddLabData,
     AssignRecordLocator,
     ChangeImage,
     DeleteAsset,
@@ -56,6 +57,7 @@ import {currencyValidator, nonEmptyFieldValidator, recordLocatorValidator} from 
 import {AccessLevel, AuthContext} from "../../utils/auth";
 import AddToCollectionsButton from "../../components/add-to-collections-button/AddToCollectionsButton";
 import AddToLabButton from "../../components/add-to-lab-button/AddToLabButton";
+import {LabDataType} from "../../utils/lab-data-type";
 import Asset = main.Asset;
 
 export default function AssetView() {
@@ -522,8 +524,17 @@ export default function AssetView() {
             }))
     }
 
-    const handleAddToLab = (labId: number, qtyPerStation: string, qtyFrontTable: string, notes: string) => {
-        // todo implement this
+    const handleAddToLab = (labId: number, qtyPerStation: string, qtyFrontTable: string, consumable: boolean, notes: string) => {
+        if (!asset) return
+        if (qtyPerStation.trim().length == 0 || qtyFrontTable.trim().length == 0) return
+        AddLabData(labId, LabDataType.AssetType, asset.id, qtyPerStation, qtyFrontTable, consumable, notes)
+            .then(() => showAlert({
+                severity: 'success',
+                msg: 'Asset added to lab successfully!'
+            })).catch((err) => showAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            }))
     }
 
     // Helper function to check if a field has been edited
