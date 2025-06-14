@@ -655,7 +655,6 @@ func (a *App) ExportLabPDF(id int64) error {
 		}
 
 		currentY := pdf.GetY()
-		fillColor := false // Consistent white background for all rows
 
 		// Consumable indicator
 		consumableText := ""
@@ -666,12 +665,12 @@ func (a *App) ExportLabPDF(id int64) error {
 		}
 
 		// Draw main row cells with proper heights
-		drawMultiLineCell(leftMargin, currentY, nameWidth, rowHeight, name, 9, "L", true, fillColor)
-		drawMultiLineCell(leftMargin+nameWidth, currentY, typeWidth, rowHeight, labDatum.Type.String(), 9, "C", true, fillColor)
-		drawMultiLineCell(leftMargin+nameWidth+typeWidth, currentY, locationWidth, rowHeight, location, 9, "L", true, fillColor)
-		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth, currentY, perStationWidth, rowHeight, labDatum.QuantityPerStation, 9, "C", true, fillColor)
-		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth+perStationWidth, currentY, frontTableWidth, rowHeight, labDatum.QuantityOnFrontTable, 9, "C", true, fillColor)
-		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth+perStationWidth+frontTableWidth, currentY, consumableWidth, rowHeight, consumableText, 9, "C", true, fillColor)
+		drawMultiLineCell(leftMargin, currentY, nameWidth, rowHeight, name, 9, "L", true, false)
+		drawMultiLineCell(leftMargin+nameWidth, currentY, typeWidth, rowHeight, labDatum.Type.String(), 9, "C", true, false)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth, currentY, locationWidth, rowHeight, location, 9, "L", true, false)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth, currentY, perStationWidth, rowHeight, labDatum.QuantityPerStation, 9, "C", true, false)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth+perStationWidth, currentY, frontTableWidth, rowHeight, labDatum.QuantityOnFrontTable, 9, "C", true, false)
+		drawMultiLineCell(leftMargin+nameWidth+typeWidth+locationWidth+perStationWidth+frontTableWidth, currentY, consumableWidth, rowHeight, consumableText, 9, "C", true, false)
 
 		// Move to next line
 		pdf.SetY(currentY + rowHeight)
@@ -688,7 +687,7 @@ func (a *App) ExportLabPDF(id int64) error {
 			// Notes content spanning remaining width
 			notesStartX := leftMargin + 28
 			notesWidth := nameWidth + typeWidth + locationWidth + perStationWidth + frontTableWidth + consumableWidth - 28
-			drawMultiLineCell(notesStartX, notesY, notesWidth, notesHeight, notes, 9, "L", true, fillColor)
+			drawMultiLineCell(notesStartX, notesY, notesWidth, notesHeight, notes, 9, "L", true, false)
 
 			// Draw border around entire notes section
 			pdf.SetDrawColor(0, 0, 0) // Black borders to match cells
