@@ -29,6 +29,9 @@ import RenameCollectionDialog from '../collection-dialog/RenameCollectionDialog'
 import DeleteCollectionDialog from '../collection-dialog/DeleteCollectionDialog'
 import ExportProgress from '../export-progress/ExportProgress'
 import useCollectionManager from '../../hooks/useCollectionManager'
+import AddToLabButton from "../add-to-lab-button/AddToLabButton";
+import {AddLabData} from "../../../wailsjs/go/main/App";
+import {LabDataType} from "../../utils/lab-data-type";
 
 interface CollectionOperations {
     fetch: () => Promise<any[]>
@@ -171,6 +174,20 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
         setSelectedSetId(null)
     }
 
+    const handleAddToLab = (labId: number, qtyPerStation: string, qtyFrontTable: string, consumable: boolean, notes: string) => {
+        if (!selectedId) return
+        if (qtyPerStation.trim().length == 0 || qtyFrontTable.trim().length == 0) return
+        const labDataType = type == 'set' ? LabDataType.SetType : LabDataType.GroupType
+        AddLabData(labId, labDataType, selectedId, qtyPerStation, qtyFrontTable, consumable, notes)
+            .then(() => setSnackbarAlert({
+                severity: 'success',
+                msg: 'Added to lab successfully!'
+            })).catch((err) => setSnackbarAlert({
+                severity: 'error',
+                msg: `Error: ${err}`
+            }))
+    }
+
     const typeName = type.charAt(0).toUpperCase() + type.slice(1)
 
     return (
@@ -256,6 +273,10 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
 
                             {canEdit && (
                                 <>
+                                    <AddToLabButton
+                                        onSave={handleAddToLab}
+                                        disabled={false}
+                                    />
                                     <Button
                                         size="small"
                                         variant="outlined"
