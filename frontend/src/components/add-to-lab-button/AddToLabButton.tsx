@@ -10,10 +10,12 @@ import {
     DialogTitle,
     Divider,
     FormControl,
+    IconButton,
     InputLabel,
     MenuItem,
     Select,
     TextField,
+    Tooltip,
     Typography
 } from '@mui/material'
 import {useEffect, useState} from 'react'
@@ -24,11 +26,13 @@ import LabCourse = main.LabCourse;
 import Lab = main.Lab;
 
 interface Props {
-    onSave: (labId: number, qtyPerStation: string, qtyFrontTable: string, consumable: boolean, notes: string) => void,
+    onSave: (labId: number, qtyPerStation: string, qtyFrontTable: string, consumable: boolean, notes: string) => void
     disabled: boolean
+    buttonType?: 'button' | 'icon'
+    buttonSize?: 'small' | 'medium' | 'large'
 }
 
-export default function AddToLabButton({ onSave, disabled }: Props) {
+export default function AddToLabButton({ onSave, disabled, buttonType = 'button', buttonSize = 'small' }: Props) {
     const [dialogOpen, setDialogOpen] = useState<boolean>(false)
 
     const [labCourses, setLabCourses] = useState<LabCourse[]>([])
@@ -86,16 +90,28 @@ export default function AddToLabButton({ onSave, disabled }: Props) {
 
     return (
         <>
-            <Button
-                variant='outlined'
-                color='primary'
-                startIcon={<Science />}
-                onClick={() => setDialogOpen(true)}
-                disabled={disabled}
-                size='small'
-            >
-                Add to Lab
-            </Button>
+            {buttonType === 'button' ? (
+                <Button
+                    variant='outlined'
+                    color='primary'
+                    startIcon={<Science/>}
+                    onClick={() => setDialogOpen(true)}
+                    disabled={disabled}
+                    size={buttonSize}
+                >
+                    Add to Lab
+                </Button>
+            ) : (
+                <Tooltip title='Add to Lab'>
+                    <IconButton size={buttonSize}
+                                color='primary'
+                                onClick={() => setDialogOpen(true)}
+                                disabled={disabled}
+                    >
+                        <Science/>
+                    </IconButton>
+                </Tooltip>
+            )}
 
             <Dialog
                 open={dialogOpen}

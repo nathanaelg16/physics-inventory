@@ -10,6 +10,7 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    IconButton,
     Menu,
     MenuItem,
     Skeleton,
@@ -595,15 +596,14 @@ export default function AssetView() {
                 </Button>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button variant='outlined'
-                            color='primary'
-                            disabled={loading || hasEdits}
-                            size={isSmallScreen ? 'small' : 'medium'}
-                            onClick={handleExportMenuOpen}
-                            startIcon={<Download />}
-                    >
-                        Export
-                    </Button>
+                    <Tooltip title='Export'>
+                        <IconButton size='large'
+                                    color='primary'
+                                    disabled={loading || hasEdits}
+                                    onClick={handleExportMenuOpen}>
+                            <Download />
+                        </IconButton>
+                    </Tooltip>
                     <Menu open={openExportMenu} anchorEl={exportMenuAnchor} onClose={handleExportMenuClose}>
                         <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
                         <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
@@ -614,31 +614,33 @@ export default function AssetView() {
                                 assetId={asset.id}
                                 recordLocator={asset.recordLocator}
                                 disabled={loading || hasEdits}
+                                buttonType='icon'
+                                buttonSize='large'
                             />
                             <AddToLabButton
                                 onSave={handleAddToLab}
                                 disabled={loading || hasEdits}
+                                buttonType='icon'
+                                buttonSize='large'
                             />
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                onClick={handleDuplicateAsset}
-                                disabled={loading || hasEdits}
-                                size={isSmallScreen ? 'small' : 'medium'}
-                                startIcon={<CopyAll />}
-                            >
-                                Duplicate
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                onClick={handleDeleteConfirmation}
-                                disabled={loading || hasEdits}
-                                size={isSmallScreen ? 'small' : 'medium'}
-                                startIcon={<Delete />}
-                            >
-                                Delete
-                            </Button>
+                            <Tooltip title='Duplicate'>
+                                <IconButton color='primary'
+                                            size='large'
+                                            disabled={loading || hasEdits}
+                                            onClick={handleDuplicateAsset}
+                                >
+                                    <CopyAll />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title='Delete'>
+                                <IconButton color='error'
+                                            size='large'
+                                            disabled={loading || hasEdits}
+                                            onClick={handleDeleteConfirmation}
+                                >
+                                    <Delete />
+                                </IconButton>
+                            </Tooltip>
                         </>)}
                 </div>
             </div>

@@ -10,6 +10,7 @@ import {
     FormControl,
     FormControlLabel,
     FormLabel,
+    IconButton,
     InputLabel,
     MenuItem,
     Radio,
@@ -19,9 +20,10 @@ import {
     Tab,
     Tabs,
     TextField,
+    Tooltip,
     Typography
 } from '@mui/material'
-import {Add} from '@mui/icons-material'
+import {PlaylistAdd} from '@mui/icons-material'
 import {
     AddGroupAssetAssociatedById,
     AddGroupAssetAssociatedByRecordLocator,
@@ -38,6 +40,8 @@ interface DialogProps {
     assetId: number
     recordLocator: number
     disabled?: boolean
+    buttonType?: 'button' | 'icon'
+    buttonSize?: 'small' | 'medium' | 'large'
 }
 
 interface TabPanelProps {
@@ -66,7 +70,7 @@ function TabPanel(props: TabPanelProps) {
     )
 }
 
-export default function AddToCollectionsButton({assetId, recordLocator, disabled = false}: DialogProps) {
+export default function AddToCollectionsButton({assetId, recordLocator, disabled = false, buttonType = 'button', buttonSize = 'medium'}: DialogProps) {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [tabValue, setTabValue] = useState(0)
     const [availableSets, setAvailableSets] = useState<main.Set[]>([])
@@ -218,16 +222,29 @@ export default function AddToCollectionsButton({assetId, recordLocator, disabled
 
     return (
         <>
-            <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<Add />}
-                onClick={() => setDialogOpen(true)}
-                disabled={disabled}
-                size="small"
-            >
-                Add to Set/Group
-            </Button>
+            {buttonType === 'button' ? (
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<PlaylistAdd />}
+                    onClick={() => setDialogOpen(true)}
+                    disabled={disabled}
+                    size={buttonSize}
+                >
+                    Add to Set/Group
+                </Button>
+            ) : (
+                <Tooltip title='Add to Set/Group'>
+                    <IconButton color='primary'
+                                size={buttonSize}
+                                disabled={disabled}
+                                onClick={() => setDialogOpen(true)}
+                    >
+                        <PlaylistAdd />
+                    </IconButton>
+                </Tooltip>
+            )}
+
 
             <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
                 <DialogTitle>Add Asset to Set or Group</DialogTitle>

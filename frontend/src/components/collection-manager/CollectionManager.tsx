@@ -251,24 +251,22 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
                         </Typography>
 
                         <Box display="flex" justifyContent="flex-end" gap={1} mb={2} alignItems='center'>
-                            <Button size="small" variant="outlined" startIcon={<GetApp />} onClick={handleExportMenuOpen}>
-                                Export
-                            </Button>
+                            <Tooltip title='Export'>
+                                <IconButton size='small' color='primary' onClick={handleExportMenuOpen}>
+                                    <GetApp />
+                                </IconButton>
+                            </Tooltip>
                             <Menu open={openExportMenu} anchorEl={exportMenuAnchor} onClose={handleExportMenuClose}>
                                 <MenuItem onClick={handleExportToCSV}>Export to CSV</MenuItem>
                                 <MenuItem onClick={handleExportToPDF}>Export to PDF</MenuItem>
                             </Menu>
 
                             {type === 'group' && canEdit && operations.addToSet && (
-                                <Button
-                                    size="small"
-                                    variant="outlined"
-                                    startIcon={<PlaylistAdd />}
-                                    onClick={handleOpenAddToSetDialog}
-                                    disabled={loadingSets}
-                                >
-                                    Add to Set
-                                </Button>
+                                <Tooltip title='Add to Set'>
+                                    <IconButton size='small' color='primary' onClick={handleOpenAddToSetDialog} disabled={loadingSets}>
+                                        <PlaylistAdd />
+                                    </IconButton>
+                                </Tooltip>
                             )}
 
                             {canEdit && (
@@ -276,25 +274,19 @@ export default function CollectionManager({ type, operations, storageKey, onNavi
                                     <AddToLabButton
                                         onSave={handleAddToLab}
                                         disabled={false}
+                                        buttonType='icon'
+                                        buttonSize='small'
                                     />
-                                    <Button
-                                        size="small"
-                                        variant="outlined"
-                                        startIcon={<Edit />}
-                                        onClick={() => openDialog('rename')}
-                                    >
-                                        Rename
-                                    </Button>
-
-                                    <Button
-                                        size="small"
-                                        variant="outlined"
-                                        color="error"
-                                        startIcon={<Delete />}
-                                        onClick={() => openDialog('delete')}
-                                    >
-                                        Delete
-                                    </Button>
+                                    <Tooltip title='Rename'>
+                                        <IconButton size='small' color='primary' onClick={() => openDialog('rename')}>
+                                            <Edit />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title='Delete'>
+                                        <IconButton size='small' color='error' onClick={() => openDialog('delete')}>
+                                            <Delete />
+                                        </IconButton>
+                                    </Tooltip>
                                 </>
                             )}
                         </Box>
