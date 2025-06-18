@@ -122,6 +122,8 @@ export function RenameLabCourse(arg1:string,arg2:string):Promise<void>;
 
 export function RenameSet(arg1:number,arg2:string):Promise<void>;
 
+export function RunCustomSQL():Promise<void>;
+
 export function SearchModeBoolean(arg1:string):Promise<Array<main.Asset>>;
 
 export function SearchModeFullText(arg1:string):Promise<Array<main.Asset>>;

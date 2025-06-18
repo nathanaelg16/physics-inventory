@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"database/sql"
@@ -13,6 +14,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -72,6 +74,84 @@ func chooseSaveFile(ctx *context.Context, fileType FileType, defaultFileName str
 	}
 
 	return runtime.SaveFileDialog(*ctx, dialogOptions)
+}
+
+func (a *App) RunCustomSQL() error {
+	dialogOptions := runtime.OpenDialogOptions{
+		Filters: []runtime.FileFilter{{
+			DisplayName: "SQL Files",
+			Pattern:     "*.sql",
+		}},
+	}
+
+	filePath, err := runtime.OpenFileDialog(a.ctx, dialogOptions)
+	if err != nil {
+		return err
+	}
+
+	// this can happen when user cancels OpenFileDialog, according to docs
+	if len(filePath) == 0 {
+		return nil
+	}
+
+	// Open the SQL file
+	file, err := os.Open(filePath)
+	if err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("Failed to open SQL file: %v", err))
+		return fmt.Errorf("failed to open SQL file: %v", err)
+	}
+	defer file.Close()
+
+	// Read file line by line using scanner
+	scanner := bufio.NewScanner(file)
+	var statements []string
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if len(line) > 0 {
+			statements = append(statements, line)
+		}
+	}
+
+	// Check for scanner errors
+	if err := scanner.Err(); err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("Error reading SQL file: %v", err))
+		return fmt.Errorf("error reading SQL file: %v", err)
+	}
+
+	if len(statements) == 0 {
+		runtime.LogInfo(a.ctx, "No SQL statements found in file")
+		return nil
+	}
+
+	// Execute each statement
+	successCount := 0
+	errorCount := 0
+
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Executing %d SQL statements from file: %s", len(statements), filePath))
+
+	for i, statement := range statements {
+		runtime.LogInfo(a.ctx, fmt.Sprintf("Executing statement %d: %s", i+1, statement))
+
+		_, err := a.db.Exec(statement)
+		if err != nil {
+			errorCount++
+			runtime.LogError(a.ctx, fmt.Sprintf("Error executing statement %d: %v", i+1, err))
+			runtime.LogError(a.ctx, fmt.Sprintf("Failed statement: %s", statement))
+		} else {
+			successCount++
+			runtime.LogInfo(a.ctx, fmt.Sprintf("Successfully executed statement %d", i+1))
+		}
+	}
+
+	// Log summary
+	runtime.LogInfo(a.ctx, fmt.Sprintf("SQL execution complete. Success: %d, Errors: %d", successCount, errorCount))
+
+	if errorCount > 0 {
+		return fmt.Errorf("completed with %d errors out of %d statements", errorCount, len(statements))
+	}
+
+	return nil
 }
 
 func (a *App) ExportAssetsCSV(assetIDs []int64) error {

@@ -242,6 +242,10 @@ export function RenameSet(arg1, arg2) {
   return window['go']['main']['App']['RenameSet'](arg1, arg2);
 }
 
+export function RunCustomSQL() {
+  return window['go']['main']['App']['RunCustomSQL']();
+}
+
 export function SearchModeBoolean(arg1) {
   return window['go']['main']['App']['SearchModeBoolean'](arg1);
 }

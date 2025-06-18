@@ -4,31 +4,32 @@
     padding: 24px;
 }
 
-.admin--content-card {
+.content-card {
     background-color: white;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
     overflow: hidden;
+    margin-bottom: 24px;
 }
 
-.admin--content-card-header {
+.content-card-header {
     padding: 24px 24px 0 24px;
 }
 
-.admin--section-title {
+.section-title {
     font-size: 18px;
     font-weight: 600;
     color: #263238;
     margin: 0;
 }
 
-.admin--content-card-divider {
+.content-card-divider {
     height: 1px;
     background-color: #e0e0e0;
     margin: 16px 0;
 }
 
-.admin--content-card-content {
+.content-card-content {
     padding: 0 24px 24px 24px;
 }
 
@@ -38,17 +39,13 @@
         padding: 16px;
     }
 
-    .admin--header-card,
-    .admin--content-card-header,
-    .admin--content-card-content {
+    .header-card,
+    .content-card-header,
+    .content-card-content {
         padding: 16px;
     }
 
-    .admin-title {
-        font-size: 20px;
-    }
-
-    .admin--section-title {
+    .section-title {
         font-size: 16px;
     }
 }
