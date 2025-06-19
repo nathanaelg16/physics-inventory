@@ -33,9 +33,15 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	version, err := a.GetProductVersion()
+	runtime.LogInfof(ctx, "Starting application...\nVersion: %s", version)
+	if err != nil {
+		runtime.LogErrorf(ctx, "%v", err)
+	}
 }
 
 func (a *App) shutdown(ctx context.Context) {
+	runtime.LogInfo(ctx, "Shutting down...")
 	if a.db != nil {
 		_ = a.db.Close()
 	}
