@@ -64,6 +64,10 @@ type LabDetails struct {
 }
 
 func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	courseNumber = strings.TrimSpace(courseNumber)
 	courseName = strings.TrimSpace(courseName)
 
@@ -93,6 +97,10 @@ func (a *App) CreateLabCourse(courseNumber string, courseName string) error {
 }
 
 func (a *App) RenameLabCourse(courseNumber string, courseName string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	if len(courseNumber) == 0 {
 		return fmt.Errorf("course number is empty")
 	}
@@ -113,6 +121,10 @@ func (a *App) RenameLabCourse(courseNumber string, courseName string) error {
 }
 
 func (a *App) DeleteLabCourse(courseNumber string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	tx, err := a.db.Begin()
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "an error occurred beginning transaction: %v", err)
@@ -148,6 +160,10 @@ func (a *App) DeleteLabCourse(courseNumber string) error {
 }
 
 func (a *App) CreateLab(courseNumber string, labName string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	if len(courseNumber) == 0 {
 		return fmt.Errorf("course number is empty")
 	}
@@ -168,6 +184,10 @@ func (a *App) CreateLab(courseNumber string, labName string) error {
 }
 
 func (a *App) RenameLab(labId int64, labName string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	if len(labName) == 0 {
 		return fmt.Errorf("lab name is empty")
 	}
@@ -182,6 +202,10 @@ func (a *App) RenameLab(labId int64, labName string) error {
 }
 
 func (a *App) DeleteLab(labId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	tx, err := a.db.Begin()
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "an error occurred beginning transaction: %v", err)
@@ -330,6 +354,10 @@ func (a *App) GetLabData(labId int64) ([]LabData, error) {
 }
 
 func (a *App) AddLabData(labId int64, labDataType LabDataType, labDataTypeId int64, qtyPerStation string, qtyFrontTable string, consumable bool, notes string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	if qtyPerStation == "" {
 		return fmt.Errorf("quantity per station is required")
 	}
@@ -361,6 +389,10 @@ func (a *App) AddLabData(labId int64, labDataType LabDataType, labDataTypeId int
 }
 
 func (a *App) UpdateLabData(id int64, field string, newValue string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	var err error
 
 	switch field {
@@ -408,6 +440,10 @@ func (a *App) UpdateLabData(id int64, field string, newValue string) error {
 }
 
 func (a *App) RemoveLabData(id int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("delete from lab_data where id = ?;", id)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error removing lab data: %v", err)

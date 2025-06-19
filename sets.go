@@ -14,6 +14,10 @@ type Set struct {
 }
 
 func (a *App) CreateSet(name string) (int64, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return -1, fmt.Errorf("insufficient privileges")
+	}
+
 	name = strings.TrimSpace(name)
 
 	if len(name) == 0 {
@@ -44,6 +48,10 @@ func (a *App) CreateSet(name string) (int64, error) {
 }
 
 func (a *App) RenameSet(id int64, name string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	name = strings.TrimSpace(name)
 
 	if len(name) == 0 {
@@ -68,6 +76,10 @@ func (a *App) RenameSet(id int64, name string) error {
 }
 
 func (a *App) DeleteSet(id int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	tx, err := a.db.Begin()
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "%v", err)
@@ -233,6 +245,10 @@ func (a *App) GetAssetSets(assetId int64) ([]Set, error) {
 }
 
 func (a *App) AddSetRecordAssociatedById(setId int64, assetId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("insert into set_records (set_id, asset_id) values (?, ?);", setId, assetId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error adding set record associated by id: %v", err)
@@ -243,6 +259,10 @@ func (a *App) AddSetRecordAssociatedById(setId int64, assetId int64) error {
 }
 
 func (a *App) AddSetRecordAssociatedByRecordLocator(setId int64, recordLocator int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("insert into set_records (set_id, asset_record_number) values (?, ?);", setId, recordLocator)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error adding set record associated by record locator: %v", err)
@@ -253,6 +273,10 @@ func (a *App) AddSetRecordAssociatedByRecordLocator(setId int64, recordLocator i
 }
 
 func (a *App) AddSetRecordAssociatedByGroup(setId int64, groupId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("insert into set_records (set_id, collection_group_id) values (?, ?);", setId, groupId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error adding set record associated by group: %v", err)
@@ -263,6 +287,10 @@ func (a *App) AddSetRecordAssociatedByGroup(setId int64, groupId int64) error {
 }
 
 func (a *App) DeleteSetRecordAssociatedById(setId int64, assetId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("delete from set_records where set_id = ? and asset_id = ?;", setId, assetId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error deleting set record associated by id: %v", err)
@@ -273,6 +301,10 @@ func (a *App) DeleteSetRecordAssociatedById(setId int64, assetId int64) error {
 }
 
 func (a *App) DeleteSetRecordAssociatedByRecordLocator(setId int64, recordLocator int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("delete from set_records where set_id = ? and asset_record_number = ?;", setId, recordLocator)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error deleting set record associated by record locator: %v", err)
@@ -283,6 +315,10 @@ func (a *App) DeleteSetRecordAssociatedByRecordLocator(setId int64, recordLocato
 }
 
 func (a *App) DeleteSetRecordAssociatedByGroup(setId int64, groupId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("delete from set_records where set_id = ? and collection_group_id = ?;", setId, groupId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error deleting set record associated by group: %v", err)

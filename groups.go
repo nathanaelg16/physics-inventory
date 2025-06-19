@@ -14,6 +14,10 @@ type Group struct {
 }
 
 func (a *App) CreateGroup(name string) (int64, error) {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return -1, fmt.Errorf("insufficient privileges")
+	}
+
 	name = strings.TrimSpace(name)
 
 	if len(name) == 0 {
@@ -44,6 +48,10 @@ func (a *App) CreateGroup(name string) (int64, error) {
 }
 
 func (a *App) RenameGroup(id int64, name string) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	name = strings.TrimSpace(name)
 
 	if len(name) == 0 {
@@ -68,6 +76,10 @@ func (a *App) RenameGroup(id int64, name string) error {
 }
 
 func (a *App) DeleteGroup(id int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	tx, err := a.db.Begin()
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "%v", err)
@@ -207,6 +219,10 @@ func (a *App) GetAssetGroups(assetId int64) ([]Group, error) {
 }
 
 func (a *App) AddGroupAssetAssociatedById(groupId int64, assetId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("insert into group_records (group_id, asset_id) values (?, ?);", groupId, assetId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error adding group asset associated by id: %v", err)
@@ -217,6 +233,10 @@ func (a *App) AddGroupAssetAssociatedById(groupId int64, assetId int64) error {
 }
 
 func (a *App) AddGroupAssetAssociatedByRecordLocator(groupId int64, recordLocator int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("insert into group_records (group_id, asset_record_number) values (?, ?);", groupId, recordLocator)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error adding group asset associated by record locator: %v", err)
@@ -227,6 +247,10 @@ func (a *App) AddGroupAssetAssociatedByRecordLocator(groupId int64, recordLocato
 }
 
 func (a *App) DeleteGroupAssetAssociatedById(groupId int64, assetId int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("delete from group_records where group_id = ? and asset_id = ?;", groupId, assetId)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error deleting group asset associated by id: %v", err)
@@ -237,6 +261,10 @@ func (a *App) DeleteGroupAssetAssociatedById(groupId int64, assetId int64) error
 }
 
 func (a *App) DeleteGroupAssetAssociatedByRecordLocator(groupId int64, recordLocator int64) error {
+	if ok := a.verifyMaintainerAccess(); !ok {
+		return fmt.Errorf("insufficient privileges")
+	}
+
 	_, err := a.db.Exec("delete from group_records where group_id = ? and asset_record_number = ?;", groupId, recordLocator)
 	if err != nil {
 		runtime.LogErrorf(a.ctx, "error deleting group asset associated by record locator: %v", err)
