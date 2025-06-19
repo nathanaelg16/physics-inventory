@@ -2,8 +2,8 @@ package main
 
 import (
 	"embed"
-
 	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
@@ -29,6 +29,9 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		LogLevel:           logger.INFO,
+		LogLevelProduction: logger.INFO,
+		Logger:             NewFileLogger(".physics-inventory.log"),
 	})
 
 	if err != nil {
