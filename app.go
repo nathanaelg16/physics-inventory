@@ -11,7 +11,9 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const DBHost = "localhost:3306"
+//const DBHost = "localhost:3306"
+
+const DBHost = "redwooddb0.cc.andrews.edu"
 
 //go:embed wails.json
 var wailsJSON string
@@ -58,7 +60,7 @@ func (a *App) GetProductVersion() (string, error) {
 
 func (a *App) Login(username string, password string) (uint8, error) {
 	runtime.LogInfof(a.ctx, "Logging in user: %s", username)
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory?parseTime=true", username, password, DBHost))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory?parseTime=true&tls=skip-verify", username, password, DBHost))
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return uint8(Viewer), err
