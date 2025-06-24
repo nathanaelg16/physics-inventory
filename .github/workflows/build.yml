@@ -12,18 +12,19 @@ env:
 
 jobs:
   build:
+    permissions: write-all
     strategy:
     # Failure in one platform build won't impact the others
       fail-fast: false
       matrix:
         build:
-          - name: 'App'
+          - name: 'physics-inventory-4'
             platform:  'linux/amd64'
             os: 'ubuntu-latest'
-          - name: 'App'
+          - name: 'physics-inventory-4'
             platform:  'windows/amd64'
             os: 'windows-latest'
-          - name: 'App'
+          - name: 'physics-inventory-4'
             platform:  'darwin/universal'
             os: 'macos-latest'
 
