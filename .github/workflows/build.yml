@@ -18,13 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - name: 'physics-inventory-4'
+          - name: 'physics-inventory-4-linux'
             platform:  'linux/amd64'
             os: 'ubuntu-latest'
-          - name: 'physics-inventory-4'
+          - name: 'physics-inventory-4-windows.exe'
             platform:  'windows/amd64'
             os: 'windows-latest'
-          - name: 'physics-inventory-4'
+          - name: 'physics-inventory-4-mac'
             platform:  'darwin/universal'
             os: 'macos-latest'
 
