@@ -104,7 +104,7 @@ export function GetSets():Promise<Array<main.Set>>;
 
 export function GetUsers():Promise<Array<main.User>>;
 
-export function Login(arg1:string,arg2:string,arg3:string):Promise<number>;
+export function Login(arg1:string,arg2:string):Promise<number>;
 
 export function RemoveImage(arg1:number):Promise<void>;
 

@@ -1,22 +1,10 @@
 import styles from "./login.module.css"
-import {
-    Alert,
-    Button,
-    CircularProgress,
-    FormControl,
-    InputLabel, MenuItem,
-    Select,
-    Snackbar,
-    Stack,
-    TextField
-} from "@mui/material"
+import {Alert, Button, CircularProgress, Snackbar, Stack, TextField} from "@mui/material"
 import {KeyboardEvent, useContext, useState} from "react"
 import {Login} from "../../../wailsjs/go/main/App"
 import {useNavigate} from "react-router"
 import logo from "../../assets/logo.png"
 import {AuthContext} from "../../utils/auth"
-
-type TLSOption = "true" | "false" | "preferred"
 
 export default function LoginView() {
     const navigate = useNavigate()
@@ -26,8 +14,6 @@ export default function LoginView() {
     const [password, setPassword] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [isLoading, setIsLoading] = useState<boolean>(false)
-
-    const [tlsOption, setTlsOption] = useState<TLSOption>("true")
 
     const updateUsername = (e: any) => setUsername(e.target.value)
     const updatePassword = (e: any) => setPassword(e.target.value)
@@ -45,7 +31,7 @@ export default function LoginView() {
         setErrorMessage('')
 
         try {
-            const accessLevel = await Login(username, password, tlsOption)
+            const accessLevel = await Login(username, password)
             authContext.setAuthenticated(true)
             authContext.setAccessLevel(accessLevel)
             navigate('/search', {replace: true})
@@ -80,19 +66,6 @@ export default function LoginView() {
                 onKeyUp={enterKeyListener}
                 disabled={isLoading}
             />
-            <FormControl>
-                <InputLabel id='tlsOptionInputLabel'>TLS Option</InputLabel>
-                <Select labelId='tlsOptionInputLabel'
-                        variant='outlined'
-                        value={tlsOption}
-                        label='TLS Option'
-                        onChange={(e) => setTlsOption(e.target.value as TLSOption)}
-                >
-                    <MenuItem value="true">TLS Active</MenuItem>
-                    <MenuItem value="preferred">TLS Preferred</MenuItem>
-                    <MenuItem value="false">No TLS</MenuItem>
-                </Select>
-            </FormControl>
             <Button
                 sx={{backgroundColor: '#cbb677', color: 'white'}}
                 variant='contained'
