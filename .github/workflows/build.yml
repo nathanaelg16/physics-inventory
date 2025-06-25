@@ -24,7 +24,7 @@ jobs:
           - name: 'physics-inventory-4-windows.exe'
             platform:  'windows/amd64'
             os: 'windows-latest'
-          - name: 'physics-inventory-4-mac'
+          - name: 'physics-inventory-4'
             platform:  'darwin/universal'
             os: 'macos-latest'
 
