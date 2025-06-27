@@ -49,7 +49,7 @@ This desktop application provides a complete solution for the Andrews University
 - **MySQL** 8.0.41
 - **Wails** framework installed
 
-## 🚀 Installation
+## 🚀 Installation (For Development)
 
 1. **Clone the repository**
    ```bash
@@ -57,7 +57,7 @@ This desktop application provides a complete solution for the Andrews University
    cd physics-inventory
    ```
 
-2. **Install Wails (if not already installed)**
+2. **Install Wails**
    ```bash
    go install github.com/wailsapp/wails/v2/cmd/wails@latest
    ```
@@ -121,7 +121,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Andrews University Physics Department for requirements and testing
 - Wails framework community for excellent desktop app foundation
-- Contributors and beta testers
 
 ---
 
