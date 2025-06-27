@@ -53,8 +53,8 @@ This desktop application provides a complete solution for the Andrews University
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/physics-inventory-management.git
-   cd physics-inventory-management
+   git clone https://github.com/nathanaelg16/physics-inventory.git
+   cd physics-inventory
    ```
 
 2. **Install Wails (if not already installed)**
