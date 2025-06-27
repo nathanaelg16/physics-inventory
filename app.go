@@ -11,9 +11,9 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-//const DBHost = "localhost:3306"
+//const dbHost = "localhost:3306"
 
-const DBHost = "redwooddb0.cc.andrews.edu"
+const dbHost = "redwooddb0.cc.andrews.edu"
 
 //go:embed wails.json
 var wailsJSON string
@@ -40,6 +40,24 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		runtime.LogErrorf(ctx, "%v", err)
 	}
+
+	if a.CheckForUpdates() {
+		messageDialogOptions := runtime.MessageDialogOptions{
+			Type:          runtime.InfoDialog,
+			Title:         "Update Required",
+			Message:       "A new version is now available. This update contains important improvements and must be installed to continue using the application. Your browser will open to download the update.",
+			DefaultButton: "Ok",
+		}
+
+		_, err := runtime.MessageDialog(a.ctx, messageDialogOptions)
+		if err != nil {
+			runtime.LogErrorf(ctx, "An error occurred showing the new update dialog: %v", err)
+			runtime.Quit(a.ctx)
+		}
+
+		runtime.BrowserOpenURL(a.ctx, "https://github.com/nathanaelg16/physics-inventory/releases/latest")
+		runtime.Quit(a.ctx)
+	}
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -60,7 +78,7 @@ func (a *App) GetProductVersion() (string, error) {
 
 func (a *App) Login(username string, password string) (uint8, error) {
 	runtime.LogInfof(a.ctx, "Logging in user: %s", username)
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory?parseTime=true", username, password, DBHost))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/physics_inventory?parseTime=true", username, password, dbHost))
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return uint8(Viewer), err
