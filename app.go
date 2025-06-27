@@ -40,6 +40,24 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		runtime.LogErrorf(ctx, "%v", err)
 	}
+
+	if a.CheckForUpdates() {
+		messageDialogOptions := runtime.MessageDialogOptions{
+			Type:          runtime.InfoDialog,
+			Title:         "Update Required",
+			Message:       "A new version is now available. This update contains important improvements and must be installed to continue using the application. Your browser will open to download the update.",
+			DefaultButton: "Ok",
+		}
+
+		_, err := runtime.MessageDialog(a.ctx, messageDialogOptions)
+		if err != nil {
+			runtime.LogErrorf(ctx, "An error occurred showing the new update dialog: %v", err)
+			runtime.Quit(a.ctx)
+		}
+
+		runtime.BrowserOpenURL(a.ctx, "https://github.com/nathanaelg16/physics-inventory/releases/latest")
+		runtime.Quit(a.ctx)
+	}
 }
 
 func (a *App) shutdown(ctx context.Context) {

@@ -38,6 +38,10 @@ export function ChangeImage(arg1) {
   return window['go']['main']['App']['ChangeImage'](arg1);
 }
 
+export function CheckForUpdates() {
+  return window['go']['main']['App']['CheckForUpdates']();
+}
+
 export function CreateGroup(arg1) {
   return window['go']['main']['App']['CreateGroup'](arg1);
 }
