@@ -49,7 +49,7 @@ This desktop application provides a complete solution for the Andrews University
 - **MySQL** 8.0.41
 - **Wails** framework installed
 
-## 🚀 Installation (For Development)
+## 🚀 Development Setup
 
 1. **Clone the repository**
    ```bash
